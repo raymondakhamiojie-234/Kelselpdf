@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/dashboard" class="active"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/exam/records"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Records & Analytics</a></li>
+            <li><a href="/materials"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Exam Materials</a></li>
+            <li><a href="/payments"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Payment History</a></li>
+            <li><a href="/profile"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
+            <li style="margin-top: 2rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="glass-panel" style="max-width: 600px; margin: 0 auto;">
+            <h1 class="text-center">Set your Exam</h1>
+            <p class="text-center">Choose your parameters to begin.</p>
+            
+            <form id="examForm" method="GET" action="/exam/start">
+                <div class="form-group">
+                    <label>Course</label>
+                    <select name="course" id="courseSelect" required>
+                        <option value="">Select a course...</option>
+                        <% if(courses && courses.length > 0) { %>
+                            <% courses.forEach(function(c) { %>
+                                <option value="<%= c.course_code %>"><%= c.course_code %></option>
+                            <% }); %>
+                        <% } else { %>
+                            <!-- Fallback -->
+                            <option value="GST101">GST101</option>
+                            <option value="MTH101">MTH101</option>
+                            <option value="PHY101">PHY101</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Time Duration (Minutes)</label>
+                    <input type="number" name="time" value="30" min="5" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Questions</label>
+                    <input type="number" name="questions" value="20" min="5" required>
+                </div>
+                
+                <div class="flex-col mt-1">
+                    <button type="submit" class="btn" style="width: 100%;">Start Exam</button>
+                    <button type="button" onclick="startAIExam()" class="btn btn-ai" style="width: 100%;">🤖 Generate AI Practice</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function startAIExam() {
+            const course = document.getElementById('courseSelect').value;
+            if (!course) {
+                alert("Please select a course first.");
+                return;
+            }
+            window.location.href = `/exam/ai?course=${encodeURIComponent(course)}`;
+        }
+    </script>
+</body>
+</html>
