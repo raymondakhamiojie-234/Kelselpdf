@@ -16,9 +16,11 @@ const PORT = process.env.PORT || 3000;
 // Database Connection Pool
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'kelselpdf',
+    ssl: process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud') ? { rejectUnauthorized: false } : null,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
