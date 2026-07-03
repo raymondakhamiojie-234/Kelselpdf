@@ -172,6 +172,23 @@ app.get('/setup-db', async (req, res) => {
     }
 });
 
+// Temporary Route to make the logged-in user an Admin
+app.get('/upgrade-admin', checkAuth, async (req, res) => {
+    try {
+        await pool.query("UPDATE users SET role = 'admin', has_paid = 1 WHERE id = ?", [req.session.user_id]);
+        
+        // Update session to reflect admin changes instantly
+        req.session.user = req.session.user || {};
+        req.session.user.role = 'admin';
+        req.session.user.has_paid = 1;
+        
+        res.redirect('/admin');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error upgrading account.");
+    }
+});
+
 // Auth Routes
 app.get('/login', (req, res) => {
     res.render('acct/login', { error: null });
