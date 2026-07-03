@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Results - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <div class="auth-wrapper" style="padding-top: 4rem; align-items: flex-start;">
+        <div class="glass-panel text-center" style="max-width: 500px; width: 100%;">
+            <h2 class="mb-2">Exam Results</h2>
+            <h4 style="color: var(--tran-color);"><%= course %> Mock Exam</h4>
+            
+            <div style="margin: 2rem 0;">
+                <div style="font-size: 4rem; font-weight: bold; color: <%= percentage >= 50 ? 'var(--success)' : 'var(--error)' %>;">
+                    <%= percentage %>%
+                </div>
+                <p style="font-size: 1.2rem;">You scored <strong><%= score %></strong> out of <strong><%= total_questions %></strong></p>
+            </div>
+            
+            <div style="background: var(--cbg-color-2); padding: 15px; border-radius: 8px; margin-bottom: 2rem;">
+                <p style="margin: 0;"><em>"<%= feedback %>"</em></p>
+            </div>
+
+            <div class="flex-col">
+                <a href="/exam/analytics" class="btn btn-ai">View Analytics</a>
+                <a href="/dashboard" class="btn">Return to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

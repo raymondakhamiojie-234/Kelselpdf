@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Materials - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/dashboard"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/exam/analytics"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Records & Analytics</a></li>
+            <li><a href="/exam_materials" class="active"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Exam Materials</a></li>
+            <li><a href="/payment_history"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Payment History</a></li>
+            <li><a href="/profile"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
+            <li style="margin-top: 2rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <h2>Exam Materials</h2>
+        <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Download past questions and materials curated for your department and level.</p>
+        
+        <div class="glass-panel" style="max-width: 900px;">
+            <% if (materials.length === 0) { %>
+                <div style="text-align: center; padding: 2rem;">
+                    <h3 style="color: var(--ntxt-color);">No materials available yet.</h3>
+                    <p style="color: var(--ntxt-color);">Check back later or contact your admin.</p>
+                </div>
+            <% } else { %>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--cbg-color-2); text-align: left;">
+                            <th style="padding: 1rem;">Course Code</th>
+                            <th style="padding: 1rem;">Year</th>
+                            <th style="padding: 1rem;">Exam Type</th>
+                            <th style="padding: 1rem; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% materials.forEach(mat => { %>
+                            <tr style="border-bottom: 1px solid var(--cbg-color-2);">
+                                <td style="padding: 1rem; font-weight: bold; color: var(--cta-color);"><%= mat.course_code %></td>
+                                <td style="padding: 1rem;"><%= mat.year %></td>
+                                <td style="padding: 1rem;"><%= mat.type %></td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    <% 
+                                        const filePath = mat.file_link.startsWith('http') ? mat.file_link : '/' + mat.file_link; 
+                                    %>
+                                    <a href="<%= filePath %>" target="_blank" class="btn btn-ai" style="padding: 5px 15px; font-size: 0.9rem; border-radius: 20px;">Download</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } %>
+        </div>
+    </main>
+</body>
+</html>

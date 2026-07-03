@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/dashboard"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/exam/analytics"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Records & Analytics</a></li>
+            <li><a href="/exam_materials"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Exam Materials</a></li>
+            <li><a href="/payment_history"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Payment History</a></li>
+            <li><a href="/profile" class="active"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
+            <li style="margin-top: 2rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="glass-panel" style="max-width: 700px; margin: 0 auto;">
+            <h2 class="mb-2">User Profile</h2>
+            
+            <% if (success) { %> <div class="alert alert-success"><%= success %></div> <% } %>
+            <% if (error) { %> <div class="alert alert-error"><%= error %></div> <% } %>
+
+            <form method="POST" action="/profile">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>First Name</label>
+                        <input type="text" name="full_name" value="<%= user.full_name %>" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Last Name</label>
+                        <input type="text" name="lastname" value="<%= user.lastname %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" value="<%= user.email %>" disabled style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                        <label>Department</label>
+                        <select name="department_id" required>
+                            <% 
+                            const depts = {
+                                1: 'Computer Science', 2: 'Electrical Engineering', 3: 'Business Administration',
+                                4: 'Law', 5: 'Medicine and Surgery', 6: 'Physics', 7: 'Chemistry',
+                                8: 'Mechanical Engineering', 9: 'Mass Communication', 10: 'Nursing Science',
+                                11: 'Psychology', 12: 'Sociology', 13: 'Accounting', 14: 'Economics'
+                            };
+                            for(let id in depts) { 
+                            %>
+                                <option value="<%= id %>" <%= user.department_id == id ? 'selected' : '' %>><%= depts[id] %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Level</label>
+                        <select name="level" required>
+                            <option value="100" <%= user.level == 100 ? 'selected' : '' %>>100</option>
+                            <option value="200" <%= user.level == 200 ? 'selected' : '' %>>200</option>
+                            <option value="300" <%= user.level == 300 ? 'selected' : '' %>>300</option>
+                            <option value="400" <%= user.level == 400 ? 'selected' : '' %>>400</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--cbg-color-2); margin: 2rem 0;">
+                
+                <h3 class="mb-1">Subscription Details</h3>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Current Plan</label>
+                        <input type="text" value="<%= user.subscription_plan.charAt(0).toUpperCase() + user.subscription_plan.slice(1) %>" disabled style="color: var(--cta-color); font-weight: bold; opacity: 1;">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Expiry Date</label>
+                        <input type="text" value="<%= user.has_paid && user.expiry_date ? new Date(user.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Subscribed' %>" disabled style="opacity: 1;">
+                    </div>
+                </div>
+
+                <div class="flex-col mt-1">
+                    <button type="submit" class="btn btn-ai" style="width: 100%;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
