@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <div class="auth-wrapper" style="align-items: flex-start; padding-top: 2rem;">
+        <div style="width: 100%; max-width: 900px;">
+            <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 1.5rem; display: block;">
+            <h2 class="text-center" style="margin-bottom: 0.5rem;">Choose Your Plan</h2>
+            <p class="text-center mb-2">Select a subscription to unlock KelselPDF</p>
+            
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;">
+                <!-- Premium Plan -->
+                <div class="glass-panel" style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
+                    <h3 style="color: var(--primary);">Premium</h3>
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">₦7,500 <span style="font-size: 1rem; color: var(--text-muted);">/ 3 months</span></h2>
+                    <ul style="list-style: none; margin-bottom: 2rem; flex: 1;">
+                        <li style="margin-bottom: 0.5rem;">✓ Access to Unlimited past questions</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Full Mock exams & test</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Limited study materials with AI</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Limited live track record with AI</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Unlimited contact support</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Limited AI access to generate exam questions</li>
+                    </ul>
+                    <button type="button" onclick="payWithPaystack('premium', 750000)" class="btn" style="width: 100%;">Select Premium</button>
+                </div>
+
+                <!-- Full Premium Plan -->
+                <div class="glass-panel" style="flex: 1; min-width: 300px; border: 2px solid var(--accent); position: relative; display: flex; flex-direction: column;">
+                    <div style="position: absolute; top: -12px; right: 20px; background: var(--accent); padding: 2px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: bold;">RECOMMENDED</div>
+                    <h3 style="color: var(--accent);">Full Premium</h3>
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">₦15,000 <span style="font-size: 1rem; color: var(--text-muted);">/ 6 months</span></h2>
+                    <ul style="list-style: none; margin-bottom: 2rem; flex: 1;">
+                        <li style="margin-bottom: 0.5rem;">✓ Access to Unlimited past questions</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Full Mock exams & test</li>
+                        <li style="margin-bottom: 0.5rem; color: var(--success);">✓ Unlimited study materials with AI</li>
+                        <li style="margin-bottom: 0.5rem; color: var(--success);">✓ Live track record with AI</li>
+                        <li style="margin-bottom: 0.5rem;">✓ Unlimited contact support</li>
+                        <li style="margin-bottom: 0.5rem; color: var(--success);">✓ Unlimited AI access to generate exam questions</li>
+                    </ul>
+                    <button type="button" onclick="payWithPaystack('full_premium', 1500000)" class="btn btn-ai" style="width: 100%;">Select Full Premium</button>
+                </div>
+            </div>
+
+            <div class="text-center mt-1" style="margin-top: 2rem;">
+                <p><a href="/logout" style="color: var(--error);">Logout and Return</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+      function payWithPaystack(plan, amountKobo) {
+        let handler = PaystackPop.setup({
+          key: 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
+          email: '<%= user.email %>',
+          amount: amountKobo, // Amount in kobo
+          currency: 'NGN',
+          ref: ''+Math.floor((Math.random() * 1000000000) + 1),
+          callback: function(response) {
+              // Verify on backend
+              fetch('/api/verify_payment', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({
+                      reference: response.reference,
+                      plan: plan
+                  })
+              })
+              .then(res => res.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      window.location.href = "/dashboard";
+                  } else {
+                      alert('Payment verification failed.');
+                  }
+              });
+          },
+          onClose: function() {
+              alert('Payment cancelled.');
+          }
+        });
+        handler.openIframe();
+      }
+    </script>
+</body>
+</html>

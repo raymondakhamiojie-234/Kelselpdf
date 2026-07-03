@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Questions - Admin Panel</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/admin">📊 Overview</a></li>
+            <li><a href="/admin/payments">💰 Payments</a></li>
+            <li><a href="/admin/subscriptions">📅 Subscriptions</a></li>
+            <li><a href="/admin/questions" class="active">📝 Upload Questions</a></li>
+            <li><a href="/admin/past_questions">📁 Past Questions</a></li>
+            <li style="margin-top: 2rem;"><a href="/dashboard">← Back to App</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <h2>Upload Exam Questions (CSV)</h2>
+        
+        <div class="glass-panel" style="max-width: 600px;">
+            <% if (success) { %> <div class="alert alert-success"><%= success %></div> <% } %>
+            <% if (error) { %> <div class="alert alert-error"><%= error %></div> <% } %>
+            
+            <div style="margin-bottom: 2rem; background: var(--cbg-color-2); padding: 15px; border-radius: 8px;">
+                <h4 style="margin-bottom: 0.5rem;">CSV Format Requirements:</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 0;">Your CSV must have exactly 7 columns in this order:<br>
+                <code style="color: var(--cta-color);">course_code, question_text, option_a, option_b, option_c, option_d, correct_option</code><br>
+                <em>(The first row is always skipped as a header row)</em></p>
+            </div>
+
+            <form method="POST" action="/admin/questions" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Select CSV File</label>
+                    <input type="file" name="csv_file" accept=".csv" required style="padding: 20px; border: 2px dashed var(--cbg-color-2); text-align: center; cursor: pointer;">
+                </div>
+                <button type="submit" class="btn btn-ai" style="width: 100%;">Upload & Import</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
