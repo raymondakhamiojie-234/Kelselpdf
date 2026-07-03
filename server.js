@@ -10,7 +10,7 @@ const fs = require('fs');
 const { OpenAI } = require('openai');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/uploads/' });
 const PORT = process.env.PORT || 3000;
 
 // Database Connection Pool
@@ -143,7 +143,7 @@ app.get('/dashboard', checkAuth, async (req, res) => {
 });
 
 // Profile Route (GET)
-app.get('/profile', requireAuth, async (req, res) => {
+app.get('/profile', checkAuth, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
         res.render('acct/profile', { user: rows[0], success: '', error: '' });
@@ -153,7 +153,7 @@ app.get('/profile', requireAuth, async (req, res) => {
 });
 
 // Profile Route (POST)
-app.post('/profile', requireAuth, async (req, res) => {
+app.post('/profile', checkAuth, async (req, res) => {
     const { full_name, lastname, department_id, level } = req.body;
     try {
         await pool.query(
@@ -170,7 +170,7 @@ app.post('/profile', requireAuth, async (req, res) => {
 });
 
 // Exam Materials Route (GET)
-app.get('/exam_materials', requireAuth, async (req, res) => {
+app.get('/exam_materials', checkAuth, async (req, res) => {
     try {
         const dept_id = req.session.user.department_id;
         const level = req.session.user.level;
@@ -191,7 +191,7 @@ app.get('/exam_materials', requireAuth, async (req, res) => {
 });
 
 // Exam Take Route (GET)
-app.get('/exam/take/:course', requireAuth, async (req, res) => {
+app.get('/exam/take/:course', checkAuth, async (req, res) => {
     try {
         const course = req.params.course;
         const time_limit = parseInt(req.query.time) || 30;
@@ -215,7 +215,7 @@ app.get('/exam/take/:course', requireAuth, async (req, res) => {
 });
 
 // Exam Submit Route (POST)
-app.post('/exam/submit', requireAuth, async (req, res) => {
+app.post('/exam/submit', checkAuth, async (req, res) => {
     try {
         const course = req.body.course || 'Unknown';
         const total_questions = parseInt(req.body.total_questions) || 0;
@@ -278,7 +278,7 @@ app.post('/exam/submit', requireAuth, async (req, res) => {
 });
 
 // Exam Analytics Route (GET)
-app.get('/exam/analytics', requireAuth, async (req, res) => {
+app.get('/exam/analytics', checkAuth, async (req, res) => {
     try {
         const user_id = req.session.user.id;
         const dept_id = req.session.user.department_id;
@@ -490,7 +490,7 @@ app.get('/admin/payments', requireAdmin, async (req, res) => {
 });
 
 // Student Payment History Route (GET)
-app.get('/payment_history', requireAuth, async (req, res) => {
+app.get('/payment_history', checkAuth, async (req, res) => {
     try {
         const [transactions] = await pool.query(
             'SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC',
@@ -504,12 +504,12 @@ app.get('/payment_history', requireAuth, async (req, res) => {
 });
 
 // Student Payment Route (GET)
-app.get('/payment', requireAuth, (req, res) => {
+app.get('/payment', checkAuth, (req, res) => {
     res.render('acct/payment', { user: req.session.user });
 });
 
 // Verify Payment API Route (POST)
-app.post('/api/verify_payment', requireAuth, async (req, res) => {
+app.post('/api/verify_payment', checkAuth, async (req, res) => {
     try {
         const reference = req.body.reference;
         const plan = req.body.plan || 'premium';
@@ -578,12 +578,12 @@ const openai = new OpenAI({
 });
 
 // AI Exam Take Route (GET)
-app.get('/exam/ai/take/:course', requireAuth, (req, res) => {
+app.get('/exam/ai/take/:course', checkAuth, (req, res) => {
     res.render('acct/ai_exam', { course: req.params.course });
 });
 
 // AI Generate Mock Exam (API GET)
-app.get('/api/ai/generate', requireAuth, async (req, res) => {
+app.get('/api/ai/generate', checkAuth, async (req, res) => {
     try {
         const course = req.query.course || 'General Knowledge';
 
@@ -628,7 +628,7 @@ Return ONLY a raw JSON object with this exact structure:
 });
 
 // AI Grade Theory (API POST)
-app.post('/api/ai/grade', requireAuth, async (req, res) => {
+app.post('/api/ai/grade', checkAuth, async (req, res) => {
     try {
         const question = req.body.question || '';
         const answer = req.body.answer || '';
@@ -665,7 +665,7 @@ app.post('/api/ai/grade', requireAuth, async (req, res) => {
 });
 
 // PDF AI Viewer Route (GET)
-app.get('/exam/ai/pdf', requireAuth, (req, res) => {
+app.get('/exam/ai/pdf', checkAuth, (req, res) => {
     const pdf_url = req.query.url;
     if (!pdf_url) {
         return res.status(400).send("No PDF URL provided.");
@@ -674,7 +674,7 @@ app.get('/exam/ai/pdf', requireAuth, (req, res) => {
 });
 
 // PDF Chat API (POST)
-app.post('/api/ai/pdf_chat', requireAuth, async (req, res) => {
+app.post('/api/ai/pdf_chat', checkAuth, async (req, res) => {
     try {
         const action = req.body.action;
         const apiKey = process.env.CHATPDF_API_KEY || 'sec_placeholder';
