@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Tutor Viewer - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/dashboard"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/exam/analytics"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Records & Analytics</a></li>
+            <li><a href="/payment_history"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Payment History</a></li>
+            <li><a href="/profile"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
+            <li><a href="/exam/ai/pdf?url=<%= encodeURIComponent(pdf_url) %>" class="active"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AI Tutor</a></li>
+            <li style="margin-top: 2rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <h2>Study Material: AI Tutor</h2>
+        
+        <div class="split-screen">
+            <div class="pdf-pane">
+                <iframe src="<%= pdf_url %>" width="100%" height="100%" style="border:none;"></iframe>
+            </div>
+            
+            <div class="chat-pane glass-panel">
+                <div id="initSection" class="text-center" style="margin-top: 5rem;">
+                    <h3>🤖 Chat with this Document</h3>
+                    <p>Initialize the AI tutor to ask questions about this specific PDF.</p>
+                    <button onclick="initAI()" id="initBtn" class="btn btn-ai mt-1">Initialize AI Tutor</button>
+                </div>
+
+                <div id="chatSection" style="display: none; height: 100%; flex-direction: column;">
+                    <div class="chat-messages" id="chatBox">
+                        <div class="message msg-ai">Hello! I have read the document. What would you like to know?</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="userInput" placeholder="Ask a question..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()" class="btn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let sourceId = null;
+
+        function initAI() {
+            const btn = document.getElementById('initBtn');
+            btn.innerText = "Initializing...";
+            btn.disabled = true;
+
+            fetch('/api/ai/pdf_chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'upload',
+                    pdf_url: "<%= pdf_url %>"
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.sourceId) {
+                    sourceId = data.sourceId;
+                    document.getElementById('initSection').style.display = 'none';
+                    document.getElementById('chatSection').style.display = 'flex';
+                } else {
+                    alert("Failed to initialize AI Tutor: " + (data.error || 'Unknown error'));
+                    btn.innerText = "Initialize AI Tutor";
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                alert("Connection error.");
+                btn.innerText = "Initialize AI Tutor";
+                btn.disabled = false;
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msg = input.value.trim();
+            if (!msg || !sourceId) return;
+
+            const chatBox = document.getElementById('chatBox');
+            
+            // Add user msg
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message msg-user';
+            userDiv.innerText = msg;
+            chatBox.appendChild(userDiv);
+            input.value = '';
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Add typing indicator
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'message msg-ai';
+            aiDiv.innerText = 'Thinking...';
+            chatBox.appendChild(aiDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            fetch('/api/ai/pdf_chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'chat',
+                    sourceId: sourceId,
+                    message: msg
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.content) {
+                    aiDiv.innerText = data.content;
+                } else {
+                    aiDiv.innerText = "Error: Could not get response.";
+                }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(err => {
+                aiDiv.innerText = "Connection error.";
+            });
+        }
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ const mysql = require('mysql2/promise');
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
+const { OpenAI } = require('openai');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
@@ -568,6 +569,163 @@ app.post('/api/verify_payment', requireAuth, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.json({ status: 'error', message: 'Server error during verification' });
+    }
+});
+
+// AI Tutor Setup
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'sk-proj-placeholder'
+});
+
+// AI Exam Take Route (GET)
+app.get('/exam/ai/take/:course', requireAuth, (req, res) => {
+    res.render('acct/ai_exam', { course: req.params.course });
+});
+
+// AI Generate Mock Exam (API GET)
+app.get('/api/ai/generate', requireAuth, async (req, res) => {
+    try {
+        const course = req.query.course || 'General Knowledge';
+
+        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+            // Return mock JSON if no API key
+            const mock_exam = {
+                mcqs: [
+                    { question: `What is the foundational principle of ${course}?`, options: ["A. Data Processing", "B. Theoretical Analysis", "C. Core Fundamentals", "D. Practical Application"], answer_index: 2 },
+                    { question: `Which of the following is most commonly associated with ${course}?`, options: ["A. Historical Context", "B. Advanced Methodologies", "C. Basic Syntax", "D. All of the above"], answer_index: 3 },
+                    { question: `In the context of ${course}, what is the most important factor?`, options: ["A. Accuracy", "B. Speed", "C. Creativity", "D. Documentation"], answer_index: 0 },
+                    { question: `How does ${course} impact modern applications?`, options: ["A. It doesn't", "B. It provides structural integrity", "C. It is purely theoretical", "D. It replaces older systems"], answer_index: 1 }
+                ],
+                theory: `Explain the core fundamentals and methodologies of ${course} and how they apply to real-world scenarios.`
+            };
+            return res.json(mock_exam);
+        }
+
+        const prompt = `Generate exactly 4 multiple-choice questions and 1 open-ended theory question for a university-level course named '${course}'. 
+Return ONLY a raw JSON object with this exact structure:
+{
+  "mcqs": [
+    { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer_index": 0 }
+  ],
+  "theory": "..."
+}`;
+
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a university professor creating an exam. Output strict JSON." },
+                { role: "user", content: prompt }
+            ],
+            model: "gpt-3.5-turbo",
+            response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0].message.content);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Failed to generate exam from AI provider.' });
+    }
+});
+
+// AI Grade Theory (API POST)
+app.post('/api/ai/grade', requireAuth, async (req, res) => {
+    try {
+        const question = req.body.question || '';
+        const answer = req.body.answer || '';
+
+        if (!question || !answer) {
+            return res.json({ error: 'Missing data' });
+        }
+
+        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+            const mock_grade = {
+                score: 8,
+                feedback: "Excellent start, but your answer lacks depth on the architectural trade-offs. You demonstrated a solid understanding of the fundamental concepts."
+            };
+            return res.json(mock_grade);
+        }
+
+        const prompt = `Question: ${question}\nStudent's Answer: ${answer}\n\nGrade this answer out of 10 and provide 2 sentences of constructive feedback. Return ONLY JSON like this: {"score": 8, "feedback": "..."}`;
+
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a fair but rigorous university professor. Output strict JSON." },
+                { role: "user", content: prompt }
+            ],
+            model: "gpt-3.5-turbo",
+            response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0].message.content);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Failed to grade theory answer.' });
+    }
+});
+
+// PDF AI Viewer Route (GET)
+app.get('/exam/ai/pdf', requireAuth, (req, res) => {
+    const pdf_url = req.query.url;
+    if (!pdf_url) {
+        return res.status(400).send("No PDF URL provided.");
+    }
+    res.render('acct/pdf_viewer', { pdf_url });
+});
+
+// PDF Chat API (POST)
+app.post('/api/ai/pdf_chat', requireAuth, async (req, res) => {
+    try {
+        const action = req.body.action;
+        const apiKey = process.env.CHATPDF_API_KEY || 'sec_placeholder';
+
+        if (action === 'upload') {
+            const pdf_url = req.body.pdf_url;
+            
+            // To ensure compatibility with external domains handling absolute vs relative urls
+            const absolute_url = pdf_url.startsWith('http') ? pdf_url : `http://${req.headers.host}/${pdf_url}`;
+
+            if (apiKey === 'sec_placeholder') {
+                return res.json({ sourceId: 'mock_source_id_12345' });
+            }
+
+            const response = await fetch('https://api.chatpdf.com/v1/sources/add-url', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: absolute_url })
+            });
+            const data = await response.json();
+            res.json(data);
+        } else if (action === 'chat') {
+            const sourceId = req.body.sourceId;
+            const message = req.body.message;
+
+            if (apiKey === 'sec_placeholder') {
+                return res.json({ content: "I am a mock AI response since the ChatPDF API key isn't configured yet. I read the PDF and it's fascinating!" });
+            }
+
+            const response = await fetch('https://api.chatpdf.com/v1/chats/message', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sourceId: sourceId,
+                    messages: [{ role: 'user', content: message }]
+                })
+            });
+            const data = await response.json();
+            res.json(data);
+        } else {
+            res.json({ error: 'Invalid action' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Server error communicating with PDF AI.' });
     }
 });
 

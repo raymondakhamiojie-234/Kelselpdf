@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Practice Exam - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body>
+    <div class="auth-wrapper" style="align-items: flex-start; padding-top: 2rem;">
+        <div class="glass-panel" style="width: 100%; max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>🤖 AI Practice: <%= course %></h2>
+                <a href="/dashboard" class="btn">Exit Exam</a>
+            </div>
+
+            <div id="loading" class="text-center mb-2">
+                <p>Generating your custom AI exam... Please wait.</p>
+                <div class="btn-ai" style="width: 50px; height: 50px; border-radius: 50%; margin: 1rem auto;"></div>
+            </div>
+
+            <div id="examContainer" style="display: none;">
+                <form id="aiExamForm">
+                    <div id="mcqContainer"></div>
+                    
+                    <div class="question-card glass-panel" style="background: rgba(0,0,0,0.2); margin-top: 2rem;">
+                        <h3>Theory Question</h3>
+                        <p id="theoryQuestionText" style="font-weight: 500;"></p>
+                        <textarea id="theoryAnswer" rows="5" placeholder="Type your detailed answer here..." required style="width: 100%; background: var(--cbg-color-2); border: none; color: var(--text-color); padding: 10px; border-radius: 5px;"></textarea>
+                        <div id="theoryFeedback" style="margin-top: 1rem; display: none;" class="alert alert-success"></div>
+                    </div>
+
+                    <button type="button" onclick="submitExam()" class="btn btn-ai mt-1" style="width: 100%; font-size: 1.1rem; padding: 15px;">Submit Answers for Grading</button>
+                </form>
+
+                <div id="resultsContainer" style="display: none; margin-top: 2rem;" class="text-center">
+                    <h2>Exam Completed</h2>
+                    <h1 id="scoreDisplay" style="color: var(--accent); font-size: 3rem;">0/4</h1>
+                    <p>MCQs Graded.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let examData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Error generating exam: " + data.error);
+                        return;
+                    }
+                    examData = data;
+                    renderExam();
+                })
+                .catch(err => {
+                    alert("Failed to connect to AI engine.");
+                    console.error(err);
+                });
+        });
+
+        function renderExam() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('examContainer').style.display = 'block';
+
+            const mcqContainer = document.getElementById('mcqContainer');
+            examData.mcqs.forEach((mcq, index) => {
+                let html = `
+                    <div class="question-card" id="qcard-${index}">
+                        <h4>Question ${index + 1}</h4>
+                        <p>${mcq.question}</p>
+                        <ul class="options-list">
+                `;
+                mcq.options.forEach((opt, oIndex) => {
+                    html += `
+                        <li>
+                            <label>
+                                <input type="radio" name="q${index}" value="${oIndex}" required>
+                                ${opt}
+                            </label>
+                        </li>
+                    `;
+                });
+                html += `</ul></div>`;
+                mcqContainer.innerHTML += html;
+            });
+
+            document.getElementById('theoryQuestionText').innerText = examData.theory;
+        }
+
+        function submitExam() {
+            let score = 0;
+            
+            // Grade MCQs instantly
+            examData.mcqs.forEach((mcq, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const card = document.getElementById(`qcard-${index}`);
+                if (selected) {
+                    if (parseInt(selected.value) === mcq.answer_index) {
+                        score++;
+                        card.style.borderLeft = "4px solid var(--success)";
+                    } else {
+                        card.style.borderLeft = "4px solid var(--error)";
+                    }
+                }
+            });
+
+            document.getElementById('scoreDisplay').innerText = `${score} / ${examData.mcqs.length}`;
+            document.getElementById('resultsContainer').style.display = 'block';
+
+            // Submit Theory for AI grading
+            const answer = document.getElementById('theoryAnswer').value;
+            const feedbackBox = document.getElementById('theoryFeedback');
+            feedbackBox.style.display = 'block';
+            feedbackBox.className = 'alert';
+            feedbackBox.innerText = '🤖 Grading theory answer...';
+
+            fetch('/api/ai/grade', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    question: examData.theory,
+                    answer: answer
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    feedbackBox.className = 'alert alert-error';
+                    feedbackBox.innerText = "Error: " + data.error;
+                } else {
+                    feedbackBox.className = 'alert alert-success';
+                    feedbackBox.innerHTML = `<strong>Score: ${data.score}/10</strong><br>${data.feedback}`;
+                }
+            })
+            .catch(err => {
+                feedbackBox.className = 'alert alert-error';
+                feedbackBox.innerText = "Failed to grade theory.";
+            });
+        }
+    </script>
+</body>
+</html>
