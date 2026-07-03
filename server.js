@@ -48,9 +48,23 @@ app.use((req, res, next) => {
 });
 
 // Authentication Middleware
-const checkAuth = (req, res, next) => {
+const checkAuth = async (req, res, next) => {
     if (!req.session.user_id) {
         return res.redirect('/login');
+    }
+    if (!req.session.user) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user_id]);
+            if (rows.length > 0) {
+                req.session.user = rows[0];
+            } else {
+                req.session.destroy();
+                return res.redirect('/login');
+            }
+        } catch (err) {
+            console.error(err);
+            return res.status(500).send("Database error");
+        }
     }
     next();
 };
