@@ -59,6 +59,117 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
+// Temporary Database Setup Route
+app.get('/setup-db', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                full_name VARCHAR(100) NOT NULL,
+                lastname VARCHAR(100) NOT NULL,
+                email VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                role VARCHAR(20) DEFAULT 'student',
+                platform VARCHAR(50),
+                department_id INT(6),
+                level INT(4),
+                expiry_date DATE,
+                has_paid BOOLEAN DEFAULT 0,
+                subscription_plan VARCHAR(50) DEFAULT 'none',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS questions (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                course_code VARCHAR(20) NOT NULL,
+                question_text TEXT NOT NULL,
+                option_a TEXT,
+                option_b TEXT,
+                option_c TEXT,
+                option_d TEXT,
+                correct_option VARCHAR(10),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT(6) UNSIGNED,
+                reference VARCHAR(100) NOT NULL,
+                plan VARCHAR(50),
+                amount DECIMAL(10,2),
+                status VARCHAR(20) DEFAULT 'success',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS courses (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                course_code VARCHAR(20) NOT NULL,
+                department_id INT(6) UNSIGNED,
+                shared_access_group VARCHAR(50),
+                level_access INT(4)
+            )
+        `);
+
+        // Check if courses are already seeded
+        const [rows] = await pool.query('SELECT id FROM courses LIMIT 1');
+        if (rows.length === 0) {
+            await pool.query(`
+                INSERT INTO courses (course_code, department_id, level_access, shared_access_group) VALUES 
+                ('CSC101', 1, 100, 'general'), ('CSC201', 1, 200, 'general'), ('CSC301', 1, 300, 'general'), ('CSC401', 1, 400, 'general'),
+                ('EEE101', 2, 100, 'general'), ('EEE201', 2, 200, 'general'), ('EEE301', 2, 300, 'general'), ('EEE401', 2, 400, 'general'),
+                ('BUS101', 3, 100, 'general'), ('BUS201', 3, 200, 'general'), ('BUS301', 3, 300, 'general'), ('BUS401', 3, 400, 'general'),
+                ('LAW101', 4, 100, 'general'), ('LAW201', 4, 200, 'general'), ('LAW301', 4, 300, 'general'), ('LAW401', 4, 400, 'general'),
+                ('MED101', 5, 100, 'general'), ('MED201', 5, 200, 'general'), ('MED301', 5, 300, 'general'), ('MED401', 5, 400, 'general'),
+                ('PHY101', 6, 100, 'general'), ('PHY201', 6, 200, 'general'), ('PHY301', 6, 300, 'general'), ('PHY401', 6, 400, 'general'),
+                ('CHM101', 7, 100, 'general'), ('CHM201', 7, 200, 'general'), ('CHM301', 7, 300, 'general'), ('CHM401', 7, 400, 'general'),
+                ('MEC101', 8, 100, 'general'), ('MEC201', 8, 200, 'general'), ('MEC301', 8, 300, 'general'), ('MEC401', 8, 400, 'general'),
+                ('MAC101', 9, 100, 'general'), ('MAC201', 9, 200, 'general'), ('MAC301', 9, 300, 'general'), ('MAC401', 9, 400, 'general'),
+                ('NUR101', 10, 100, 'general'), ('NUR201', 10, 200, 'general'), ('NUR301', 10, 300, 'general'), ('NUR401', 10, 400, 'general'),
+                ('PSY101', 11, 100, 'general'), ('PSY201', 11, 200, 'general'), ('PSY301', 11, 300, 'general'), ('PSY401', 11, 400, 'general'),
+                ('SOC101', 12, 100, 'general'), ('SOC201', 12, 200, 'general'), ('SOC301', 12, 300, 'general'), ('SOC401', 12, 400, 'general'),
+                ('ACC101', 13, 100, 'general'), ('ACC201', 13, 200, 'general'), ('ACC301', 13, 300, 'general'), ('ACC401', 13, 400, 'general'),
+                ('ECO101', 14, 100, 'general'), ('ECO201', 14, 200, 'general'), ('ECO301', 14, 300, 'general'), ('ECO401', 14, 400, 'general'),
+                ('GST101', 0, 100, 'gst'), ('GST102', 0, 100, 'gst'), ('GST201', 0, 200, 'gst'), ('GST202', 0, 200, 'gst')
+            `);
+        }
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS past_questions (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                course_id INT(6) UNSIGNED,
+                year VARCHAR(10),
+                type VARCHAR(20),
+                file_link VARCHAR(255),
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS exam_attempts (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT(6) UNSIGNED,
+                course_code VARCHAR(20),
+                score INT(3),
+                total_questions INT(3),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        res.send("<h1>Database successfully setup!</h1><p>You can now go to <a href='/login'>Login</a> and register your first account.</p>");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("<h1>Error setting up database:</h1><p>" + err.message + "</p>");
+    }
+});
+
 // Auth Routes
 app.get('/login', (req, res) => {
     res.render('acct/login', { error: null });
