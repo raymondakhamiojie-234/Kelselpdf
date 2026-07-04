@@ -65,20 +65,21 @@ const checkAuth = async (req, res, next) => {
             return res.status(500).send("Database error");
         }
     }
-    // Payment Enforcement Check
-    const user = req.session.user;
-    if (user.role !== 'admin') {
-        const currentDate = new Date();
-        const expiryDate = new Date(user.expiry_date);
-        
-        if (user.has_paid === 0 || !user.expiry_date || expiryDate <= currentDate) {
-            // Prevent infinite redirect loops for payment pages and logout
-            if (req.path !== '/payment' && req.path !== '/api/verify_payment' && req.path !== '/logout') {
-                return res.redirect('/payment');
-            }
-        }
-    }
+    next();
+};
 
+// Premium Enforcement Middleware
+const requirePremium = (req, res, next) => {
+    const user = req.session.user;
+    if (user.role === 'admin') return next();
+    
+    const currentDate = new Date();
+    const expiryDate = new Date(user.expiry_date);
+    
+    if (user.has_paid === 0 || !user.expiry_date || expiryDate <= currentDate) {
+        // You can render a beautiful "Premium Required" page here or redirect
+        return res.redirect('/payment');
+    }
     next();
 };
 
@@ -189,6 +190,70 @@ app.get('/setup-db', async (req, res) => {
                 total_questions INT(3),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS academy_categories (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                slug VARCHAR(100) NOT NULL UNIQUE,
+                icon VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS academy_courses (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                category_id INT(6) UNSIGNED,
+                title VARCHAR(200) NOT NULL,
+                slug VARCHAR(200) NOT NULL UNIQUE,
+                description TEXT,
+                instructor VARCHAR(100),
+                duration_hours DECIMAL(5,2),
+                skill_level VARCHAR(20),
+                thumbnail VARCHAR(255),
+                is_premium BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES academy_categories(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS academy_modules (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                course_id INT(6) UNSIGNED,
+                title VARCHAR(200) NOT NULL,
+                order_index INT(3),
+                FOREIGN KEY (course_id) REFERENCES academy_courses(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS academy_lessons (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                module_id INT(6) UNSIGNED,
+                title VARCHAR(200) NOT NULL,
+                type ENUM('video', 'reading', 'assignment', 'quiz') NOT NULL,
+                content TEXT,
+                video_url VARCHAR(255),
+                duration_minutes INT(3),
+                order_index INT(3),
+                FOREIGN KEY (module_id) REFERENCES academy_modules(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS academy_progress (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT(6) UNSIGNED,
+                lesson_id INT(6) UNSIGNED,
+                completed BOOLEAN DEFAULT FALSE,
+                completed_at TIMESTAMP NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (lesson_id) REFERENCES academy_lessons(id) ON DELETE CASCADE,
+                UNIQUE KEY user_lesson (user_id, lesson_id)
             )
         `);
 
