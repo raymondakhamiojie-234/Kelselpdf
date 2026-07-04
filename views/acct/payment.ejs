@@ -56,7 +56,7 @@
     <script>
       function payWithPaystack(plan, amountKobo) {
         let handler = PaystackPop.setup({
-          key: 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
+          key: '<%= paystack_public_key %>',
           email: '<%= user.email %>',
           amount: amountKobo, // Amount in kobo
           currency: 'NGN',

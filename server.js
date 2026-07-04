@@ -678,7 +678,10 @@ app.get('/payment_history', checkAuth, async (req, res) => {
 
 // Student Payment Route (GET)
 app.get('/payment', checkAuth, (req, res) => {
-    res.render('acct/payment', { user: req.session.user });
+    res.render('acct/payment', { 
+        user: req.session.user,
+        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913' 
+    });
 });
 
 // Verify Payment API Route (POST)
@@ -691,11 +694,13 @@ app.post('/api/verify_payment', checkAuth, async (req, res) => {
             return res.json({ status: 'error', message: 'No reference supplied' });
         }
 
+        const paystack_secret = process.env.PAYSTACK_SECRET_KEY || 'sk_test_cf6c6d149cc80889c10fd94552cc29e8e500b2c3';
+
         // We will use native fetch (available in Node 18+)
         const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
             method: 'GET',
             headers: {
-                "Authorization": "Bearer sk_test_cf6c6d149cc80889c10fd94552cc29e8e500b2c3",
+                "Authorization": `Bearer ${paystack_secret}`,
                 "Cache-Control": "no-cache"
             }
         });
