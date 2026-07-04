@@ -65,6 +65,20 @@ const checkAuth = async (req, res, next) => {
             return res.status(500).send("Database error");
         }
     }
+    // Payment Enforcement Check
+    const user = req.session.user;
+    if (user.role !== 'admin') {
+        const currentDate = new Date();
+        const expiryDate = new Date(user.expiry_date);
+        
+        if (user.has_paid === 0 || !user.expiry_date || expiryDate <= currentDate) {
+            // Prevent infinite redirect loops for payment pages and logout
+            if (req.path !== '/payment' && req.path !== '/api/verify_payment' && req.path !== '/logout') {
+                return res.redirect('/payment');
+            }
+        }
+    }
+
     next();
 };
 
