@@ -335,6 +335,22 @@ app.get('/exam_materials', checkAuth, async (req, res) => {
 });
 
 // Exam Take Route (GET)
+// Exam Redirect Helpers (from Dashboard form)
+app.get('/exam/start', (req, res) => {
+    const course = req.query.course;
+    if (!course) return res.redirect('/dashboard');
+    const time = req.query.time || 30;
+    const questions = req.query.questions || 20;
+    res.redirect(`/exam/take/${encodeURIComponent(course)}?time=${time}&questions=${questions}`);
+});
+
+app.get('/exam/ai', (req, res) => {
+    const course = req.query.course;
+    if (!course) return res.redirect('/dashboard');
+    res.redirect(`/exam/ai/take/${encodeURIComponent(course)}`);
+});
+
+// Standard Exam Route
 app.get('/exam/take/:course', checkAuth, async (req, res) => {
     try {
         const course = req.params.course;
