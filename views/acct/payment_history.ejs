@@ -7,17 +7,7 @@
     <script src="/theme.js"></script>
 </head>
 <body>
-    <nav class="sidebar">
-        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
-        <ul>
-            <li><a href="/dashboard"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
-            <li><a href="/exam/analytics"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Records & Analytics</a></li>
-            <li><a href="/exam_materials"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Exam Materials</a></li>
-            <li><a href="/payment_history" class="active"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Payment History</a></li>
-            <li><a href="/profile"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
-            <li style="margin-top: 2rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
-        </ul>
-    </nav>
+    <%- include('partials/sidebar', { active_page: 'billing' }) %>
 
     <main class="main-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">

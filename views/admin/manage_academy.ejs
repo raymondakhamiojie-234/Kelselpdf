@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Skills Academy - Admin</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: rgba(255,255,255,0.05); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/admin">📊 Overview</a></li>
+            <li><a href="/admin/payments">💰 Payments</a></li>
+            <li><a href="/admin/subscriptions">📅 Subscriptions</a></li>
+            <li><a href="/admin/questions">📝 Upload Questions</a></li>
+            <li><a href="/admin/past_questions">📁 Past Questions</a></li>
+            <li><a href="/admin/academy" class="active">🎓 Skills Academy</a></li>
+            <li style="margin-top: 2rem;"><a href="/dashboard">← Back to App</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Skills Academy Management</h2>
+        </div>
+
+        <div class="glass-panel mb-2">
+            <h3>Academy Categories</h3>
+            <form action="/admin/academy/category" method="POST" style="display: flex; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
+                <input type="text" name="name" placeholder="Category Name" required class="input-field" style="flex: 1;">
+                <input type="text" name="slug" placeholder="Slug (e.g. tech)" required class="input-field" style="flex: 1;">
+                <button type="submit" class="btn btn-primary">Add Category</button>
+            </form>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Actions</th>
+                    </tr>
+                    <% categories.forEach(function(cat) { %>
+                    <tr>
+                        <td><%= cat.id %></td>
+                        <td><%= cat.name %></td>
+                        <td><%= cat.slug %></td>
+                        <td>
+                            <form action="/admin/academy/category/delete" method="POST" style="display:inline;">
+                                <input type="hidden" name="id" value="<%= cat.id %>">
+                                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h3>Academy Courses</h3>
+            <form action="/admin/academy/course" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
+                <select name="category_id" required class="input-field" style="grid-column: 1 / -1;">
+                    <option value="">Select Category</option>
+                    <% categories.forEach(function(cat) { %>
+                        <option value="<%= cat.id %>"><%= cat.name %></option>
+                    <% }); %>
+                </select>
+                <input type="text" name="title" placeholder="Course Title" required class="input-field">
+                <input type="text" name="slug" placeholder="Slug (e.g. intro-to-python)" required class="input-field">
+                <input type="text" name="instructor" placeholder="Instructor Name" class="input-field">
+                <input type="number" step="0.1" name="duration_hours" placeholder="Duration (Hours)" class="input-field">
+                <textarea name="description" placeholder="Course Description" class="input-field" style="grid-column: 1 / -1;" rows="3"></textarea>
+                <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">Add Course</button>
+            </form>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Instructor</th>
+                        <th>Actions</th>
+                    </tr>
+                    <% courses.forEach(function(course) { %>
+                    <tr>
+                        <td><%= course.id %></td>
+                        <td><%= course.title %></td>
+                        <td><%= course.instructor %></td>
+                        <td>
+                            <form action="/admin/academy/course/delete" method="POST" style="display:inline;">
+                                <input type="hidden" name="id" value="<%= course.id %>">
+                                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

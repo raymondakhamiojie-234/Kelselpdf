@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= course.title %> - Skills Academy</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1) 0%, rgba(var(--bg-rgb), 1) 100%);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .hero-content {
+            flex: 1;
+        }
+        .hero-image {
+            width: 300px;
+            height: 200px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+        .module-list {
+            margin-top: 2rem;
+        }
+        .module-item {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .module-header {
+            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        .module-header:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .lesson-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            border-top: 1px solid var(--border-color);
+        }
+        .lesson-item {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            color: var(--ntxt-color);
+        }
+        .lesson-item:last-child {
+            border-bottom: none;
+        }
+        .lesson-item img {
+            width: 16px;
+            margin-right: 10px;
+            opacity: 0.7;
+        }
+        .premium-badge {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
+
+    <main class="main-content">
+        <a href="/academy" style="color: var(--accent); text-decoration: none; display: inline-block; margin-bottom: 1rem;">&larr; Back to Courses</a>
+        
+        <div class="hero-section">
+            <div class="hero-content">
+                <% if(course.is_premium) { %>
+                    <div class="premium-badge">PREMIUM COURSE</div>
+                <% } else { %>
+                    <div class="premium-badge" style="background: var(--success);">FREE COURSE</div>
+                <% } %>
+                
+                <h1 style="margin-bottom: 1rem; font-size: 2.5rem;"><%= course.title %></h1>
+                <p style="font-size: 1.1rem; color: var(--ntxt-color); margin-bottom: 1.5rem; line-height: 1.6;"><%= course.description %></p>
+                
+                <div style="display: flex; gap: 2rem; margin-bottom: 2rem; color: var(--text-color); opacity: 0.8;">
+                    <span><strong>Instructor:</strong> <%= course.instructor || 'Kelsel Team' %></span>
+                    <span><strong>Duration:</strong> <%= course.duration_hours %> Hours</span>
+                    <span><strong>Level:</strong> <%= course.skill_level || 'Beginner' %></span>
+                </div>
+
+                <% if (is_enrolled) { %>
+                    <a href="/academy/player/<%= course.slug %>" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Continue Learning</a>
+                <% } else if (course.is_premium && (!locals.user || !locals.user.has_paid)) { %>
+                    <a href="/payment" class="btn btn-ai" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Unlock Premium to Enroll</a>
+                <% } else { %>
+                    <form action="/academy/enroll" method="POST" style="display: inline;">
+                        <input type="hidden" name="course_id" value="<%= course.id %>">
+                        <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Enroll Now</button>
+                    </form>
+                <% } %>
+            </div>
+            <% if(course.thumbnail) { %>
+                <img src="<%= course.thumbnail %>" alt="<%= course.title %>" class="hero-image">
+            <% } %>
+        </div>
+
+        <div class="glass-panel">
+            <h3>Course Syllabus</h3>
+            <p style="color: var(--ntxt-color);">What you will learn in this course</p>
+            
+            <div class="module-list">
+                <% if(modules.length === 0) { %>
+                    <p style="padding: 2rem; text-align: center; color: var(--ntxt-color);">Syllabus is being updated. Check back soon!</p>
+                <% } else { %>
+                    <% modules.forEach(function(mod, index) { %>
+                        <div class="module-item">
+                            <div class="module-header">
+                                <span>Module <%= index + 1 %>: <%= mod.title %></span>
+                                <span><%= mod.lessons ? mod.lessons.length : 0 %> Lessons</span>
+                            </div>
+                            <% if(mod.lessons && mod.lessons.length > 0) { %>
+                                <ul class="lesson-list">
+                                    <% mod.lessons.forEach(function(lesson) { %>
+                                        <li class="lesson-item">
+                                            <% if(lesson.type === 'video') { %>
+                                                🎥
+                                            <% } else if(lesson.type === 'reading') { %>
+                                                📄
+                                            <% } else if(lesson.type === 'quiz') { %>
+                                                📝
+                                            <% } %>
+                                            <span style="margin-left: 10px;"><%= lesson.title %></span>
+                                            <span style="margin-left: auto; font-size: 0.85rem; opacity: 0.6;"><%= lesson.duration_minutes %> min</span>
+                                        </li>
+                                    <% }); %>
+                                </ul>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                <% } %>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

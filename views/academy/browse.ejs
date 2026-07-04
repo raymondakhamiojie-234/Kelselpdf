@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skills Academy - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .course-card {
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+        .course-thumbnail {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: var(--accent);
+            opacity: 0.8;
+        }
+        .course-info {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .course-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .course-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 700;
+        }
+        .course-desc {
+            font-size: 0.9rem;
+            color: var(--ntxt-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+        .course-meta span {
+            display: flex;
+            align-items: center;
+        }
+        .course-meta img {
+            width: 16px;
+            margin-right: 5px;
+            filter: var(--icon-filter);
+        }
+        .premium-badge {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h2>Skills Academy</h2>
+                <p style="color: var(--ntxt-color);">Master high-income skills and accelerate your career.</p>
+            </div>
+            <% if(locals.user && locals.user.has_paid) { %>
+                <span class="premium-badge" style="padding: 6px 12px; font-size: 0.9rem;">Premium Member</span>
+            <% } else { %>
+                <a href="/payment" class="btn btn-primary" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border: none;">Unlock Premium</a>
+            <% } %>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="category-filters mb-2" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+            <a href="/academy" class="btn <%= !locals.current_category ? 'btn-primary' : 'btn-outline' %>" style="border-radius: 20px;">All</a>
+            <% categories.forEach(function(cat) { %>
+                <a href="/academy?category=<%= cat.slug %>" class="btn <%= locals.current_category === cat.slug ? 'btn-primary' : 'btn-outline' %>" style="border-radius: 20px;"><%= cat.name %></a>
+            <% }); %>
+        </div>
+        
+        <% if(courses.length === 0) { %>
+            <div class="glass-panel text-center" style="padding: 4rem 2rem;">
+                <img src="/acct/img/report-svgrepo-com.svg" style="width: 64px; opacity: 0.5; margin-bottom: 1rem;">
+                <h3>No courses found</h3>
+                <p>Check back later or try a different category.</p>
+            </div>
+        <% } else { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                <% courses.forEach(function(course) { %>
+                    <div class="course-card">
+                        <% if(course.thumbnail) { %>
+                            <img src="<%= course.thumbnail %>" alt="<%= course.title %>" class="course-thumbnail">
+                        <% } else { %>
+                            <div class="course-thumbnail" style="display:flex; align-items:center; justify-content:center;">
+                                <span style="font-size:3rem; color:rgba(255,255,255,0.5)">📚</span>
+                            </div>
+                        <% } %>
+                        <div class="course-info">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div class="course-category"><%= course.category_name %></div>
+                                <% if(course.is_premium) { %>
+                                    <span class="premium-badge">PRO</span>
+                                <% } else { %>
+                                    <span class="premium-badge" style="background: var(--success);">FREE</span>
+                                <% } %>
+                            </div>
+                            <h3 class="course-title"><%= course.title %></h3>
+                            <p class="course-desc"><%= course.description.substring(0, 100) %>...</p>
+                            
+                            <div class="course-meta">
+                                <span><img src="/acct/img/user-profile-icon.svg"> <%= course.instructor || 'Kelsel Team' %></span>
+                                <span><img src="/acct/img/report-svgrepo-com.svg"> <%= course.duration_hours %>h</span>
+                            </div>
+                            
+                            <a href="/academy/course/<%= course.slug %>" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">View Course</a>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </main>
+</body>
+</html>

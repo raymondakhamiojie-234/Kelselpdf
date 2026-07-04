@@ -1,0 +1,30 @@
+<nav class="sidebar">
+    <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+    
+    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 0;">Academic</p>
+    <ul>
+        <li><a href="/dashboard" class="<%= locals.active_page === 'dashboard' ? 'active' : '' %>"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+        <li><a href="/exam_materials" class="<%= locals.active_page === 'exam_materials' ? 'active' : '' %>"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Study Materials</a></li>
+        <li><a href="/exam/analytics" class="<%= locals.active_page === 'exam_analytics' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Analytics</a></li>
+    </ul>
+
+    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 1.5rem;">Skills Academy</p>
+    <ul>
+        <li><a href="/academy" class="<%= locals.active_page === 'academy_browse' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Browse Courses</a></li>
+        <li><a href="/academy/my-learning" class="<%= locals.active_page === 'academy_learning' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> My Learning</a></li>
+    </ul>
+
+    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 1.5rem;">Career & Community</p>
+    <ul>
+        <li><a href="/certificates" class="<%= locals.active_page === 'certificates' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Certificates</a></li>
+        <li><a href="/career" class="<%= locals.active_page === 'career' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Career Center</a></li>
+        <li><a href="/community" class="<%= locals.active_page === 'community' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Community</a></li>
+    </ul>
+
+    <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 1.5rem;">Account</p>
+    <ul>
+        <li><a href="/profile" class="<%= locals.active_page === 'profile' ? 'active' : '' %>"><img src="/acct/img/user-profile-icon.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Profile</a></li>
+        <li><a href="/payment_history" class="<%= locals.active_page === 'billing' ? 'active' : '' %>"><img src="/acct/img/payment-card-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Billing</a></li>
+        <li style="margin-top: 1rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
+    </ul>
+</nav>
