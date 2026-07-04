@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const mysql = require('mysql2/promise');
@@ -27,14 +27,13 @@ const pool = mysql.createPool({
 });
 
 // Middleware
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback_secret_key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+app.use(cookieSession({
+    name: 'session',
+    keys: [process.env.SESSION_SECRET || 'fallback_secret_key'],
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
 // View Engine
@@ -58,7 +57,7 @@ const checkAuth = async (req, res, next) => {
             if (rows.length > 0) {
                 req.session.user = rows[0];
             } else {
-                req.session.destroy();
+                req.session = null;
                 return res.redirect('/login');
             }
         } catch (err) {
@@ -257,7 +256,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy();
+    req.session = null;
     res.redirect('/');
 });
 
