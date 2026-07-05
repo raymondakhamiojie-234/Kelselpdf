@@ -137,14 +137,32 @@
                 margin: 2rem auto;
             }
             nav {
-                flex-direction: column;
+                flex-direction: row; /* Keep logo and hamburger on same line */
+                justify-content: space-between;
+                align-items: center;
                 padding: 1rem;
-                gap: 1rem;
+            }
+            .mobile-landing-toggle {
+                display: block;
+                background: transparent;
+                border: none;
+                color: var(--ntxt-color);
+                cursor: pointer;
             }
             .nav-links {
+                display: none; /* Hidden by default on mobile */
+                flex-direction: column;
                 width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: var(--neu-color);
+                padding: 1rem;
+                box-shadow: 0 4px 6px var(--shd-color);
+                border-top: 1px solid var(--cbg-color-2);
+            }
+            .nav-links.open {
+                display: flex;
             }
             .feature-card {
                 padding: 1.5rem 1rem;
@@ -153,17 +171,28 @@
     </style>
 </head>
 <body>
-    <nav>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <img id="navLogo" src="/acct/img/KelselPDF.png" alt="Logo" style="height: 40px; transition: 0.3s;">
-        </div>
-        <div class="nav-links">
-            <% if(locals.user_id) { %>
-                <a href="/dashboard" class="btn btn-ai" style="padding: 10px 20px;">Dashboard</a>
-            <% } else { %>
-                <a href="/login" style="color: var(--text-color); text-decoration: none; font-weight: 500;">Login</a>
-                <a href="/register" class="btn btn-ai" style="padding: 10px 20px;">Get Started</a>
-            <% } %>
+    <nav style="position: sticky; top: 0; z-index: 1000; display: flex; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img id="navLogo" src="/acct/img/KelselPDF.png" alt="Logo" style="height: 40px; transition: 0.3s;">
+            </div>
+            
+            <button class="mobile-landing-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" style="display: none;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <div class="nav-links">
+                <% if(locals.user_id) { %>
+                    <a href="/dashboard" class="btn btn-ai" style="padding: 10px 20px;">Dashboard</a>
+                <% } else { %>
+                    <a href="/login" style="color: var(--text-color); text-decoration: none; font-weight: 500;">Login</a>
+                    <a href="/register" class="btn btn-ai" style="padding: 10px 20px;">Get Started</a>
+                <% } %>
+            </div>
         </div>
     </nav>
 
