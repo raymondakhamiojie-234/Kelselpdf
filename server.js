@@ -1539,7 +1539,7 @@ app.get('/career', checkAuth, async (req, res) => {
         res.render('career/hub', { jobs });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error loading Career Hub");
+        res.status(500).send("Error loading Career Hub: " + err.message);
     }
 });
 
@@ -1549,7 +1549,7 @@ app.get('/career/portfolio', checkAuth, async (req, res) => {
         res.render('career/portfolio', { portfolio: rows[0] || null });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error loading Portfolio");
+        res.status(500).send("Error loading Portfolio: " + err.message);
     }
 });
 
@@ -1572,7 +1572,7 @@ app.post('/career/portfolio', checkAuth, async (req, res) => {
         res.redirect('/career/portfolio');
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error saving Portfolio");
+        res.status(500).send("Error saving Portfolio: " + err.message);
     }
 });
 
@@ -1590,7 +1590,7 @@ app.get('/community', checkAuth, async (req, res) => {
         res.render('community/forums', { forums });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error loading Community");
+        res.status(500).send("Error loading Community: " + err.message);
     }
 });
 
