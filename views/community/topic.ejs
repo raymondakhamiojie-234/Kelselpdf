@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= topic.title %> - Community</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .post-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            overflow: hidden;
+        }
+        .post-sidebar {
+            width: 150px;
+            background: var(--bg-color);
+            padding: 1.5rem 1rem;
+            text-align: center;
+            border-right: 1px solid var(--border-color);
+        }
+        .post-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 0.5rem auto;
+        }
+        .post-author {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            word-wrap: break-word;
+        }
+        .post-role {
+            font-size: 0.8rem;
+            color: #777;
+            text-transform: capitalize;
+            margin-top: 0.25rem;
+        }
+        .post-content-area {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .post-header {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        .post-body {
+            flex: 1;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar') %>
+
+    <div class="main-content">
+        <header class="dashboard-header mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0; font-size: 1.5rem;"><%= topic.title %></h1>
+            <a href="/community/forum/<%= topic.forum_id %>" class="btn btn-secondary">Back to Forum</a>
+        </header>
+
+        <!-- Original Topic Post -->
+        <div class="post-card">
+            <div class="post-sidebar">
+                <div class="post-avatar"><%= topic.author.charAt(0).toUpperCase() %></div>
+                <div class="post-author"><%= topic.author %></div>
+                <div class="post-role"><%= topic.author_role %></div>
+            </div>
+            <div class="post-content-area">
+                <div class="post-header">Posted on <%= new Date(topic.created_at).toLocaleString() %></div>
+                <div class="post-body"><%= topic.content %></div>
+            </div>
+        </div>
+
+        <!-- Replies -->
+        <% if (replies && replies.length > 0) { %>
+            <h3 style="margin: 2rem 0 1rem 0;">Replies (<%= replies.length %>)</h3>
+            <% replies.forEach(reply => { %>
+                <div class="post-card">
+                    <div class="post-sidebar">
+                        <div class="post-avatar"><%= reply.author.charAt(0).toUpperCase() %></div>
+                        <div class="post-author"><%= reply.author %></div>
+                        <div class="post-role"><%= reply.author_role %></div>
+                    </div>
+                    <div class="post-content-area">
+                        <div class="post-header">Replied on <%= new Date(reply.created_at).toLocaleString() %></div>
+                        <div class="post-body"><%= reply.content %></div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+
+        <!-- Reply Form -->
+        <div class="glass-panel mt-2">
+            <h3>Post a Reply</h3>
+            <form method="POST" action="/community/topic/<%= topic.id %>/reply">
+                <div class="form-group">
+                    <textarea name="content" class="form-control" rows="4" placeholder="Write your reply here..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Reply</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

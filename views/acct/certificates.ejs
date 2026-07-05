@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Certificates - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .cert-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cert-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        .cert-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .cert-course {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+        .cert-date {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'certificates' }) %>
+
+    <div class="main-content">
+        <header class="dashboard-header glass-panel mb-2">
+            <h1>My Certificates</h1>
+            <p>View and download your earned certifications.</p>
+        </header>
+
+        <div class="cert-grid">
+            <% if (certs && certs.length > 0) { %>
+                <% certs.forEach(cert => { %>
+                    <div class="cert-card">
+                        <div class="cert-icon">🎓</div>
+                        <div class="cert-course"><%= cert.course_title %></div>
+                        <div class="cert-date">Issued: <%= new Date(cert.issued_at).toLocaleDateString() %></div>
+                        <a href="/academy/certificate/<%= cert.course_id %>" class="btn btn-primary" target="_blank">View Certificate</a>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <h3>No certificates yet</h3>
+                    <p>Complete courses in the Skills Academy to earn your first certificate!</p>
+                    <a href="/academy" class="btn btn-primary mt-1">Browse Courses</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Completion - <%= course.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: #e0e5ec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .cert-container {
+            background: white;
+            width: 1000px;
+            height: 700px;
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .cert-border {
+            border: 4px double #1a365d;
+            height: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cert-header {
+            font-family: 'Cinzel', serif;
+            color: #1a365d;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .cert-subheader {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        .cert-presented {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        .cert-name {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            color: #b8860b;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #b8860b;
+            display: inline-block;
+            padding: 0 40px 10px 40px;
+        }
+        .cert-reason {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            color: #444;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cert-course {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1a365d;
+        }
+        .cert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding: 0 50px;
+        }
+        .signature-block {
+            text-align: center;
+            width: 200px;
+        }
+        .signature-line {
+            border-bottom: 1px solid #1a365d;
+            margin-bottom: 10px;
+            height: 40px;
+        }
+        .signature-name {
+            font-weight: 600;
+            color: #1a365d;
+        }
+        .signature-title {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .cert-verify {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .cert-logo {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            opacity: 0.1;
+        }
+        @media print {
+            body { background: white; }
+            .cert-container { box-shadow: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div style="position: absolute; top: 20px; left: 20px;" class="no-print">
+        <a href="/academy/my-learning" style="padding: 10px 20px; background: #1a365d; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">&larr; Back to Dashboard</a>
+        <button onclick="window.print()" style="padding: 10px 20px; background: #b8860b; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 10px;">Print / Save as PDF</button>
+    </div>
+
+    <div class="cert-container">
+        <div class="cert-border">
+            <div class="cert-header">Certificate of Completion</div>
+            <div class="cert-subheader">KelselPDF Skills Academy</div>
+            
+            <div class="cert-presented">This is to proudly certify that</div>
+            
+            <div class="cert-name"><%= user.full_name %> <%= user.lastname %></div>
+            
+            <div class="cert-reason">
+                has successfully completed all modules and requirements for the professional certification program in:
+                <div class="cert-course"><%= course.title %></div>
+            </div>
+            
+            <div class="cert-footer">
+                <div class="signature-block">
+                    <div class="signature-line" style="font-family: 'Cinzel', serif; font-size: 1.5rem; color: #1a365d; display: flex; align-items: flex-end; justify-content: center;">KelselPDF</div>
+                    <div class="signature-name">KelselPDF Academy</div>
+                    <div class="signature-title">Official Issuer</div>
+                </div>
+                
+                <div class="signature-block">
+                    <div class="signature-line" style="font-family: 'Cinzel', serif; font-size: 1.2rem; color: #1a365d; display: flex; align-items: flex-end; justify-content: center;"><%= new Date(certificate.issued_at).toLocaleDateString() %></div>
+                    <div class="signature-name">Date of Issue</div>
+                </div>
+            </div>
+            
+            <div class="cert-verify">
+                Verify Authenticity: <%= baseUrl %>/verify/<%= certificate.unique_hash %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

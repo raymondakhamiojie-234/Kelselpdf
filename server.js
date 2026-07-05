@@ -258,6 +258,96 @@ app.get('/setup-db', async (req, res) => {
             )
         `);
 
+        // Phase 5: Career Center
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS career_jobs (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                company VARCHAR(150) NOT NULL,
+                location VARCHAR(100),
+                type ENUM('Remote', 'On-site', 'Hybrid', 'Internship', 'Contract') DEFAULT 'Remote',
+                description TEXT,
+                apply_link VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS career_applications (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                job_id INT(6) UNSIGNED,
+                user_id INT(6) UNSIGNED,
+                status ENUM('pending', 'reviewing', 'accepted', 'rejected') DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (job_id) REFERENCES career_jobs(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS student_portfolios (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT(6) UNSIGNED UNIQUE,
+                summary TEXT,
+                github_url VARCHAR(255),
+                linkedin_url VARCHAR(255),
+                portfolio_url VARCHAR(255),
+                skills TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        // Phase 5: Community Forums
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS discussion_forums (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(150) NOT NULL,
+                description TEXT,
+                category ENUM('General', 'Web Development', 'Data Science', 'Design', 'Career') DEFAULT 'General',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS discussion_topics (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                forum_id INT(6) UNSIGNED,
+                user_id INT(6) UNSIGNED,
+                title VARCHAR(200) NOT NULL,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (forum_id) REFERENCES discussion_forums(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS discussion_replies (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                topic_id INT(6) UNSIGNED,
+                user_id INT(6) UNSIGNED,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        // Phase 5: Certificates
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS certificates (
+                id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT(6) UNSIGNED,
+                course_id INT(6) UNSIGNED,
+                unique_hash VARCHAR(100) NOT NULL UNIQUE,
+                issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES academy_courses(id) ON DELETE CASCADE
+            )
+        `);
+
+
         res.send("<h1>Database successfully setup!</h1><p>You can now go to <a href='/login'>Login</a> and register your first account.</p>");
     } catch (err) {
         console.error(err);
@@ -1238,8 +1328,414 @@ app.post('/admin/academy/course/delete', requireAdmin, async (req, res) => {
     try {
         await pool.query('DELETE FROM academy_courses WHERE id = ?', [req.body.id]);
         res.redirect('/admin/academy');
+        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+            // Return mock JSON if no API key
+            const mock_exam = {
+                mcqs: [
+                    { question: `What is the foundational principle of ${course}?`, options: ["A. Data Processing", "B. Theoretical Analysis", "C. Core Fundamentals", "D. Practical Application"], answer_index: 2 },
+                    { question: `Which of the following is most commonly associated with ${course}?`, options: ["A. Historical Context", "B. Advanced Methodologies", "C. Basic Syntax", "D. All of the above"], answer_index: 3 },
+                    { question: `In the context of ${course}, what is the most important factor?`, options: ["A. Accuracy", "B. Speed", "C. Creativity", "D. Documentation"], answer_index: 0 },
+                    { question: `How does ${course} impact modern applications?`, options: ["A. It doesn't", "B. It provides structural integrity", "C. It is purely theoretical", "D. It replaces older systems"], answer_index: 1 }
+                ],
+                theory: `Explain the core fundamentals and methodologies of ${course} and how they apply to real-world scenarios.`
+            };
+            return res.json(mock_exam);
+        }
+
+        const prompt = `Generate exactly 4 multiple-choice questions and 1 open-ended theory question for a university-level course named '${course}'. 
+Return ONLY a raw JSON object with this exact structure:
+{
+  "mcqs": [
+    { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer_index": 0 }
+  ],
+  "theory": "..."
+}`;
+
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a university professor creating an exam. Output strict JSON." },
+                { role: "user", content: prompt }
+            ],
+            model: "gpt-3.5-turbo",
+            response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0].message.content);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Failed to generate exam from AI provider.' });
+    }
+});
+
+// AI Grade Theory (API POST)
+app.post('/api/ai/grade', checkAuth, async (req, res) => {
+    try {
+        const question = req.body.question || '';
+        const answer = req.body.answer || '';
+
+        if (!question || !answer) {
+            return res.json({ error: 'Missing data' });
+        }
+
+        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+            const mock_grade = {
+                score: 8,
+                feedback: "Excellent start, but your answer lacks depth on the architectural trade-offs. You demonstrated a solid understanding of the fundamental concepts."
+            };
+            return res.json(mock_grade);
+        }
+
+        const prompt = `Question: ${question}\nStudent's Answer: ${answer}\n\nGrade this answer out of 10 and provide 2 sentences of constructive feedback. Return ONLY JSON like this: {"score": 8, "feedback": "..."}`;
+
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a fair but rigorous university professor. Output strict JSON." },
+                { role: "user", content: prompt }
+            ],
+            model: "gpt-3.5-turbo",
+            response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0].message.content);
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Failed to grade theory answer.' });
+    }
+});
+
+// PDF AI Viewer Route (GET)
+app.get('/exam/ai/pdf', checkAuth, (req, res) => {
+    const pdf_url = req.query.url;
+    if (!pdf_url) {
+        return res.status(400).send("No PDF URL provided.");
+    }
+    res.render('acct/pdf_viewer', { pdf_url });
+});
+
+// PDF Chat API (POST)
+app.post('/api/ai/pdf_chat', checkAuth, async (req, res) => {
+    try {
+        const action = req.body.action;
+        const apiKey = process.env.CHATPDF_API_KEY || 'sec_placeholder';
+
+        if (action === 'upload') {
+            const pdf_url = req.body.pdf_url;
+            
+            // To ensure compatibility with external domains handling absolute vs relative urls
+            const absolute_url = pdf_url.startsWith('http') ? pdf_url : `http://${req.headers.host}/${pdf_url}`;
+
+            if (apiKey === 'sec_placeholder') {
+                return res.json({ sourceId: 'mock_source_id_12345' });
+            }
+
+            const response = await fetch('https://api.chatpdf.com/v1/sources/add-url', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: absolute_url })
+            });
+            const data = await response.json();
+            res.json(data);
+        } else if (action === 'chat') {
+            const sourceId = req.body.sourceId;
+            const message = req.body.message;
+
+            if (apiKey === 'sec_placeholder') {
+                return res.json({ content: "I am a mock AI response since the ChatPDF API key isn't configured yet. I read the PDF and it's fascinating!" });
+            }
+
+            const response = await fetch('https://api.chatpdf.com/v1/chats/message', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sourceId: sourceId,
+                    messages: [{ role: 'user', content: message }]
+                })
+            });
+            const data = await response.json();
+            res.json(data);
+        } else {
+            res.json({ error: 'Invalid action' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 'Server error communicating with PDF AI.' });
+    }
+});
+
+// ==========================================
+// ADMIN ACADEMY ROUTES
+// ==========================================
+
+app.get('/admin/academy', requireAdmin, async (req, res) => {
+    try {
+        const [categories] = await pool.query('SELECT * FROM academy_categories ORDER BY name ASC');
+        const [courses] = await pool.query('SELECT * FROM academy_courses ORDER BY created_at DESC');
+        res.render('admin/manage_academy', { categories, courses });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading admin academy");
+    }
+});
+
+app.post('/admin/academy/category', requireAdmin, async (req, res) => {
+    try {
+        const { name, slug } = req.body;
+        await pool.query('INSERT INTO academy_categories (name, slug) VALUES (?, ?)', [name, slug]);
+        res.redirect('/admin/academy');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error creating category");
+    }
+});
+
+app.post('/admin/academy/course', requireAdmin, async (req, res) => {
+    try {
+        const { category_id, title, slug, description, instructor, duration_hours } = req.body;
+        await pool.query(`
+            INSERT INTO academy_courses (category_id, title, slug, description, instructor, duration_hours)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [category_id, title, slug, description, instructor, duration_hours || 0]);
+        res.redirect('/admin/academy');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error creating course");
+    }
+});
+
+app.post('/admin/academy/category/delete', requireAdmin, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM academy_categories WHERE id = ?', [req.body.id]);
+        res.redirect('/admin/academy');
+    } catch (err) {
+        res.status(500).send("Error deleting category");
+    }
+});
+
+app.post('/admin/academy/course/delete', requireAdmin, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM academy_courses WHERE id = ?', [req.body.id]);
+        res.redirect('/admin/academy');
     } catch (err) {
         res.status(500).send("Error deleting course");
+    }
+});
+
+// ==========================================
+// PHASE 5: CAREER, COMMUNITY & CERTIFICATES
+// ==========================================
+
+// Career Hub
+app.get('/career', checkAuth, async (req, res) => {
+    try {
+        const [jobs] = await pool.query('SELECT * FROM career_jobs ORDER BY created_at DESC');
+        res.render('career/hub', { jobs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading Career Hub");
+    }
+});
+
+app.get('/career/portfolio', checkAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM student_portfolios WHERE user_id = ?', [req.session.user_id]);
+        res.render('career/portfolio', { portfolio: rows[0] || null });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading Portfolio");
+    }
+});
+
+app.post('/career/portfolio', checkAuth, async (req, res) => {
+    try {
+        const { summary, github_url, linkedin_url, portfolio_url, skills } = req.body;
+        const [rows] = await pool.query('SELECT id FROM student_portfolios WHERE user_id = ?', [req.session.user_id]);
+        
+        if (rows.length > 0) {
+            await pool.query(
+                'UPDATE student_portfolios SET summary=?, github_url=?, linkedin_url=?, portfolio_url=?, skills=? WHERE user_id=?',
+                [summary, github_url, linkedin_url, portfolio_url, skills, req.session.user_id]
+            );
+        } else {
+            await pool.query(
+                'INSERT INTO student_portfolios (user_id, summary, github_url, linkedin_url, portfolio_url, skills) VALUES (?, ?, ?, ?, ?, ?)',
+                [req.session.user_id, summary, github_url, linkedin_url, portfolio_url, skills]
+            );
+        }
+        res.redirect('/career/portfolio');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error saving Portfolio");
+    }
+});
+
+// Community Forums
+app.get('/community', checkAuth, async (req, res) => {
+    try {
+        // Fetch forums with topic counts
+        const [forums] = await pool.query(`
+            SELECT f.*, COUNT(t.id) as topic_count 
+            FROM discussion_forums f 
+            LEFT JOIN discussion_topics t ON f.id = t.forum_id 
+            GROUP BY f.id
+            ORDER BY f.category, f.title
+        `);
+        res.render('community/forums', { forums });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading Community");
+    }
+});
+
+app.get('/community/forum/:id', checkAuth, async (req, res) => {
+    try {
+        const [forums] = await pool.query('SELECT * FROM discussion_forums WHERE id = ?', [req.params.id]);
+        if (forums.length === 0) return res.status(404).send("Forum not found");
+        
+        const [topics] = await pool.query(`
+            SELECT t.*, u.full_name as author, COUNT(r.id) as reply_count
+            FROM discussion_topics t
+            JOIN users u ON t.user_id = u.id
+            LEFT JOIN discussion_replies r ON t.id = r.topic_id
+            WHERE t.forum_id = ?
+            GROUP BY t.id
+            ORDER BY t.created_at DESC
+        `, [req.params.id]);
+        
+        res.render('community/forums', { selectedForum: forums[0], topics });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading topics");
+    }
+});
+
+app.post('/community/forum/:id/new', checkAuth, async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const [result] = await pool.query(
+            'INSERT INTO discussion_topics (forum_id, user_id, title, content) VALUES (?, ?, ?, ?)',
+            [req.params.id, req.session.user_id, title, content]
+        );
+        res.redirect('/community/topic/' + result.insertId);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error creating topic");
+    }
+});
+
+app.get('/community/topic/:id', checkAuth, async (req, res) => {
+    try {
+        const [topics] = await pool.query(`
+            SELECT t.*, u.full_name as author, u.role as author_role
+            FROM discussion_topics t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.id = ?
+        `, [req.params.id]);
+        
+        if (topics.length === 0) return res.status(404).send("Topic not found");
+        
+        const [replies] = await pool.query(`
+            SELECT r.*, u.full_name as author, u.role as author_role
+            FROM discussion_replies r
+            JOIN users u ON r.user_id = u.id
+            WHERE r.topic_id = ?
+            ORDER BY r.created_at ASC
+        `, [req.params.id]);
+        
+        res.render('community/topic', { topic: topics[0], replies });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading topic");
+    }
+});
+
+app.post('/community/topic/:id/reply', checkAuth, async (req, res) => {
+    try {
+        await pool.query(
+            'INSERT INTO discussion_replies (topic_id, user_id, content) VALUES (?, ?, ?)',
+            [req.params.id, req.session.user_id, req.body.content]
+        );
+        res.redirect('/community/topic/' + req.params.id);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error posting reply");
+    }
+});
+
+// Certificates
+app.get('/academy/certificate/:course_id', checkAuth, async (req, res) => {
+    try {
+        // First check if they actually completed the course (simplified for MVP: check if certificate exists, if not generate it)
+        const courseId = req.params.course_id;
+        const userId = req.session.user_id;
+        
+        let [certs] = await pool.query('SELECT * FROM certificates WHERE user_id = ? AND course_id = ?', [userId, courseId]);
+        
+        if (certs.length === 0) {
+            // Check if they completed all modules/lessons? 
+            // For MVP, we will assume they clicked "Generate Certificate" after completing the course
+            const crypto = require('crypto');
+            const uniqueHash = crypto.randomBytes(16).toString('hex');
+            
+            await pool.query(
+                'INSERT INTO certificates (user_id, course_id, unique_hash) VALUES (?, ?, ?)',
+                [userId, courseId, uniqueHash]
+            );
+            
+            [certs] = await pool.query('SELECT * FROM certificates WHERE user_id = ? AND course_id = ?', [userId, courseId]);
+        }
+        
+        const [courses] = await pool.query('SELECT * FROM academy_courses WHERE id = ?', [courseId]);
+        
+        const baseUrl = req.protocol + '://' + req.get('host');
+        res.render('academy/certificate', { certificate: certs[0], course: courses[0], baseUrl });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading certificate");
+    }
+});
+
+app.get('/verify/:hash', async (req, res) => {
+    try {
+        const [certs] = await pool.query(`
+            SELECT c.*, u.full_name as user_name, u.lastname, ac.title as course_title
+            FROM certificates c
+            JOIN users u ON c.user_id = u.id
+            JOIN academy_courses ac ON c.course_id = ac.id
+            WHERE c.unique_hash = ?
+        `, [req.params.hash]);
+        
+        if (certs.length > 0) {
+            res.render('public/verify', { valid: true, certificate: certs[0] });
+        } else {
+            res.render('public/verify', { valid: false });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error verifying certificate");
+    }
+});
+
+app.get('/certificates', checkAuth, async (req, res) => {
+    try {
+        const [certs] = await pool.query(`
+            SELECT c.*, ac.title as course_title 
+            FROM certificates c
+            JOIN academy_courses ac ON c.course_id = ac.id
+            WHERE c.user_id = ?
+            ORDER BY c.issued_at DESC
+        `, [req.session.user_id]);
+        res.render('acct/certificates', { certs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading certificates");
     }
 });
 

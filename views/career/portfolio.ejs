@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio - KelselPDF Ecosystem</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar') %>
+
+    <div class="main-content">
+        <header class="dashboard-header glass-panel mb-2">
+            <h1>Digital Portfolio</h1>
+            <p>Build your professional profile to showcase to employers.</p>
+        </header>
+
+        <div class="glass-panel" style="max-width: 800px; margin: 0 auto;">
+            <form method="POST" action="/career/portfolio">
+                <div class="form-group">
+                    <label>Professional Summary</label>
+                    <textarea name="summary" class="form-control" rows="4" placeholder="Briefly describe your goals, background, and what you're looking for..."><%= portfolio ? portfolio.summary : '' %></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>GitHub Profile URL</label>
+                        <input type="url" name="github_url" class="form-control" value="<%= portfolio ? portfolio.github_url : '' %>">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>LinkedIn Profile URL</label>
+                        <input type="url" name="linkedin_url" class="form-control" value="<%= portfolio ? portfolio.linkedin_url : '' %>">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Personal Website / Portfolio Link</label>
+                    <input type="url" name="portfolio_url" class="form-control" value="<%= portfolio ? portfolio.portfolio_url : '' %>">
+                </div>
+
+                <div class="form-group">
+                    <label>Key Skills (comma separated)</label>
+                    <input type="text" name="skills" class="form-control" placeholder="e.g. JavaScript, React, Data Analysis, Graphic Design" value="<%= portfolio ? portfolio.skills : '' %>">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Save Portfolio</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

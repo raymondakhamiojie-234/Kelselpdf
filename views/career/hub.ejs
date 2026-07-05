@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Hub - KelselPDF Ecosystem</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .career-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .job-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        .job-title {
+            font-size: 1.25rem;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+        .job-company {
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .job-meta {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .job-tag {
+            background: var(--bg-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .job-desc {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .career-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar') %>
+
+    <div class="main-content">
+        <header class="dashboard-header glass-panel mb-2">
+            <h1>Career Hub</h1>
+            <p>Find internships, entry-level roles, and connect with employers.</p>
+        </header>
+
+        <div class="career-header">
+            <div class="filter-group" style="display: flex; gap: 10px;">
+                <select class="form-control" style="width: auto;">
+                    <option value="">All Job Types</option>
+                    <option value="Remote">Remote</option>
+                    <option value="On-site">On-site</option>
+                    <option value="Internship">Internship</option>
+                </select>
+                <input type="text" class="form-control" placeholder="Search roles or companies..." style="max-width: 300px;">
+                <button class="btn btn-primary">Search</button>
+            </div>
+            
+            <a href="/career/portfolio" class="btn btn-secondary">My Digital Portfolio</a>
+        </div>
+
+        <div class="career-grid">
+            <% if (jobs && jobs.length > 0) { %>
+                <% jobs.forEach(job => { %>
+                    <div class="job-card">
+                        <div>
+                            <h3 class="job-title"><%= job.title %></h3>
+                            <div class="job-company"><%= job.company %></div>
+                            <div class="job-meta">
+                                <span class="job-tag">📍 <%= job.location || 'Remote' %></span>
+                                <span class="job-tag">💼 <%= job.type %></span>
+                            </div>
+                            <div class="job-desc">
+                                <%= job.description %>
+                            </div>
+                        </div>
+                        <a href="<%= job.apply_link %>" target="_blank" class="btn btn-primary" style="text-align: center; display: block;">Apply Now</a>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <h3>No openings at the moment</h3>
+                    <p>Check back later for new internships and job opportunities!</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

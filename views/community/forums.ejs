@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Forums - KelselPDF Ecosystem</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .forum-list {
+            margin-top: 1rem;
+        }
+        .forum-category {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .forum-category-header {
+            background: var(--bg-color);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
+        }
+        .forum-row {
+            display: flex;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: background 0.2s;
+        }
+        .forum-row:last-child {
+            border-bottom: none;
+        }
+        .forum-row:hover {
+            background: var(--bg-color);
+        }
+        .forum-info {
+            flex: 1;
+        }
+        .forum-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .forum-desc {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        .forum-stats {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #777;
+            min-width: 100px;
+        }
+        .topic-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+        .topic-row:hover {
+            border-color: var(--primary-color);
+        }
+        .topic-author {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar') %>
+
+    <div class="main-content">
+        <header class="dashboard-header glass-panel mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>Community Forums</h1>
+                <p>Discuss courses, ask for help, and connect with peers.</p>
+            </div>
+            <% if (typeof selectedForum !== 'undefined') { %>
+                <a href="/community" class="btn btn-secondary">Back to Forums</a>
+            <% } %>
+        </header>
+
+        <% if (typeof selectedForum === 'undefined') { %>
+            <!-- Show all forums grouped by category -->
+            <div class="forum-list">
+                <% const categories = [...new Set(forums.map(f => f.category))]; %>
+                <% categories.forEach(cat => { %>
+                    <div class="forum-category">
+                        <div class="forum-category-header"><%= cat %></div>
+                        <% forums.filter(f => f.category === cat).forEach(forum => { %>
+                            <a href="/community/forum/<%= forum.id %>" class="forum-row">
+                                <div class="forum-info">
+                                    <div class="forum-title"><%= forum.title %></div>
+                                    <div class="forum-desc"><%= forum.description %></div>
+                                </div>
+                                <div class="forum-stats">
+                                    <div><%= forum.topic_count || 0 %> Topics</div>
+                                </div>
+                            </a>
+                        <% }) %>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <!-- Show topics for a specific forum -->
+            <div class="glass-panel mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="margin: 0; color: var(--primary-color);"><%= selectedForum.title %></h2>
+                    <p style="margin: 0.5rem 0 0 0;"><%= selectedForum.description %></p>
+                </div>
+                <button class="btn btn-primary" onclick="document.getElementById('newTopicForm').style.display='block'">New Topic</button>
+            </div>
+
+            <div id="newTopicForm" class="glass-panel mb-2" style="display: none;">
+                <h3>Create New Topic</h3>
+                <form method="POST" action="/community/forum/<%= selectedForum.id %>/new">
+                    <div class="form-group">
+                        <input type="text" name="title" class="form-control" placeholder="Topic Title" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="content" class="form-control" rows="5" placeholder="What do you want to discuss?" required></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Post Topic</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('newTopicForm').style.display='none'">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div>
+                <% if (topics && topics.length > 0) { %>
+                    <% topics.forEach(topic => { %>
+                        <a href="/community/topic/<%= topic.id %>" class="topic-row">
+                            <div>
+                                <div style="font-weight: 500; font-size: 1.1rem;"><%= topic.title %></div>
+                                <div class="topic-author">By <%= topic.author %> • <%= new Date(topic.created_at).toLocaleDateString() %></div>
+                            </div>
+                            <div style="color: #777; font-size: 0.9rem; text-align: right;">
+                                <%= topic.reply_count || 0 %> Replies
+                            </div>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <div style="text-align: center; padding: 2rem; color: #777;">
+                        No topics in this forum yet. Be the first to start a discussion!
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>
