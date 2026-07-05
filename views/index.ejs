@@ -107,6 +107,49 @@
             gap: 1.5rem;
             align-items: center;
         }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 4rem 1rem 2rem;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+                line-height: 1.2;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .hero-btns {
+                flex-direction: column;
+                width: 100%;
+                gap: 1rem;
+            }
+            .hero-btns .btn, .hero-btns .btn-ai {
+                width: 100%;
+                padding: 15px 20px !important;
+                font-size: 1rem !important;
+                box-sizing: border-box;
+            }
+            .features {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+                margin: 2rem auto;
+            }
+            nav {
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .feature-card {
+                padding: 1.5rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
