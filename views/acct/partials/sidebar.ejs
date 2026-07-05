@@ -1,3 +1,11 @@
+<button class="mobile-nav-toggle" onclick="toggleMobileNav()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+</button>
+<div class="sidebar-overlay" onclick="toggleMobileNav()"></div>
 <nav class="sidebar">
     <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
     
@@ -28,3 +36,9 @@
         <li style="margin-top: 1rem;"><a href="/logout" style="color: var(--error);"><img src="/acct/img/logout-3-svgrepo-com-1.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Logout</a></li>
     </ul>
 </nav>
+<script>
+    function toggleMobileNav() {
+        document.querySelector('.sidebar').classList.toggle('open');
+        document.querySelector('.sidebar-overlay').classList.toggle('open');
+    }
+</script>

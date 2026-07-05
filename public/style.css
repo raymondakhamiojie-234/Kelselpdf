@@ -240,10 +240,69 @@ a:hover { color: var(--cta-color-hover); }
 .options-list label:hover { background: var(--cbg-color-2); }
 
 /* Responsive */
+.mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 100;
+    background: var(--neu-color);
+    border: 1px solid var(--cbg-color-2);
+    color: var(--ntxt-color);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px var(--shd-color);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 8;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
 @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); z-index: 10; transition: transform 0.3s; }
+    .mobile-nav-toggle { display: block; }
+    
+    .sidebar { 
+        transform: translateX(-100%); 
+        z-index: 10; 
+        transition: transform 0.3s;
+        box-shadow: 2px 0 10px var(--shd-color);
+    }
     .sidebar.open { transform: translateX(0); }
-    .main-content { margin-left: 0; }
+    
+    .sidebar-overlay.open {
+        display: block;
+        opacity: 1;
+    }
+
+    .main-content { 
+        margin-left: 0; 
+        padding: 4rem 1rem 1rem 1rem; 
+    }
+    
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+
     .split-screen { flex-direction: column; height: auto; min-height: 800px; }
     .pdf-pane { min-height: 400px; flex: none; }
+    
+    /* Force grids to single column on small screens */
+    .cert-grid, .learning-grid, .course-grid, .job-grid, .forum-list {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .form-group { width: 100%; }
+    div[style*="display: flex; gap: 1rem;"] { flex-direction: column; gap: 0 !important; }
 }
