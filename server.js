@@ -1328,203 +1328,29 @@ app.post('/admin/academy/course/delete', requireAdmin, async (req, res) => {
     try {
         await pool.query('DELETE FROM academy_courses WHERE id = ?', [req.body.id]);
         res.redirect('/admin/academy');
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
-            // Return mock JSON if no API key
-            const mock_exam = {
-                mcqs: [
-                    { question: `What is the foundational principle of ${course}?`, options: ["A. Data Processing", "B. Theoretical Analysis", "C. Core Fundamentals", "D. Practical Application"], answer_index: 2 },
-                    { question: `Which of the following is most commonly associated with ${course}?`, options: ["A. Historical Context", "B. Advanced Methodologies", "C. Basic Syntax", "D. All of the above"], answer_index: 3 },
-                    { question: `In the context of ${course}, what is the most important factor?`, options: ["A. Accuracy", "B. Speed", "C. Creativity", "D. Documentation"], answer_index: 0 },
-                    { question: `How does ${course} impact modern applications?`, options: ["A. It doesn't", "B. It provides structural integrity", "C. It is purely theoretical", "D. It replaces older systems"], answer_index: 1 }
-                ],
-                theory: `Explain the core fundamentals and methodologies of ${course} and how they apply to real-world scenarios.`
-            };
-            return res.json(mock_exam);
-        }
-
-        const prompt = `Generate exactly 4 multiple-choice questions and 1 open-ended theory question for a university-level course named '${course}'. 
-Return ONLY a raw JSON object with this exact structure:
-{
-  "mcqs": [
-    { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer_index": 0 }
-  ],
-  "theory": "..."
-}`;
-
-        const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a university professor creating an exam. Output strict JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "gpt-3.5-turbo",
-            response_format: { type: "json_object" }
-        });
-
-        const result = JSON.parse(completion.choices[0].message.content);
-        res.json(result);
-    } catch (err) {
-        console.error(err);
-        res.json({ error: 'Failed to generate exam from AI provider.' });
-    }
-});
-
-// AI Grade Theory (API POST)
-app.post('/api/ai/grade', checkAuth, async (req, res) => {
-    try {
-        const question = req.body.question || '';
-        const answer = req.body.answer || '';
-
-        if (!question || !answer) {
-            return res.json({ error: 'Missing data' });
-        }
-
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
-            const mock_grade = {
-                score: 8,
-                feedback: "Excellent start, but your answer lacks depth on the architectural trade-offs. You demonstrated a solid understanding of the fundamental concepts."
-            };
-            return res.json(mock_grade);
-        }
-
-        const prompt = `Question: ${question}\nStudent's Answer: ${answer}\n\nGrade this answer out of 10 and provide 2 sentences of constructive feedback. Return ONLY JSON like this: {"score": 8, "feedback": "..."}`;
-
-        const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a fair but rigorous university professor. Output strict JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "gpt-3.5-turbo",
-            response_format: { type: "json_object" }
-        });
-
-        const result = JSON.parse(completion.choices[0].message.content);
-        res.json(result);
-    } catch (err) {
-        console.error(err);
-        res.json({ error: 'Failed to grade theory answer.' });
-    }
-});
-
-// PDF AI Viewer Route (GET)
-app.get('/exam/ai/pdf', checkAuth, (req, res) => {
-    const pdf_url = req.query.url;
-    if (!pdf_url) {
-        return res.status(400).send("No PDF URL provided.");
-    }
-    res.render('acct/pdf_viewer', { pdf_url });
-});
-
-// PDF Chat API (POST)
-app.post('/api/ai/pdf_chat', checkAuth, async (req, res) => {
-    try {
-        const action = req.body.action;
-        const apiKey = process.env.CHATPDF_API_KEY || 'sec_placeholder';
-
-        if (action === 'upload') {
-            const pdf_url = req.body.pdf_url;
-            
-            // To ensure compatibility with external domains handling absolute vs relative urls
-            const absolute_url = pdf_url.startsWith('http') ? pdf_url : `http://${req.headers.host}/${pdf_url}`;
-
-            if (apiKey === 'sec_placeholder') {
-                return res.json({ sourceId: 'mock_source_id_12345' });
-            }
-
-            const response = await fetch('https://api.chatpdf.com/v1/sources/add-url', {
-                method: 'POST',
-                headers: {
-                    'x-api-key': apiKey,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url: absolute_url })
-            });
-            const data = await response.json();
-            res.json(data);
-        } else if (action === 'chat') {
-            const sourceId = req.body.sourceId;
-            const message = req.body.message;
-
-            if (apiKey === 'sec_placeholder') {
-                return res.json({ content: "I am a mock AI response since the ChatPDF API key isn't configured yet. I read the PDF and it's fascinating!" });
-            }
-
-            const response = await fetch('https://api.chatpdf.com/v1/chats/message', {
-                method: 'POST',
-                headers: {
-                    'x-api-key': apiKey,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sourceId: sourceId,
-                    messages: [{ role: 'user', content: message }]
-                })
-            });
-            const data = await response.json();
-            res.json(data);
-        } else {
-            res.json({ error: 'Invalid action' });
-        }
-    } catch (err) {
-        console.error(err);
-        res.json({ error: 'Server error communicating with PDF AI.' });
-    }
-});
-
-// ==========================================
-// ADMIN ACADEMY ROUTES
-// ==========================================
-
-app.get('/admin/academy', requireAdmin, async (req, res) => {
-    try {
-        const [categories] = await pool.query('SELECT * FROM academy_categories ORDER BY name ASC');
-        const [courses] = await pool.query('SELECT * FROM academy_courses ORDER BY created_at DESC');
-        res.render('admin/manage_academy', { categories, courses });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error loading admin academy");
-    }
-});
-
-app.post('/admin/academy/category', requireAdmin, async (req, res) => {
-    try {
-        const { name, slug } = req.body;
-        await pool.query('INSERT INTO academy_categories (name, slug) VALUES (?, ?)', [name, slug]);
-        res.redirect('/admin/academy');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error creating category");
-    }
-});
-
-app.post('/admin/academy/course', requireAdmin, async (req, res) => {
-    try {
-        const { category_id, title, slug, description, instructor, duration_hours } = req.body;
-        await pool.query(`
-            INSERT INTO academy_courses (category_id, title, slug, description, instructor, duration_hours)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [category_id, title, slug, description, instructor, duration_hours || 0]);
-        res.redirect('/admin/academy');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error creating course");
-    }
-});
-
-app.post('/admin/academy/category/delete', requireAdmin, async (req, res) => {
-    try {
-        await pool.query('DELETE FROM academy_categories WHERE id = ?', [req.body.id]);
-        res.redirect('/admin/academy');
-    } catch (err) {
-        res.status(500).send("Error deleting category");
-    }
-});
-
-app.post('/admin/academy/course/delete', requireAdmin, async (req, res) => {
-    try {
-        await pool.query('DELETE FROM academy_courses WHERE id = ?', [req.body.id]);
-        res.redirect('/admin/academy');
     } catch (err) {
         res.status(500).send("Error deleting course");
+    }
+});
+
+// My Learning
+app.get('/academy/my-learning', checkAuth, async (req, res) => {
+    try {
+        const [progress] = await pool.query(`
+            SELECT p.*, ac.title as course_title, ac.id as course_id
+            FROM academy_progress p
+            JOIN academy_courses ac ON p.course_id = ac.id
+            WHERE p.user_id = ?
+        `, [req.session.user_id]);
+        
+        // Let's also fetch certificates directly to know if they completed it
+        const [certs] = await pool.query('SELECT course_id FROM certificates WHERE user_id = ?', [req.session.user_id]);
+        const completedCourseIds = certs.map(c => c.course_id);
+
+        res.render('academy/my_learning', { progress, completedCourseIds });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading my learning: " + err.message);
     }
 });
 

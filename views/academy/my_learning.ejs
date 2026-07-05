@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Learning - KelselPDF Academy</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .learning-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .learning-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .learning-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        .course-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+        }
+        .progress-text {
+            font-size: 0.8rem;
+            color: #777;
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-active {
+            background: #cce5ff;
+            color: #004085;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'academy_learning' }) %>
+
+    <div class="main-content">
+        <header class="dashboard-header glass-panel mb-2">
+            <h1>My Learning</h1>
+            <p>Track your progress and resume your enrolled courses.</p>
+        </header>
+
+        <div class="learning-grid">
+            <% if (progress && progress.length > 0) { %>
+                <% progress.forEach(p => { %>
+                    <% const isCompleted = completedCourseIds.includes(p.course_id); %>
+                    <div class="learning-card">
+                        <% if (isCompleted) { %>
+                            <div class="status-badge status-completed">Completed</div>
+                        <% } else { %>
+                            <div class="status-badge status-active">Active</div>
+                        <% } %>
+                        
+                        <div class="course-title"><%= p.course_title %></div>
+                        
+                        <% if (!isCompleted) { %>
+                            <!-- Simple visual progress bar for MVP -->
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 50%;"></div>
+                            </div>
+                            <div class="progress-text">In Progress</div>
+                        <% } else { %>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%; background: #28a745;"></div>
+                            </div>
+                            <div class="progress-text" style="color: #28a745;">100% Completed</div>
+                        <% } %>
+
+                        <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                            <a href="/academy/player/<%= p.course_id %>" class="btn btn-primary" style="flex: 1;">
+                                <%= isCompleted ? 'Review Course' : 'Resume Course' %>
+                            </a>
+                            <% if (isCompleted) { %>
+                                <a href="/academy/certificate/<%= p.course_id %>" class="btn btn-secondary" style="flex: 1; text-align: center;">Certificate</a>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <h3>You haven't enrolled in any courses yet!</h3>
+                    <p>Visit the Skills Academy to browse available courses and start learning.</p>
+                    <a href="/academy" class="btn btn-primary mt-1">Browse Courses</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
