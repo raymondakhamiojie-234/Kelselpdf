@@ -959,7 +959,7 @@ app.post('/admin/questions', requireAdmin, upload.single('csv_file'), (req, res)
                     if (row.course_code && row.question_text) {
                         await pool.query(
                             'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            [row.course_code.trim(), row.question_text.trim(), row.option_a.trim(), row.option_b.trim(), row.option_c.trim(), row.option_d.trim(), row.correct_option.trim()]
+                            [(row.course_code||'').trim(), (row.question_text||'').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
                         );
                         count++;
                     }
