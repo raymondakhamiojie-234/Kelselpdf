@@ -453,6 +453,7 @@ a:hover { color: var(--cta-color-hover); }
     gap: 4px;
     text-decoration: none;
 }
+.bottom-tab-nav svg { width: 22px; height: 22px; }
 .bottom-tab-nav a.active {
     color: var(--sec-color);
 }
