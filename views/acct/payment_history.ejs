@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Payment History - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('partials/sidebar', { active_page: 'billing' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('partials/app_header', { page_title: 'Billing', page_desc: 'Your transaction history' }) %>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h2>Payment History</h2>
             <a href="/payment" class="btn btn-ai">Upgrade / Renew Subscription</a>

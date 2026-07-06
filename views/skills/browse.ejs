@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Skills Academy - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
@@ -82,10 +83,13 @@
         }
     </style>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Skills Academy', page_desc: 'Browse available courses' }) %>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <div>
                 <h2>Skills Academy</h2>

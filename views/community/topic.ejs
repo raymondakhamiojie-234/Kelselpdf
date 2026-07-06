@@ -73,6 +73,9 @@
     <%- include('../acct/partials/sidebar') %>
 
     <div class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Discussion', page_desc: 'Share your thoughts' }) %>
+
         <header class="dashboard-header mb-2" style="display: flex; justify-content: space-between; align-items: center;">
             <h1 style="margin: 0; font-size: 1.5rem;"><%= topic.title %></h1>
             <a href="/community/forum/<%= topic.forum_id %>" class="btn btn-secondary">Back to Forum</a>

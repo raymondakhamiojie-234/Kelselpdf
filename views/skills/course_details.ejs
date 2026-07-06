@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title><%= course.title %> - Skills Academy</title>
     <link rel="stylesheet" href="/style.css">
@@ -79,10 +80,13 @@
         }
     </style>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Course Details', page_desc: 'Learn new skills' }) %>
+
         <a href="/academy" style="color: var(--accent); text-decoration: none; display: inline-block; margin-bottom: 1rem;">&larr; Back to Courses</a>
         
         <div class="hero-section">

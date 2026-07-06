@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Exam Materials - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('partials/sidebar', { active_page: 'exam_materials' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('partials/app_header', { page_title: 'Study Materials', page_desc: 'Access your resources' }) %>
+
         <h2>Exam Materials</h2>
         <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Download past questions and materials curated for your department and level.</p>
         

@@ -12,25 +12,13 @@
 
     <main class="main-content">
         <!-- Curved Header -->
-        <div class="app-header-curved" style="background: linear-gradient(135deg, #1E3A8A 0%, #059669 100%);">
-            <div class="header-content">
-                <div>
-                    <h1>Admin Portal</h1>
-                    <p>System Overview & Management</p>
-                </div>
-                <div>
-                    <!-- Avatar / Shield Icon -->
-                    <div style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
-                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="overlap-search">
-                <svg width="20" height="20" stroke="var(--tran-color)" fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" placeholder="Search admin logs...">
-            </div>
-        </div>
+        <%- include('../acct/partials/app_header', { 
+            page_title: 'Admin Portal', 
+            page_desc: 'System Overview & Management',
+            header_style: 'background: linear-gradient(135deg, #1E3A8A 0%, #059669 100%);',
+            header_icon: '<svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>',
+            search_placeholder: 'Search admin logs...'
+        }) %>
 
         <h3 style="padding: 0 1.5rem; margin-bottom: 1rem; color: var(--ntxt-color);">Platform Stats</h3>
 

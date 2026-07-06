@@ -12,24 +12,7 @@
 
     <main class="main-content">
         <!-- Curved Header -->
-        <div class="app-header-curved">
-            <div class="header-content">
-                <div>
-                    <h1>Student Portal</h1>
-                    <p>Hello, <%= firstName %> 👋<br>Have a great day ahead!</p>
-                </div>
-                <div>
-                    <div style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
-                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="overlap-search">
-                <svg width="20" height="20" stroke="var(--tran-color)" fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" placeholder="Search anything...">
-            </div>
-        </div>
+        <%- include('partials/app_header') %>
 
         <div style="display: flex; justify-content: space-between; padding: 0 1.5rem; margin-bottom: 1rem; align-items: center;">
             <h3 style="margin: 0; color: var(--ntxt-color);">Quick Access</h3>

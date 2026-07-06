@@ -1,0 +1,28 @@
+<div class="app-header-curved" <%- typeof header_style !== 'undefined' ? `style="${header_style}"` : '' %>>
+    <div class="header-content">
+        <div>
+            <h1><%= typeof page_title !== 'undefined' ? page_title : 'Student Portal' %></h1>
+            <% if (typeof page_desc !== 'undefined') { %>
+                <p><%= page_desc %></p>
+            <% } else if (locals.user) { %>
+                <p>Hello, <%= locals.user.full_name ? locals.user.full_name.split(' ')[0] : 'Student' %> 👋<br>Have a great day ahead!</p>
+            <% } else { %>
+                <p>Welcome to KelselPDF</p>
+            <% } %>
+        </div>
+        <div>
+            <div style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
+                <% if (typeof header_icon !== 'undefined') { %>
+                    <%- header_icon %>
+                <% } else { %>
+                    <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overlap-search">
+        <svg width="20" height="20" stroke="var(--tran-color)" fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" placeholder="<%= typeof search_placeholder !== 'undefined' ? search_placeholder : 'Search anything...' %>">
+    </div>
+</div>

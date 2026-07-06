@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Manage Skills Academy - Admin</title>
     <link rel="stylesheet" href="/style.css">
@@ -11,7 +12,7 @@
         th { background: rgba(255,255,255,0.05); font-weight: 600; }
     </style>
 </head>
-<body>
+<body class="dashboard-body">
     <nav class="sidebar">
         <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
         <ul>
@@ -26,6 +27,9 @@
     </nav>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Manage Skills', page_desc: 'Academy administration' }) %>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h2>Skills Academy Management</h2>
         </div>

@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Records & Analytics - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/theme.js"></script>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('partials/sidebar', { active_page: 'exam_analytics' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('partials/app_header', { page_title: 'Analytics', page_desc: 'Track your performance' }) %>
+
         <!-- AI Insights Card -->
         <div id="aiInsightCard" class="glass-panel mb-2" style="border-left: 4px solid var(--accent); display: none;">
             <h3>🤖 AI Tutor Insights</h3>

@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>All Payments - Admin Panel</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body>
+<body class="dashboard-body">
     <nav class="sidebar">
         <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
         <ul>
@@ -20,6 +21,9 @@
     </nav>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Payments', page_desc: 'Revenue dashboard' }) %>
+
         <h2>Payment History Ledger</h2>
         <div class="glass-panel">
             <div class="table-responsive">

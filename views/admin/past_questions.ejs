@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Past Questions - Admin Panel</title>
     <link rel="stylesheet" href="/style.css">
@@ -53,7 +54,7 @@
         .divider::after { right: 0; }
     </style>
 </head>
-<body>
+<body class="dashboard-body">
     <nav class="sidebar">
         <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
         <ul>
@@ -67,6 +68,9 @@
     </nav>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('../acct/partials/app_header', { page_title: 'Past Questions', page_desc: 'Upload question banks' }) %>
+
         <h2>Add Past Question Material</h2>
         
         <div class="glass-panel" style="max-width: 650px;">

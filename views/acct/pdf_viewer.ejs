@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>AI Tutor Viewer - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body>
+<body class="dashboard-body">
     <%- include('partials/sidebar', { active_page: 'ai_tutor' }) %>
 
     <main class="main-content">
+        <!-- Curved Header -->
+        <%- include('partials/app_header', { page_title: 'Portal', page_desc: '' }) %>
+
         <h2>Study Material: AI Tutor</h2>
         
         <div class="split-screen">
