@@ -442,6 +442,24 @@ app.get('/debug-users', async (req, res) => {
 // Protected Dashboard Route
 app.get('/dashboard', checkAuth, async (req, res) => {
     try {
+        const [userRows] = await pool.query('SELECT full_name, department_id, level FROM users WHERE id = ?', [req.session.user_id]);
+        const user = userRows[0];
+
+        if (!user) {
+            return res.redirect('/logout');
+        }
+
+        const firstName = user.full_name ? user.full_name.split(' ')[0] : 'Student';
+        res.render('acct/dashboard', { user, firstName });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
+
+// Exam Setup Route
+app.get('/exam/setup', checkAuth, async (req, res) => {
+    try {
         const [userRows] = await pool.query('SELECT department_id, level FROM users WHERE id = ?', [req.session.user_id]);
         const user = userRows[0];
 
@@ -449,15 +467,12 @@ app.get('/dashboard', checkAuth, async (req, res) => {
             return res.redirect('/logout');
         }
 
-        // Fetch courses for the dropdown based on department (replicating PHP logic)
         const [courses] = await pool.query(
-            `SELECT * FROM courses 
-             WHERE (department_id = ? OR shared_access_group = 'gst') 
-             AND level_access <= ?`,
+            "SELECT * FROM courses WHERE (department_id = ? OR shared_access_group = 'gst') AND level_access <= ?",
             [user.department_id, user.level]
         );
         
-        res.render('acct/dashboard', { courses });
+        res.render('acct/exam_setup', { courses });
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");
