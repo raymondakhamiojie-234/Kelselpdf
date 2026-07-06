@@ -994,8 +994,8 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
     try {
         const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
         
-        let course_code_input = req.body.course_code;
-        if (course_code_input) course_code_input = course_code_input.toUpperCase().trim();
+        let course_code_input = req.body.course_code || '';
+        course_code_input = course_code_input.toUpperCase().trim();
         
         let course_id;
         const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [course_code_input]);
@@ -1005,8 +1005,8 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
             const [result] = await pool.query('INSERT INTO courses (course_code, title) VALUES (?, ?)', [course_code_input, course_code_input + ' Course']);
             course_id = result.insertId;
         }
-        const year = req.body.year;
-        const type = req.body.type;
+        const year = req.body.year || '';
+        const type = req.body.type || '';
         let file_link = req.body.file_link || '';
         let error = '';
         let success = '';
@@ -1018,7 +1018,8 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
             }
             const filename = Date.now() + '_' + req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
             const targetPath = path.join(uploadDir, filename);
-            fs.renameSync(req.file.path, targetPath);
+            fs.copyFileSync(req.file.path, targetPath);
+            fs.unlinkSync(req.file.path);
             file_link = 'uploads/past_questions/' + filename;
         }
 
