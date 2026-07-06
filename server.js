@@ -769,8 +769,8 @@ app.get('/exam/take/:course', checkAuth, async (req, res) => {
         const question_limit = parseInt(req.query.questions) || 20;
 
         const [questions] = await pool.query(
-            'SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE course_code = ? ORDER BY RAND() LIMIT ?',
-            [course, question_limit]
+            'SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE REPLACE(course_code, " ", "") = ? ORDER BY RAND() LIMIT ?',
+            [(course||'').replace(/\s+/g, ''), question_limit]
         );
 
         res.render('acct/take_exam', {
@@ -959,7 +959,7 @@ app.post('/admin/questions', requireAdmin, upload.single('csv_file'), (req, res)
                     if (row.course_code && row.question_text) {
                         await pool.query(
                             'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            [(row.course_code||'').trim(), (row.question_text||'').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
+                            [(row.course_code||'').replace(/^\uFEFF/, '').trim(), (row.question_text||'').replace(/^\uFEFF/, '').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
                         );
                         count++;
                     }
