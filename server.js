@@ -1002,7 +1002,7 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
         if (existingCourse.length > 0) {
             course_id = existingCourse[0].id;
         } else {
-            const [result] = await pool.query('INSERT INTO courses (course_code, title) VALUES (?, ?)', [course_code_input, course_code_input + ' Course']);
+            const [result] = await pool.query('INSERT INTO courses (course_code) VALUES (?)', [course_code_input]);
             course_id = result.insertId;
         }
         const year = req.body.year || '';
