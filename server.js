@@ -67,6 +67,20 @@ const checkAuth = async (req, res, next) => {
             return res.status(500).send("Database error");
         }
     }
+    
+    // Enforce Premium (Payment Wall) globally for authenticated routes
+    const path = req.path;
+    const excludedPaths = ['/payment', '/api/verify_payment', '/logout', '/upgrade-admin'];
+    
+    if (!excludedPaths.includes(path) && req.session.user && req.session.user.role !== 'admin') {
+        const currentDate = new Date();
+        const expiryDate = new Date(req.session.user.expiry_date);
+        
+        if (req.session.user.has_paid === 0 || !req.session.user.expiry_date || expiryDate <= currentDate) {
+            return res.redirect('/payment');
+        }
+    }
+    
     next();
 };
 
