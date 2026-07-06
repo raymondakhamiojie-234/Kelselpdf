@@ -104,11 +104,11 @@
                         <% } %>
 
                         <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                            <a href="/academy/player/<%= p.course_id %>" class="btn btn-primary" style="flex: 1;">
+                            <a href="/skills/player/<%= p.course_id %>" class="btn btn-primary" style="flex: 1;">
                                 <%= isCompleted ? 'Review Course' : 'Resume Course' %>
                             </a>
                             <% if (isCompleted) { %>
-                                <a href="/academy/certificate/<%= p.course_id %>" class="btn btn-secondary" style="flex: 1; text-align: center;">Certificate</a>
+                                <a href="/skills/certificate/<%= p.course_id %>" class="btn btn-secondary" style="flex: 1; text-align: center;">Certificate</a>
                             <% } %>
                         </div>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                     <h3>You haven't enrolled in any courses yet!</h3>
                     <p>Visit the Skills Academy to browse available courses and start learning.</p>
-                    <a href="/academy" class="btn btn-primary mt-1">Browse Courses</a>
+                    <a href="/skills" class="btn btn-primary mt-1">Browse Courses</a>
                 </div>
             <% } %>
         </div>

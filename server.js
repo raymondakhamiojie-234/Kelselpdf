@@ -533,7 +533,7 @@ app.get('/exam/ai', (req, res) => {
 // ==========================================
 
 // Browse Courses
-app.get('/academy', checkAuth, async (req, res) => {
+app.get('/skills', checkAuth, async (req, res) => {
     try {
         const categorySlug = req.query.category;
         const [categories] = await pool.query('SELECT * FROM academy_categories ORDER BY name ASC');
@@ -553,7 +553,7 @@ app.get('/academy', checkAuth, async (req, res) => {
         
         const [courses] = await pool.query(coursesQuery, queryParams);
         
-        res.render('academy/browse', { 
+        res.render('skills/browse', { 
             user: req.session.user, 
             categories, 
             courses,
@@ -566,7 +566,7 @@ app.get('/academy', checkAuth, async (req, res) => {
 });
 
 // Course Details
-app.get('/academy/course/:slug', checkAuth, async (req, res) => {
+app.get('/skills/course/:slug', checkAuth, async (req, res) => {
     try {
         const slug = req.params.slug;
         const [courseRows] = await pool.query('SELECT * FROM academy_courses WHERE slug = ?', [slug]);
@@ -590,7 +590,7 @@ app.get('/academy/course/:slug', checkAuth, async (req, res) => {
             WHERE p.user_id = ? AND m.course_id = ? LIMIT 1
         `, [req.session.user.id, course.id]);
 
-        res.render('academy/course_details', {
+        res.render('skills/course_details', {
             user: req.session.user,
             course,
             modules,
@@ -603,7 +603,7 @@ app.get('/academy/course/:slug', checkAuth, async (req, res) => {
 });
 
 // Enroll (Create progress for first lesson)
-app.post('/academy/enroll', checkAuth, async (req, res) => {
+app.post('/skills/enroll', checkAuth, async (req, res) => {
     try {
         const { course_id } = req.body;
         // Verify course exists
@@ -626,7 +626,7 @@ app.post('/academy/enroll', checkAuth, async (req, res) => {
             await pool.query('INSERT IGNORE INTO academy_progress (user_id, lesson_id) VALUES (?, ?)', [req.session.user.id, lessonRows[0].id]);
         }
         
-        res.redirect(`/academy/player/${courseRows[0].slug}`);
+        res.redirect(`/skills/player/${courseRows[0].slug}`);
     } catch (err) {
         console.error(err);
         res.status(500).send("Error enrolling");
@@ -634,7 +634,7 @@ app.post('/academy/enroll', checkAuth, async (req, res) => {
 });
 
 // Player Interface
-app.get('/academy/player/:slug', checkAuth, async (req, res) => {
+app.get('/skills/player/:slug', checkAuth, async (req, res) => {
     try {
         const slug = req.params.slug;
         const [courseRows] = await pool.query('SELECT * FROM academy_courses WHERE slug = ?', [slug]);
@@ -683,7 +683,7 @@ app.get('/academy/player/:slug', checkAuth, async (req, res) => {
             }
         }
 
-        res.render('academy/player', {
+        res.render('skills/player', {
             user: req.session.user,
             course,
             modules,
@@ -699,7 +699,7 @@ app.get('/academy/player/:slug', checkAuth, async (req, res) => {
     }
 });
 
-app.post('/academy/complete_lesson', checkAuth, async (req, res) => {
+app.post('/skills/complete_lesson', checkAuth, async (req, res) => {
     try {
         const { lesson_id, course_slug } = req.body;
         
@@ -720,11 +720,11 @@ app.post('/academy/complete_lesson', checkAuth, async (req, res) => {
             
             const index = lessons.findIndex(l => l.id == lesson_id);
             if (index !== -1 && index < lessons.length - 1) {
-                return res.redirect(`/academy/player/${course_slug}?lesson=${lessons[index+1].id}`);
+                return res.redirect(`/skills/player/${course_slug}?lesson=${lessons[index+1].id}`);
             }
         }
 
-        res.redirect(`/academy/player/${course_slug}?lesson=${lesson_id}`);
+        res.redirect(`/skills/player/${course_slug}?lesson=${lesson_id}`);
     } catch (err) {
         console.error(err);
         res.status(500).send("Error completing lesson");
@@ -1279,62 +1279,62 @@ app.post('/api/ai/pdf_chat', checkAuth, async (req, res) => {
 // ADMIN ACADEMY ROUTES
 // ==========================================
 
-app.get('/admin/academy', requireAdmin, async (req, res) => {
+app.get('/admin/skills', requireAdmin, async (req, res) => {
     try {
         const [categories] = await pool.query('SELECT * FROM academy_categories ORDER BY name ASC');
         const [courses] = await pool.query('SELECT * FROM academy_courses ORDER BY created_at DESC');
-        res.render('admin/manage_academy', { categories, courses });
+        res.render('admin/manage_skills', { categories, courses });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error loading admin academy");
     }
 });
 
-app.post('/admin/academy/category', requireAdmin, async (req, res) => {
+app.post('/admin/skills/category', requireAdmin, async (req, res) => {
     try {
         const { name, slug } = req.body;
         await pool.query('INSERT INTO academy_categories (name, slug) VALUES (?, ?)', [name, slug]);
-        res.redirect('/admin/academy');
+        res.redirect('/admin/skills');
     } catch (err) {
         console.error(err);
         res.status(500).send("Error creating category");
     }
 });
 
-app.post('/admin/academy/course', requireAdmin, async (req, res) => {
+app.post('/admin/skills/course', requireAdmin, async (req, res) => {
     try {
         const { category_id, title, slug, description, instructor, duration_hours } = req.body;
         await pool.query(`
             INSERT INTO academy_courses (category_id, title, slug, description, instructor, duration_hours)
             VALUES (?, ?, ?, ?, ?, ?)
         `, [category_id, title, slug, description, instructor, duration_hours || 0]);
-        res.redirect('/admin/academy');
+        res.redirect('/admin/skills');
     } catch (err) {
         console.error(err);
         res.status(500).send("Error creating course");
     }
 });
 
-app.post('/admin/academy/category/delete', requireAdmin, async (req, res) => {
+app.post('/admin/skills/category/delete', requireAdmin, async (req, res) => {
     try {
         await pool.query('DELETE FROM academy_categories WHERE id = ?', [req.body.id]);
-        res.redirect('/admin/academy');
+        res.redirect('/admin/skills');
     } catch (err) {
         res.status(500).send("Error deleting category");
     }
 });
 
-app.post('/admin/academy/course/delete', requireAdmin, async (req, res) => {
+app.post('/admin/skills/course/delete', requireAdmin, async (req, res) => {
     try {
         await pool.query('DELETE FROM academy_courses WHERE id = ?', [req.body.id]);
-        res.redirect('/admin/academy');
+        res.redirect('/admin/skills');
     } catch (err) {
         res.status(500).send("Error deleting course");
     }
 });
 
 // My Learning
-app.get('/academy/my-learning', checkAuth, async (req, res) => {
+app.get('/skills/my-learning', checkAuth, async (req, res) => {
     try {
         const [progress] = await pool.query(`
             SELECT p.*, ac.title as course_title, ac.id as course_id
@@ -1347,7 +1347,7 @@ app.get('/academy/my-learning', checkAuth, async (req, res) => {
         const [certs] = await pool.query('SELECT course_id FROM certificates WHERE user_id = ?', [req.session.user_id]);
         const completedCourseIds = certs.map(c => c.course_id);
 
-        res.render('academy/my_learning', { progress, completedCourseIds });
+        res.render('skills/my_learning', { progress, completedCourseIds });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error loading my learning: " + err.message);
@@ -1496,7 +1496,7 @@ app.post('/community/topic/:id/reply', checkAuth, async (req, res) => {
 });
 
 // Certificates
-app.get('/academy/certificate/:course_id', checkAuth, async (req, res) => {
+app.get('/skills/certificate/:course_id', checkAuth, async (req, res) => {
     try {
         // First check if they actually completed the course (simplified for MVP: check if certificate exists, if not generate it)
         const courseId = req.params.course_id;
@@ -1521,7 +1521,7 @@ app.get('/academy/certificate/:course_id', checkAuth, async (req, res) => {
         const [courses] = await pool.query('SELECT * FROM academy_courses WHERE id = ?', [courseId]);
         
         const baseUrl = req.protocol + '://' + req.get('host');
-        res.render('academy/certificate', { certificate: certs[0], course: courses[0], baseUrl });
+        res.render('skills/certificate', { certificate: certs[0], course: courses[0], baseUrl });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error loading certificate");

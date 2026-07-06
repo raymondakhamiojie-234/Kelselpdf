@@ -20,7 +20,7 @@
             <li><a href="/admin/subscriptions">📅 Subscriptions</a></li>
             <li><a href="/admin/questions">📝 Upload Questions</a></li>
             <li><a href="/admin/past_questions">📁 Past Questions</a></li>
-            <li><a href="/admin/academy" class="active">🎓 Skills Academy</a></li>
+            <li><a href="/admin/skills" class="active">🎓 Skills Academy</a></li>
             <li style="margin-top: 2rem;"><a href="/dashboard">← Back to App</a></li>
         </ul>
     </nav>
@@ -32,7 +32,7 @@
 
         <div class="glass-panel mb-2">
             <h3>Academy Categories</h3>
-            <form action="/admin/academy/category" method="POST" style="display: flex; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
+            <form action='/admin/skills/category" method="POST" style="display: flex; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
                 <input type="text" name="name" placeholder="Category Name" required class="input-field" style="flex: 1;">
                 <input type="text" name="slug" placeholder="Slug (e.g. tech)" required class="input-field" style="flex: 1;">
                 <button type="submit" class="btn btn-primary">Add Category</button>
@@ -52,7 +52,7 @@
                         <td><%= cat.name %></td>
                         <td><%= cat.slug %></td>
                         <td>
-                            <form action="/admin/academy/category/delete" method="POST" style="display:inline;">
+                            <form action='/admin/skills/category/delete" method="POST" style="display:inline;">
                                 <input type="hidden" name="id" value="<%= cat.id %>">
                                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
                             </form>
@@ -65,7 +65,7 @@
 
         <div class="glass-panel">
             <h3>Academy Courses</h3>
-            <form action="/admin/academy/course" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
+            <form action='/admin/skills/course" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
                 <select name="category_id" required class="input-field" style="grid-column: 1 / -1;">
                     <option value="">Select Category</option>
                     <% categories.forEach(function(cat) { %>
@@ -94,7 +94,7 @@
                         <td><%= course.title %></td>
                         <td><%= course.instructor %></td>
                         <td>
-                            <form action="/admin/academy/course/delete" method="POST" style="display:inline;">
+                            <form action='/admin/skills/course/delete" method="POST" style="display:inline;">
                                 <input type="hidden" name="id" value="<%= course.id %>">
                                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
                             </form>

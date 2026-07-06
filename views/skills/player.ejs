@@ -119,7 +119,7 @@
 <body>
     <div class="player-sidebar">
         <div class="player-header">
-            <a href="/academy/course/<%= course.slug %>" style="color: var(--ntxt-color); text-decoration: none; font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">&larr; Back to Course Overview</a>
+            <a href="/skills/course/<%= course.slug %>" style="color: var(--ntxt-color); text-decoration: none; font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">&larr; Back to Course Overview</a>
             <h2><%= course.title %></h2>
             <div style="font-size: 0.8rem; color: var(--ntxt-color);"><%= Math.round(progress_percent) %>% Completed</div>
             <div class="player-progress-bar">
@@ -135,7 +135,7 @@
                             let isActive = current_lesson && current_lesson.id === lesson.id;
                             let isCompleted = completed_lessons.includes(lesson.id);
                         %>
-                            <a href="/academy/player/<%= course.slug %>?lesson=<%= lesson.id %>" class="lesson-item <%= isActive ? 'active' : '' %> <%= isCompleted ? 'completed' : '' %>">
+                            <a href="/skills/player/<%= course.slug %>?lesson=<%= lesson.id %>" class="lesson-item <%= isActive ? 'active' : '' %> <%= isCompleted ? 'completed' : '' %>">
                                 <span style="margin-right: 10px; font-size: 1.1rem;">
                                     <% if(isCompleted) { %>✅<% } else if(lesson.type === 'video') { %>🎥<% } else if(lesson.type === 'quiz') { %>📝<% } else { %>📄<% } %>
                                 </span>
@@ -154,7 +154,7 @@
                 <h2>Welcome to <%= course.title %></h2>
                 <p style="color: var(--ntxt-color);">Select a lesson from the sidebar to begin learning.</p>
                 <% if(modules.length > 0 && modules[0].lessons.length > 0) { %>
-                    <a href="/academy/player/<%= course.slug %>?lesson=<%= modules[0].lessons[0].id %>" class="btn btn-primary" style="margin-top: 1rem;">Start First Lesson</a>
+                    <a href="/skills/player/<%= course.slug %>?lesson=<%= modules[0].lessons[0].id %>" class="btn btn-primary" style="margin-top: 1rem;">Start First Lesson</a>
                 <% } %>
             </div>
         <% } else { %>
@@ -176,13 +176,13 @@
                 <div class="nav-buttons">
                     <div>
                         <% if(prev_lesson_id) { %>
-                            <a href="/academy/player/<%= course.slug %>?lesson=<%= prev_lesson_id %>" class="btn btn-outline">&larr; Previous</a>
+                            <a href="/skills/player/<%= course.slug %>?lesson=<%= prev_lesson_id %>" class="btn btn-outline">&larr; Previous</a>
                         <% } %>
                     </div>
                     
                     <div>
                         <% if(!completed_lessons.includes(current_lesson.id)) { %>
-                            <form action="/academy/complete_lesson" method="POST" style="display: inline;">
+                            <form action="/skills/complete_lesson" method="POST" style="display: inline;">
                                 <input type="hidden" name="course_slug" value="<%= course.slug %>">
                                 <input type="hidden" name="lesson_id" value="<%= current_lesson.id %>">
                                 <button type="submit" class="btn btn-success" style="background: var(--success); border: none;">Mark as Completed</button>
@@ -192,9 +192,9 @@
                         <% } %>
                         
                         <% if(next_lesson_id) { %>
-                            <a href="/academy/player/<%= course.slug %>?lesson=<%= next_lesson_id %>" class="btn btn-primary" style="margin-left: 10px;">Next &rarr;</a>
+                            <a href="/skills/player/<%= course.slug %>?lesson=<%= next_lesson_id %>" class="btn btn-primary" style="margin-left: 10px;">Next &rarr;</a>
                         <% } else if (progress_percent >= 90) { %>
-                            <a href="/academy/certificate/<%= course.id %>" class="btn btn-ai" style="margin-left: 10px;">Claim Certificate 🏆</a>
+                            <a href="/skills/certificate/<%= course.id %>" class="btn btn-ai" style="margin-left: 10px;">Claim Certificate 🏆</a>
                         <% } %>
                     </div>
                 </div>
