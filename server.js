@@ -993,7 +993,18 @@ app.get('/admin/past_questions', requireAdmin, async (req, res) => {
 app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async (req, res) => {
     try {
         const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
-        const course_id = parseInt(req.body.course_id);
+        
+        let course_code_input = req.body.course_code;
+        if (course_code_input) course_code_input = course_code_input.toUpperCase().trim();
+        
+        let course_id;
+        const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [course_code_input]);
+        if (existingCourse.length > 0) {
+            course_id = existingCourse[0].id;
+        } else {
+            const [result] = await pool.query('INSERT INTO courses (course_code, title) VALUES (?, ?)', [course_code_input, course_code_input + ' Course']);
+            course_id = result.insertId;
+        }
         const year = req.body.year;
         const type = req.body.type;
         let file_link = req.body.file_link || '';
