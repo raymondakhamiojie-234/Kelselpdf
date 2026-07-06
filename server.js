@@ -769,7 +769,7 @@ app.get('/exam/take/:course', checkAuth, async (req, res) => {
         const question_limit = parseInt(req.query.questions) || 20;
 
         const [questions] = await pool.query(
-            'SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE REPLACE(course_code, " ", "") = ? ORDER BY RAND() LIMIT ?',
+            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE REPLACE(course_code, ' ', '') = ? ORDER BY RAND() LIMIT ?",
             [(course||'').replace(/\s+/g, ''), question_limit]
         );
 
