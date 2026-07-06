@@ -195,9 +195,11 @@ a:hover { color: var(--cta-color-hover); }
 
 .main-content {
     flex: 1;
-    padding: 2rem;
+    padding: 0 3rem 3rem 3rem;
     margin-left: 250px;
     min-height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Tables */
@@ -311,11 +313,13 @@ a:hover { color: var(--cta-color-hover); }
 .app-header-curved {
     background: linear-gradient(135deg, #1E3A8A 0%, #8b5cf6 100%);
     color: white;
-    padding: 3rem 1.5rem 4rem 1.5rem;
+    padding: 3rem 3rem 4rem 3rem;
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
     position: relative;
     margin-bottom: 3rem;
+    margin-left: -3rem;
+    margin-right: -3rem;
 }
 .app-header-curved .header-content {
     display: flex;
@@ -355,6 +359,8 @@ a:hover { color: var(--cta-color-hover); }
     color: var(--text-color);
 }
 .quick-access-grid {
+    max-width: 1400px;
+    margin: 0 auto 3rem auto;
     display: grid;
     gap: 15px;
     padding: 0 1.5rem;
@@ -461,8 +467,14 @@ a:hover { color: var(--cta-color-hover); }
 @media (max-width: 768px) {
     /* Modify main content to account for bottom nav and no sidebar */
     .dashboard-body .main-content {
-        padding: 0 0 5rem 0 !important; 
+        padding: 0 1.25rem 6rem 1.25rem !important; 
         margin-left: 0;
+    }
+    .app-header-curved {
+        margin-left: -1.25rem;
+        margin-right: -1.25rem;
+        padding: 2.5rem 1.5rem 3.5rem 1.5rem;
+        border-radius: 0 0 25px 25px;
     }
     .quick-access-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -485,7 +497,7 @@ a:hover { color: var(--cta-color-hover); }
 
 @media (min-width: 769px) {
     .dashboard-body .main-content {
-        padding: 0;
+        padding: 0 3rem 3rem 3rem;
     }
     .quick-access-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
