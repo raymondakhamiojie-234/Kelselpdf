@@ -198,8 +198,7 @@ app.get('/setup-db', async (req, res) => {
                 FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
             )
         `);
-        // Ensure file_link is LONGTEXT to support Base64 PDFs
-        await pool.query('ALTER TABLE past_questions MODIFY file_link LONGTEXT').catch(() => {});
+        // Alter table moved to upload route to avoid race conditions
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS exam_attempts (
@@ -1024,6 +1023,7 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
         if (!file_link) {
             error = "You must either upload a file or provide a URL link.";
         } else {
+            await pool.query('ALTER TABLE past_questions MODIFY file_link LONGTEXT');
             await pool.query(
                 'INSERT INTO past_questions (course_id, year, type, file_link) VALUES (?, ?, ?, ?)',
                 [course_id, year, type, file_link]
