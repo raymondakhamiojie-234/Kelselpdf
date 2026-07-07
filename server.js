@@ -533,8 +533,8 @@ app.get('/exam_materials', checkAuth, async (req, res) => {
         const query = `
             SELECT pq.*, c.course_code FROM past_questions pq 
             JOIN courses c ON pq.course_id = c.id 
-            WHERE (c.department_id = ? OR c.shared_access_group = 'gst' OR c.department_id IS NULL) 
-            AND (c.level_access <= ? OR c.level_access IS NULL)
+            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            AND c.level_access <= ?
             ORDER BY c.course_code ASC, pq.year DESC
         `;
         const [materials] = await pool.query(query, [dept_id, level]);
@@ -886,8 +886,8 @@ app.get('/exam/analytics', checkAuth, async (req, res) => {
         const [past_questions] = await pool.query(
             `SELECT pq.*, c.course_code FROM past_questions pq 
              JOIN courses c ON pq.course_id = c.id 
-             WHERE (c.department_id = ? OR c.shared_access_group = 'gst' OR c.department_id IS NULL) 
-             AND (c.level_access <= ? OR c.level_access IS NULL)`,
+             WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+             AND c.level_access <= ?`,
             [dept_id, level]
         );
 
@@ -999,13 +999,18 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
         
         let course_code_input = req.body.course_code || '';
         course_code_input = course_code_input.toUpperCase().trim();
+        const course_dept = req.body.department_id === 'gst' ? null : parseInt(req.body.department_id) || null;
+        const shared_group = req.body.department_id === 'gst' ? 'gst' : 'general';
+        const course_level = parseInt(req.body.level) || 100;
         
         let course_id;
         const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [course_code_input]);
         if (existingCourse.length > 0) {
             course_id = existingCourse[0].id;
+            // Update existing course with access info if missing
+            await pool.query('UPDATE courses SET department_id = COALESCE(department_id, ?), level_access = COALESCE(level_access, ?), shared_access_group = COALESCE(shared_access_group, ?) WHERE id = ?', [course_dept, course_level, shared_group, course_id]);
         } else {
-            const [result] = await pool.query('INSERT INTO courses (course_code) VALUES (?)', [course_code_input]);
+            const [result] = await pool.query('INSERT INTO courses (course_code, department_id, level_access, shared_access_group) VALUES (?, ?, ?, ?)', [course_code_input, course_dept, course_level, shared_group]);
             course_id = result.insertId;
         }
         const year = req.body.year || '';

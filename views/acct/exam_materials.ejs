@@ -41,7 +41,7 @@
                                 <td style="padding: 1rem;"><%= mat.type %></td>
                                 <td style="padding: 1rem; text-align: center;">
                                     <% 
-                                        const filePath = mat.file_link.startsWith('http') ? mat.file_link : '/' + mat.file_link; 
+                                        const filePath = (mat.file_link.startsWith('http') || mat.file_link.startsWith('data:')) ? mat.file_link : '/' + mat.file_link;  
                                     %>
                                     <a href="<%= filePath %>" target="_blank" class="btn btn-ai" style="padding: 5px 15px; font-size: 0.9rem; border-radius: 20px;">Download</a>
                                 </td>

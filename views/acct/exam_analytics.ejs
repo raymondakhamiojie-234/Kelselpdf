@@ -82,7 +82,7 @@
                             <strong><%= pq.course_code %></strong> - <%= pq.year %> (<%= pq.type %>)
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <a href="<%= pq.file_link.startsWith('http') ? pq.file_link : '/' + pq.file_link %>" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download File</a>
+                            <a href="<%= (pq.file_link.startsWith('http') || pq.file_link.startsWith('data:')) ? pq.file_link : '/' + pq.file_link %>" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download File</a>
                             <a href="/exam/ai/pdf?url=<%= encodeURIComponent(pq.file_link) %>" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;">🤖 Chat with PDF</a>
                         </div>
                     </li>
