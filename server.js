@@ -533,8 +533,8 @@ app.get('/exam_materials', checkAuth, async (req, res) => {
         const query = `
             SELECT pq.*, c.course_code FROM past_questions pq 
             JOIN courses c ON pq.course_id = c.id 
-            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
-            AND c.level_access <= ?
+            WHERE (c.department_id = ? OR c.shared_access_group = 'gst' OR c.department_id IS NULL) 
+            AND (c.level_access <= ? OR c.level_access IS NULL)
             ORDER BY c.course_code ASC, pq.year DESC
         `;
         const [materials] = await pool.query(query, [dept_id, level]);
@@ -886,8 +886,8 @@ app.get('/exam/analytics', checkAuth, async (req, res) => {
         const [past_questions] = await pool.query(
             `SELECT pq.*, c.course_code FROM past_questions pq 
              JOIN courses c ON pq.course_id = c.id 
-             WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
-             AND c.level_access <= ?`,
+             WHERE (c.department_id = ? OR c.shared_access_group = 'gst' OR c.department_id IS NULL) 
+             AND (c.level_access <= ? OR c.level_access IS NULL)`,
             [dept_id, level]
         );
 
