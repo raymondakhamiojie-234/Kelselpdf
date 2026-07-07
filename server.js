@@ -9,9 +9,10 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const { OpenAI } = require('openai');
 
+const os = require('os');
 const app = express();
 app.set('trust proxy', 1);
-const upload = multer({ dest: '/tmp/uploads/' });
+const upload = multer({ dest: os.tmpdir() + '/uploads/' });
 const PORT = process.env.PORT || 3000;
 
 // Database Connection Pool
@@ -189,13 +190,16 @@ app.get('/setup-db', async (req, res) => {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS past_questions (
                 id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                course_id INT(6) UNSIGNED,
+                course_id INT(6) UNSIGNED NOT NULL,
                 year VARCHAR(10),
                 type VARCHAR(20),
-                file_link VARCHAR(255),
+                file_link LONGTEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
             )
         `);
+        // Ensure file_link is LONGTEXT to support Base64 PDFs
+        await pool.query('ALTER TABLE past_questions MODIFY file_link LONGTEXT').catch(() => {});
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS exam_attempts (
@@ -1012,15 +1016,9 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
         let success = '';
 
         if (req.file) {
-            const uploadDir = path.join(__dirname, 'public', 'uploads', 'past_questions');
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-            const filename = Date.now() + '_' + req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-            const targetPath = path.join(uploadDir, filename);
-            fs.copyFileSync(req.file.path, targetPath);
-            fs.unlinkSync(req.file.path);
-            file_link = 'uploads/past_questions/' + filename;
+            const fileBuffer = fs.readFileSync(req.file.path);
+            file_link = 'data:' + req.file.mimetype + ';base64,' + fileBuffer.toString('base64');
+            try { fs.unlinkSync(req.file.path); } catch(e) {}
         }
 
         if (!file_link) {
@@ -1036,8 +1034,8 @@ app.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), async 
         res.render('admin/past_questions', { courses, success, error });
     } catch (err) {
         console.error(err);
-        const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
-        res.render('admin/past_questions', { courses, success: '', error: 'Server error processing upload.' });
+        const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC').catch(()=>[[]]);
+        res.render('admin/past_questions', { courses, success: '', error: 'Error: ' + err.message + ' | Stack: ' + String(err.stack).substring(0,200) });
     }
 });
 
