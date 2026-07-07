@@ -1382,10 +1382,13 @@ app.post('/admin/skills/course/delete', requireAdmin, async (req, res) => {
 app.get('/skills/my-learning', checkAuth, async (req, res) => {
     try {
         const [progress] = await pool.query(`
-            SELECT p.*, ac.title as course_title, ac.id as course_id
+            SELECT ac.title as course_title, ac.id as course_id
             FROM academy_progress p
-            JOIN academy_courses ac ON p.course_id = ac.id
+            JOIN academy_lessons al ON p.lesson_id = al.id
+            JOIN academy_modules am ON al.module_id = am.id
+            JOIN academy_courses ac ON am.course_id = ac.id
             WHERE p.user_id = ?
+            GROUP BY ac.id
         `, [req.session.user_id]);
         
         // Let's also fetch certificates directly to know if they completed it
