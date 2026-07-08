@@ -161,6 +161,7 @@ a:hover { color: var(--cta-color-hover); }
     position: fixed;
     left: 0;
     top: 0;
+    overflow-y: auto;
 }
 .sidebar h2 { text-align: center; margin-bottom: 2rem; color: var(--sec-color); }
 .sidebar > ul { list-style: none; flex: 1; }
@@ -505,3 +506,4 @@ a:hover { color: var(--cta-color-hover); }
         margin: 0 auto 3rem auto;
     }
 }
+
