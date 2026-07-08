@@ -88,6 +88,10 @@
                         <input type="text" value="<%= user.has_paid && user.expiry_date ? new Date(user.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Subscribed' %>" disabled style="opacity: 1;">
                     </div>
                 </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <a href="/payment" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">Renew Subscription Early</a>
+                </div>
 
                 <div class="flex-col mt-1">
                     <button type="submit" class="btn btn-ai" style="width: 100%;">Save Changes</button>
