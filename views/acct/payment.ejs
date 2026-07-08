@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="/style.css">
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body class="dashboard-body">
     <div class="auth-wrapper" style="align-items: flex-start; padding-top: 2rem;">
@@ -90,3 +98,4 @@
     </script>
 </body>
 </html>
+

@@ -6,6 +6,14 @@
     <title>Exam Materials - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body class="dashboard-body">
     <%- include('partials/sidebar', { active_page: 'exam_materials' }) %>
@@ -54,3 +62,4 @@
     </main>
 </body>
 </html>
+

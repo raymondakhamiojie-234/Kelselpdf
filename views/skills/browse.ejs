@@ -82,6 +82,14 @@
             margin-left: 10px;
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body class="dashboard-body">
     <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
@@ -198,3 +206,4 @@
     </main>
 </body>
 </html>
+

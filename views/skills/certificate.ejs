@@ -124,6 +124,14 @@
             .no-print { display: none; }
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body class="dashboard-body">
     <div style="position: absolute; top: 20px; left: 20px;" class="no-print">
@@ -165,3 +173,4 @@
     </div>
 </body>
 </html>
+

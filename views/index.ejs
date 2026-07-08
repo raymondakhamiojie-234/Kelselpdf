@@ -169,6 +169,14 @@
             }
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body>
     <nav style="position: sticky; top: 0; z-index: 1000; display: flex; flex-wrap: wrap;">
@@ -263,3 +271,4 @@
     </script>
 </body>
 </html>
+

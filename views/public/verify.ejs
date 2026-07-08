@@ -62,6 +62,14 @@
             color: var(--text-color);
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="verify-card">
@@ -102,3 +110,4 @@
     </div>
 </body>
 </html>
+

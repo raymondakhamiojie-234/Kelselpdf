@@ -41,6 +41,14 @@
             margin-bottom: 1.5rem;
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
 </head>
 <body class="dashboard-body">
     <%- include('../acct/partials/sidebar', { active_page: 'certificates' }) %>
@@ -75,3 +83,4 @@
     </div>
 </body>
 </html>
+
