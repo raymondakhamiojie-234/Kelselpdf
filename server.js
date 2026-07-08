@@ -485,10 +485,14 @@ app.get('/exam/setup', checkAuth, async (req, res) => {
             return res.redirect('/logout');
         }
 
-        const [courses] = await pool.query(
-            "SELECT * FROM courses WHERE (department_id = ? OR shared_access_group = 'gst') AND level_access <= ?",
-            [user.department_id, user.level]
-        );
+        const [courses] = await pool.query(`
+            SELECT DISTINCT c.course_code 
+            FROM courses c
+            JOIN questions q ON REPLACE(c.course_code, ' ', '') = REPLACE(q.course_code, ' ', '')
+            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            AND c.level_access <= ?
+            ORDER BY c.course_code ASC
+        `, [user.department_id, user.level]);
         
         res.render('acct/exam_setup', { courses });
     } catch (err) {
