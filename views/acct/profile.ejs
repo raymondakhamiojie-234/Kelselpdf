@@ -56,12 +56,22 @@
                     </div>
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label>Level</label>
-                        <select name="level" disabled style="opacity: 0.8; cursor: not-allowed; background-color: var(--cbg-color-2);">
-                            <option value="100" <%= user.level == 100 ? 'selected' : '' %>>100</option>
-                            <option value="200" <%= user.level == 200 ? 'selected' : '' %>>200</option>
-                            <option value="300" <%= user.level == 300 ? 'selected' : '' %>>300</option>
-                            <option value="400" <%= user.level == 400 ? 'selected' : '' %>>400</option>
-                        </select>
+                        <% if (user.can_change_level) { %>
+                            <div style="font-size: 0.8rem; color: var(--success); margin-bottom: 5px;">🔓 1-time change allowed</div>
+                            <select name="level" required>
+                                <option value="100" <%= user.level == 100 ? 'selected' : '' %>>100</option>
+                                <option value="200" <%= user.level == 200 ? 'selected' : '' %>>200</option>
+                                <option value="300" <%= user.level == 300 ? 'selected' : '' %>>300</option>
+                                <option value="400" <%= user.level == 400 ? 'selected' : '' %>>400</option>
+                                <option value="500" <%= user.level == 500 ? 'selected' : '' %>>500</option>
+                            </select>
+                        <% } else { %>
+                            <select disabled style="opacity: 0.7; cursor: not-allowed; background: var(--cbg-color-2);">
+                                <option value="<%= user.level %>" selected><%= user.level %></option>
+                            </select>
+                            <input type="hidden" name="level" value="<%= user.level %>">
+                            <div style="font-size: 0.75rem; color: var(--ntxt-color); margin-top: 5px;">🔒 Level is locked. Renew subscription to change.</div>
+                        <% } %>
                     </div>
                 </div>
 

@@ -123,9 +123,17 @@ app.get('/setup-db', async (req, res) => {
                 expiry_date DATE,
                 has_paid BOOLEAN DEFAULT 0,
                 subscription_plan VARCHAR(50) DEFAULT 'none',
+                can_change_level BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Safely add column if it doesn't exist
+        await pool.query(`
+            SELECT can_change_level FROM users LIMIT 1
+        `).catch(async () => {
+            await pool.query(`ALTER TABLE users ADD COLUMN can_change_level BOOLEAN DEFAULT 0`);
+        });
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS questions (
@@ -513,13 +521,25 @@ app.get('/profile', checkAuth, async (req, res) => {
 
 // Profile Route (POST)
 app.post('/profile', checkAuth, async (req, res) => {
-    const { full_name, lastname, department_id } = req.body;
+    const { full_name, lastname, department_id, level } = req.body;
     try {
+        const [userCheck] = await pool.query('SELECT can_change_level, level as current_level FROM users WHERE id = ?', [req.session.user.id]);
+        const can_change = userCheck[0].can_change_level;
+        
+        let final_level = userCheck[0].current_level;
+        let final_can_change = can_change;
+        
+        if (can_change && level) {
+            final_level = level;
+            final_can_change = 0; // Revoke permission after they submit a new level
+        }
+
         await pool.query(
-            'UPDATE users SET full_name = ?, lastname = ?, department_id = ? WHERE id = ?',
-            [full_name, lastname, department_id, req.session.user.id]
+            'UPDATE users SET full_name = ?, lastname = ?, department_id = ?, level = ?, can_change_level = ? WHERE id = ?',
+            [full_name, lastname, department_id, final_level, final_can_change, req.session.user.id]
         );
         req.session.user.full_name = full_name; // update session
+        req.session.user.level = final_level;
         const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
         res.render('acct/profile', { user: rows[0], success: 'Profile updated successfully!', error: '' });
     } catch (err) {
@@ -1145,7 +1165,7 @@ app.post('/api/verify_payment', checkAuth, async (req, res) => {
         }
 
         await pool.query(
-            'UPDATE users SET has_paid = 1, expiry_date = ?, subscription_plan = ? WHERE id = ?',
+            'UPDATE users SET has_paid = 1, expiry_date = ?, subscription_plan = ?, can_change_level = 1 WHERE id = ?',
             [expiry_date, plan_name, user_id]
         );
 
