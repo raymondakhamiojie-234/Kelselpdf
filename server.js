@@ -513,11 +513,11 @@ app.get('/profile', checkAuth, async (req, res) => {
 
 // Profile Route (POST)
 app.post('/profile', checkAuth, async (req, res) => {
-    const { full_name, lastname, department_id, level } = req.body;
+    const { full_name, lastname, department_id } = req.body;
     try {
         await pool.query(
-            'UPDATE users SET full_name = ?, lastname = ?, department_id = ?, level = ? WHERE id = ?',
-            [full_name, lastname, department_id, level, req.session.user.id]
+            'UPDATE users SET full_name = ?, lastname = ?, department_id = ? WHERE id = ?',
+            [full_name, lastname, department_id, req.session.user.id]
         );
         req.session.user.full_name = full_name; // update session
         const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
