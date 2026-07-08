@@ -1183,7 +1183,17 @@ app.post('/api/verify_payment', checkAuth, async (req, res) => {
         res.json({ status: 'success' });
     } catch (err) {
         console.error(err);
-        res.json({ status: 'error', message: 'Server error during verification' });
+        res.json({ status: 'error', message: err.message });
+    }
+});
+
+// Temporary Migration Route
+app.get('/migrate-db', async (req, res) => {
+    try {
+        await pool.query('ALTER TABLE users ADD COLUMN can_change_level BOOLEAN DEFAULT 0');
+        res.send('Migration successful: can_change_level added.');
+    } catch (err) {
+        res.send('Migration error: ' + err.message);
     }
 });
 
