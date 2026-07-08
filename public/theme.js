@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Create toggle button
     const btn = document.createElement('button');
     btn.className = 'theme-toggle-btn';
-    btn.innerHTML = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    btn.innerHTML = currentTheme === 'dark' ? '☀️' : '🌙';
     document.body.appendChild(btn);
 
     // Dynamic Logo Swapping
@@ -36,13 +36,14 @@ document.addEventListener("DOMContentLoaded", function() {
         if (theme === 'dark') {
             document.documentElement.removeAttribute('data-theme');
             localStorage.setItem('theme', 'light');
-            btn.innerHTML = '🌙 Dark Mode';
+            btn.innerHTML = '🌙';
             updateLogos('light');
         } else {
             document.documentElement.setAttribute('data-theme', 'dark');
             localStorage.setItem('theme', 'dark');
-            btn.innerHTML = '☀️ Light Mode';
+            btn.innerHTML = '☀️';
             updateLogos('dark');
         }
     });
 });
+
