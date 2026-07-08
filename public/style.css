@@ -84,8 +84,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3 { margin-bottom: 1rem; color: var(--ntxt-color); font-weight: 600; }
-p { color: var(--tran-color); margin-bottom: 1rem; }
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.2rem; }
+h1, h2, h3, h4 { margin-bottom: 1rem; color: var(--ntxt-color); font-weight: 600; line-height: 1.2; }
+p { font-size: 1rem; color: var(--tran-color); margin-bottom: 1rem; line-height: 1.6; }
 a { color: var(--cta-color); text-decoration: none; transition: color 0.2s ease; }
 a:hover { color: var(--cta-color-hover); }
 
@@ -125,7 +129,7 @@ a:hover { color: var(--cta-color-hover); }
 
 /* Forms */
 .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; }
-.form-group label { margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--tran-color); }
+.form-group label { margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 500; color: var(--tran-color); }
 .form-group input, .form-group select, .form-group textarea {
     background: var(--neu-color);
     border: 1px solid var(--cbg-color-2);
@@ -497,7 +501,7 @@ a:hover { color: var(--cta-color-hover); }
         align-items: center;
         text-align: center;
     }
-    .pastel-card h4 { font-size: 0.8rem; }
+    .pastel-card h4 { font-size: 1rem; }
     .pastel-card p { display: none; }
     .card-arrow { display: none; }
     .icon-circle { width: 40px; height: 40px; margin-bottom: 0.5rem; }
@@ -517,6 +521,8 @@ a:hover { color: var(--cta-color-hover); }
         margin: 0 auto 3rem auto;
     }
 }
+
+
 
 
 
