@@ -51,7 +51,7 @@
     z-index: 1000;
     display: flex;
     align-items: center;
-        font-size: 1.2rem;
+        font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 .theme-toggle-btn:hover {
@@ -87,7 +87,7 @@ body {
 h1 { font-size: 2.2rem; }
 h2 { font-size: 1.8rem; }
 h3 { font-size: 1.4rem; }
-h4 { font-size: 1.2rem; }
+h4 { font-size: 0.9rem; }
 h1, h2, h3, h4 { margin-bottom: 1rem; color: var(--ntxt-color); font-weight: 600; line-height: 1.2; }
 p { font-size: 1rem; color: var(--tran-color); margin-bottom: 1rem; line-height: 1.6; }
 a { color: var(--cta-color); text-decoration: none; transition: color 0.2s ease; }
@@ -349,7 +349,7 @@ a:hover { color: var(--cta-color-hover); }
 }
 .app-header-curved p {
     color: rgba(255,255,255,0.8);
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     margin-bottom: 0;
 }
 .overlap-search {
@@ -397,7 +397,7 @@ a:hover { color: var(--cta-color-hover); }
     transform: translateY(-3px);
 }
 .pastel-card h4 {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.2rem;
     color: var(--ntxt-color);
@@ -521,6 +521,7 @@ a:hover { color: var(--cta-color-hover); }
         margin: 0 auto 3rem auto;
     }
 }
+
 
 
 
