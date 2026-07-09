@@ -54,7 +54,7 @@
                             <tr>
                                 <td><%= u.full_name %></td>
                                 <td><%= u.email %></td>
-                                <td><%= u.level %> / <%= u.department_id === 1 ? 'GST' : 'General' %></td>
+                                <td><%= u.level %> / <%= u.department_id || 'General' %></td>
                                 <td style="text-transform: capitalize; font-weight: bold; color: <%= u.role === 'admin' ? 'var(--accent)' : 'var(--text-color)' %>;"><%= u.role || 'student' %></td>
                                 <td><%= new Date(u.created_at).toLocaleDateString() %></td>
                                 <td>

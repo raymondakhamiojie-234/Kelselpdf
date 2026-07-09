@@ -83,7 +83,7 @@ exports.postPastQuestions = async (req, res) => {
         
         let course_code_input = req.body.course_code || '';
         course_code_input = course_code_input.toUpperCase().trim();
-        const course_dept = req.body.department_id === 'gst' ? null : parseInt(req.body.department_id) || null;
+        const course_dept = req.body.department_id === 'gst' ? null : req.body.department_id || null;
         const shared_group = req.body.department_id === 'gst' ? 'gst' : 'general';
         const course_level = parseInt(req.body.level) || 100;
         

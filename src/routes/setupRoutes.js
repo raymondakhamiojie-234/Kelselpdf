@@ -32,10 +32,11 @@ router.get('/setup-db', async (req, res) => {
 
 router.get('/migrate-db', async (req, res) => {
     try {
-        await pool.query('ALTER TABLE users ADD COLUMN account_locked BOOLEAN DEFAULT 0');
-        res.send("Migration completed!");
+        await pool.query('ALTER TABLE users MODIFY COLUMN department_id VARCHAR(255)');
+        await pool.query('ALTER TABLE courses MODIFY COLUMN department_id VARCHAR(255)');
+        res.send("Migration completed: department_id is now VARCHAR.");
     } catch (err) {
-        res.send("Migration error (maybe column exists): " + err.message);
+        res.send("Migration error: " + err.message);
     }
 });
 

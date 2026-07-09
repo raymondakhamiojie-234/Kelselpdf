@@ -40,7 +40,7 @@ exports.postRegister = async (req, res) => {
         const [result] = await pool.query(
             `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan) 
              VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none')`,
-            [full_name, lastname, email, hashedPassword, parseInt(department_id), parseInt(level)]
+            [full_name, lastname, email, hashedPassword, department_id, parseInt(level)]
         );
         
         req.session.user_id = result.insertId;

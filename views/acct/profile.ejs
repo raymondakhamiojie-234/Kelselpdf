@@ -49,18 +49,412 @@
                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label>Department</label>
                         <select name="department_id" required>
-                            <% 
-                            const depts = {
-                                1: 'Computer Science', 2: 'Electrical Engineering', 3: 'Business Administration',
-                                4: 'Law', 5: 'Medicine and Surgery', 6: 'Physics', 7: 'Chemistry',
-                                8: 'Mechanical Engineering', 9: 'Mass Communication', 10: 'Nursing Science',
-                                11: 'Psychology', 12: 'Sociology', 13: 'Accounting', 14: 'Economics'
-                            };
-                            for(let id in depts) { 
-                            %>
-                                <option value="<%= id %>" <%= user.department_id == id ? 'selected' : '' %>><%= depts[id] %></option>
-                            <% } %>
-                        </select>
+<option value="">Select Department</option>
+    <optgroup label="AGRICULTURE & ENVIRONMENTAL SCIENCES">
+        <option value="Agricultural Economics" <%= user.department_id === 'Agricultural Economics' ? 'selected' : '' %>>Agricultural Economics</option>
+        <option value="Agricultural Extension and Rural Development" <%= user.department_id === 'Agricultural Extension and Rural Development' ? 'selected' : '' %>>Agricultural Extension and Rural Development</option>
+        <option value="Agricultural Science and Education" <%= user.department_id === 'Agricultural Science and Education' ? 'selected' : '' %>>Agricultural Science and Education</option>
+        <option value="Agriculture" <%= user.department_id === 'Agriculture' ? 'selected' : '' %>>Agriculture</option>
+        <option value="Agronomy" <%= user.department_id === 'Agronomy' ? 'selected' : '' %>>Agronomy</option>
+        <option value="Animal Production" <%= user.department_id === 'Animal Production' ? 'selected' : '' %>>Animal Production</option>
+        <option value="Animal Science" <%= user.department_id === 'Animal Science' ? 'selected' : '' %>>Animal Science</option>
+        <option value="Animal Nutrition" <%= user.department_id === 'Animal Nutrition' ? 'selected' : '' %>>Animal Nutrition</option>
+        <option value="Animal Breeding and Genetics" <%= user.department_id === 'Animal Breeding and Genetics' ? 'selected' : '' %>>Animal Breeding and Genetics</option>
+        <option value="Aquaculture" <%= user.department_id === 'Aquaculture' ? 'selected' : '' %>>Aquaculture</option>
+        <option value="Fisheries" <%= user.department_id === 'Fisheries' ? 'selected' : '' %>>Fisheries</option>
+        <option value="Fisheries and Aquaculture" <%= user.department_id === 'Fisheries and Aquaculture' ? 'selected' : '' %>>Fisheries and Aquaculture</option>
+        <option value="Crop Production" <%= user.department_id === 'Crop Production' ? 'selected' : '' %>>Crop Production</option>
+        <option value="Crop Science" <%= user.department_id === 'Crop Science' ? 'selected' : '' %>>Crop Science</option>
+        <option value="Crop Protection" <%= user.department_id === 'Crop Protection' ? 'selected' : '' %>>Crop Protection</option>
+        <option value="Horticulture" <%= user.department_id === 'Horticulture' ? 'selected' : '' %>>Horticulture</option>
+        <option value="Soil Science" <%= user.department_id === 'Soil Science' ? 'selected' : '' %>>Soil Science</option>
+        <option value="Soil Science and Land Resources Management" <%= user.department_id === 'Soil Science and Land Resources Management' ? 'selected' : '' %>>Soil Science and Land Resources Management</option>
+        <option value="Forestry" <%= user.department_id === 'Forestry' ? 'selected' : '' %>>Forestry</option>
+        <option value="Forestry and Wildlife" <%= user.department_id === 'Forestry and Wildlife' ? 'selected' : '' %>>Forestry and Wildlife</option>
+        <option value="Wildlife Management" <%= user.department_id === 'Wildlife Management' ? 'selected' : '' %>>Wildlife Management</option>
+        <option value="Wildlife and Ecotourism" <%= user.department_id === 'Wildlife and Ecotourism' ? 'selected' : '' %>>Wildlife and Ecotourism</option>
+        <option value="Forestry Technology" <%= user.department_id === 'Forestry Technology' ? 'selected' : '' %>>Forestry Technology</option>
+        <option value="Environmental Management" <%= user.department_id === 'Environmental Management' ? 'selected' : '' %>>Environmental Management</option>
+        <option value="Environmental Science" <%= user.department_id === 'Environmental Science' ? 'selected' : '' %>>Environmental Science</option>
+        <option value="Environmental Biology" <%= user.department_id === 'Environmental Biology' ? 'selected' : '' %>>Environmental Biology</option>
+        <option value="Environmental Conservation" <%= user.department_id === 'Environmental Conservation' ? 'selected' : '' %>>Environmental Conservation</option>
+        <option value="Water Resources Management" <%= user.department_id === 'Water Resources Management' ? 'selected' : '' %>>Water Resources Management</option>
+        <option value="Climate Science" <%= user.department_id === 'Climate Science' ? 'selected' : '' %>>Climate Science</option>
+        <option value="Range Management" <%= user.department_id === 'Range Management' ? 'selected' : '' %>>Range Management</option>
+        <option value="Pasture Management" <%= user.department_id === 'Pasture Management' ? 'selected' : '' %>>Pasture Management</option>
+    </optgroup>
+    <optgroup label="ENGINEERING">
+        <option value="Agricultural Engineering" <%= user.department_id === 'Agricultural Engineering' ? 'selected' : '' %>>Agricultural Engineering</option>
+        <option value="Agricultural and Bio-Resources Engineering" <%= user.department_id === 'Agricultural and Bio-Resources Engineering' ? 'selected' : '' %>>Agricultural and Bio-Resources Engineering</option>
+        <option value="Aerospace Engineering" <%= user.department_id === 'Aerospace Engineering' ? 'selected' : '' %>>Aerospace Engineering</option>
+        <option value="Aeronautical Engineering" <%= user.department_id === 'Aeronautical Engineering' ? 'selected' : '' %>>Aeronautical Engineering</option>
+        <option value="Automotive Engineering" <%= user.department_id === 'Automotive Engineering' ? 'selected' : '' %>>Automotive Engineering</option>
+        <option value="Biomedical Engineering" <%= user.department_id === 'Biomedical Engineering' ? 'selected' : '' %>>Biomedical Engineering</option>
+        <option value="Building Engineering" <%= user.department_id === 'Building Engineering' ? 'selected' : '' %>>Building Engineering</option>
+        <option value="Chemical Engineering" <%= user.department_id === 'Chemical Engineering' ? 'selected' : '' %>>Chemical Engineering</option>
+        <option value="Civil Engineering" <%= user.department_id === 'Civil Engineering' ? 'selected' : '' %>>Civil Engineering</option>
+        <option value="Computer Engineering" <%= user.department_id === 'Computer Engineering' ? 'selected' : '' %>>Computer Engineering</option>
+        <option value="Electrical Engineering" <%= user.department_id === 'Electrical Engineering' ? 'selected' : '' %>>Electrical Engineering</option>
+        <option value="Electronics Engineering" <%= user.department_id === 'Electronics Engineering' ? 'selected' : '' %>>Electronics Engineering</option>
+        <option value="Electrical and Electronics Engineering" <%= user.department_id === 'Electrical and Electronics Engineering' ? 'selected' : '' %>>Electrical and Electronics Engineering</option>
+        <option value="Energy Engineering" <%= user.department_id === 'Energy Engineering' ? 'selected' : '' %>>Energy Engineering</option>
+        <option value="Environmental Engineering" <%= user.department_id === 'Environmental Engineering' ? 'selected' : '' %>>Environmental Engineering</option>
+        <option value="Food Engineering" <%= user.department_id === 'Food Engineering' ? 'selected' : '' %>>Food Engineering</option>
+        <option value="Industrial Engineering" <%= user.department_id === 'Industrial Engineering' ? 'selected' : '' %>>Industrial Engineering</option>
+        <option value="Information Engineering" <%= user.department_id === 'Information Engineering' ? 'selected' : '' %>>Information Engineering</option>
+        <option value="Marine Engineering" <%= user.department_id === 'Marine Engineering' ? 'selected' : '' %>>Marine Engineering</option>
+        <option value="Materials Engineering" <%= user.department_id === 'Materials Engineering' ? 'selected' : '' %>>Materials Engineering</option>
+        <option value="Materials and Metallurgical Engineering" <%= user.department_id === 'Materials and Metallurgical Engineering' ? 'selected' : '' %>>Materials and Metallurgical Engineering</option>
+        <option value="Mechanical Engineering" <%= user.department_id === 'Mechanical Engineering' ? 'selected' : '' %>>Mechanical Engineering</option>
+        <option value="Mechatronics Engineering" <%= user.department_id === 'Mechatronics Engineering' ? 'selected' : '' %>>Mechatronics Engineering</option>
+        <option value="Metallurgical Engineering" <%= user.department_id === 'Metallurgical Engineering' ? 'selected' : '' %>>Metallurgical Engineering</option>
+        <option value="Mining Engineering" <%= user.department_id === 'Mining Engineering' ? 'selected' : '' %>>Mining Engineering</option>
+        <option value="Petroleum Engineering" <%= user.department_id === 'Petroleum Engineering' ? 'selected' : '' %>>Petroleum Engineering</option>
+        <option value="Petrochemical Engineering" <%= user.department_id === 'Petrochemical Engineering' ? 'selected' : '' %>>Petrochemical Engineering</option>
+        <option value="Polymer Engineering" <%= user.department_id === 'Polymer Engineering' ? 'selected' : '' %>>Polymer Engineering</option>
+        <option value="Production Engineering" <%= user.department_id === 'Production Engineering' ? 'selected' : '' %>>Production Engineering</option>
+        <option value="Structural Engineering" <%= user.department_id === 'Structural Engineering' ? 'selected' : '' %>>Structural Engineering</option>
+        <option value="Systems Engineering" <%= user.department_id === 'Systems Engineering' ? 'selected' : '' %>>Systems Engineering</option>
+        <option value="Telecommunication Engineering" <%= user.department_id === 'Telecommunication Engineering' ? 'selected' : '' %>>Telecommunication Engineering</option>
+        <option value="Water Resources Engineering" <%= user.department_id === 'Water Resources Engineering' ? 'selected' : '' %>>Water Resources Engineering</option>
+        <option value="Welding Engineering" <%= user.department_id === 'Welding Engineering' ? 'selected' : '' %>>Welding Engineering</option>
+        <option value="Wood Products Engineering" <%= user.department_id === 'Wood Products Engineering' ? 'selected' : '' %>>Wood Products Engineering</option>
+    </optgroup>
+    <optgroup label="COMPUTING & ICT">
+        <option value="Computer Science" <%= user.department_id === 'Computer Science' ? 'selected' : '' %>>Computer Science</option>
+        <option value="Information Technology" <%= user.department_id === 'Information Technology' ? 'selected' : '' %>>Information Technology</option>
+        <option value="Information Systems" <%= user.department_id === 'Information Systems' ? 'selected' : '' %>>Information Systems</option>
+        <option value="Information and Communication Technology" <%= user.department_id === 'Information and Communication Technology' ? 'selected' : '' %>>Information and Communication Technology</option>
+        <option value="Cyber Security" <%= user.department_id === 'Cyber Security' ? 'selected' : '' %>>Cyber Security</option>
+        <option value="Software Engineering" <%= user.department_id === 'Software Engineering' ? 'selected' : '' %>>Software Engineering</option>
+        <option value="Data Science" <%= user.department_id === 'Data Science' ? 'selected' : '' %>>Data Science</option>
+        <option value="Artificial Intelligence" <%= user.department_id === 'Artificial Intelligence' ? 'selected' : '' %>>Artificial Intelligence</option>
+        <option value="Machine Learning" <%= user.department_id === 'Machine Learning' ? 'selected' : '' %>>Machine Learning</option>
+        <option value="Cloud Computing" <%= user.department_id === 'Cloud Computing' ? 'selected' : '' %>>Cloud Computing</option>
+        <option value="Information Science" <%= user.department_id === 'Information Science' ? 'selected' : '' %>>Information Science</option>
+        <option value="Information Management" <%= user.department_id === 'Information Management' ? 'selected' : '' %>>Information Management</option>
+        <option value="Computer Technology" <%= user.department_id === 'Computer Technology' ? 'selected' : '' %>>Computer Technology</option>
+        <option value="Network Engineering" <%= user.department_id === 'Network Engineering' ? 'selected' : '' %>>Network Engineering</option>
+        <option value="Systems Engineering" <%= user.department_id === 'Systems Engineering' ? 'selected' : '' %>>Systems Engineering</option>
+        <option value="Library and Information Science" <%= user.department_id === 'Library and Information Science' ? 'selected' : '' %>>Library and Information Science</option>
+        <option value="Library Science" <%= user.department_id === 'Library Science' ? 'selected' : '' %>>Library Science</option>
+    </optgroup>
+    <optgroup label="MEDICAL & HEALTH SCIENCES">
+        <option value="Medicine and Surgery (MBBS)" <%= user.department_id === 'Medicine and Surgery (MBBS)' ? 'selected' : '' %>>Medicine and Surgery (MBBS)</option>
+        <option value="Dentistry" <%= user.department_id === 'Dentistry' ? 'selected' : '' %>>Dentistry</option>
+        <option value="Nursing Science" <%= user.department_id === 'Nursing Science' ? 'selected' : '' %>>Nursing Science</option>
+        <option value="Pharmacy" <%= user.department_id === 'Pharmacy' ? 'selected' : '' %>>Pharmacy</option>
+        <option value="Medical Laboratory Science" <%= user.department_id === 'Medical Laboratory Science' ? 'selected' : '' %>>Medical Laboratory Science</option>
+        <option value="Physiotherapy" <%= user.department_id === 'Physiotherapy' ? 'selected' : '' %>>Physiotherapy</option>
+        <option value="Anatomy" <%= user.department_id === 'Anatomy' ? 'selected' : '' %>>Anatomy</option>
+        <option value="Physiology" <%= user.department_id === 'Physiology' ? 'selected' : '' %>>Physiology</option>
+        <option value="Human Nutrition and Dietetics" <%= user.department_id === 'Human Nutrition and Dietetics' ? 'selected' : '' %>>Human Nutrition and Dietetics</option>
+        <option value="Public Health" <%= user.department_id === 'Public Health' ? 'selected' : '' %>>Public Health</option>
+        <option value="Environmental Health Science" <%= user.department_id === 'Environmental Health Science' ? 'selected' : '' %>>Environmental Health Science</option>
+        <option value="Radiography" <%= user.department_id === 'Radiography' ? 'selected' : '' %>>Radiography</option>
+        <option value="Radiology" <%= user.department_id === 'Radiology' ? 'selected' : '' %>>Radiology</option>
+        <option value="Optometry" <%= user.department_id === 'Optometry' ? 'selected' : '' %>>Optometry</option>
+        <option value="Occupational Therapy" <%= user.department_id === 'Occupational Therapy' ? 'selected' : '' %>>Occupational Therapy</option>
+        <option value="Speech Therapy" <%= user.department_id === 'Speech Therapy' ? 'selected' : '' %>>Speech Therapy</option>
+        <option value="Audiology" <%= user.department_id === 'Audiology' ? 'selected' : '' %>>Audiology</option>
+        <option value="Prosthetics and Orthotics" <%= user.department_id === 'Prosthetics and Orthotics' ? 'selected' : '' %>>Prosthetics and Orthotics</option>
+        <option value="Biochemistry" <%= user.department_id === 'Biochemistry' ? 'selected' : '' %>>Biochemistry</option>
+        <option value="Pharmacology" <%= user.department_id === 'Pharmacology' ? 'selected' : '' %>>Pharmacology</option>
+        <option value="Medical Rehabilitation" <%= user.department_id === 'Medical Rehabilitation' ? 'selected' : '' %>>Medical Rehabilitation</option>
+        <option value="Human Kinetics" <%= user.department_id === 'Human Kinetics' ? 'selected' : '' %>>Human Kinetics</option>
+        <option value="Community Health" <%= user.department_id === 'Community Health' ? 'selected' : '' %>>Community Health</option>
+        <option value="Epidemiology" <%= user.department_id === 'Epidemiology' ? 'selected' : '' %>>Epidemiology</option>
+        <option value="Health Information Management" <%= user.department_id === 'Health Information Management' ? 'selected' : '' %>>Health Information Management</option>
+    </optgroup>
+    <optgroup label="PURE SCIENCES">
+        <option value="Biology" <%= user.department_id === 'Biology' ? 'selected' : '' %>>Biology</option>
+        <option value="Applied Biology" <%= user.department_id === 'Applied Biology' ? 'selected' : '' %>>Applied Biology</option>
+        <option value="Microbiology" <%= user.department_id === 'Microbiology' ? 'selected' : '' %>>Microbiology</option>
+        <option value="Industrial Microbiology" <%= user.department_id === 'Industrial Microbiology' ? 'selected' : '' %>>Industrial Microbiology</option>
+        <option value="Biotechnology" <%= user.department_id === 'Biotechnology' ? 'selected' : '' %>>Biotechnology</option>
+        <option value="Biochemistry" <%= user.department_id === 'Biochemistry' ? 'selected' : '' %>>Biochemistry</option>
+        <option value="Chemistry" <%= user.department_id === 'Chemistry' ? 'selected' : '' %>>Chemistry</option>
+        <option value="Industrial Chemistry" <%= user.department_id === 'Industrial Chemistry' ? 'selected' : '' %>>Industrial Chemistry</option>
+        <option value="Pure Chemistry" <%= user.department_id === 'Pure Chemistry' ? 'selected' : '' %>>Pure Chemistry</option>
+        <option value="Analytical Chemistry" <%= user.department_id === 'Analytical Chemistry' ? 'selected' : '' %>>Analytical Chemistry</option>
+        <option value="Physics" <%= user.department_id === 'Physics' ? 'selected' : '' %>>Physics</option>
+        <option value="Applied Physics" <%= user.department_id === 'Applied Physics' ? 'selected' : '' %>>Applied Physics</option>
+        <option value="Geophysics" <%= user.department_id === 'Geophysics' ? 'selected' : '' %>>Geophysics</option>
+        <option value="Mathematics" <%= user.department_id === 'Mathematics' ? 'selected' : '' %>>Mathematics</option>
+        <option value="Applied Mathematics" <%= user.department_id === 'Applied Mathematics' ? 'selected' : '' %>>Applied Mathematics</option>
+        <option value="Statistics" <%= user.department_id === 'Statistics' ? 'selected' : '' %>>Statistics</option>
+        <option value="Industrial Mathematics" <%= user.department_id === 'Industrial Mathematics' ? 'selected' : '' %>>Industrial Mathematics</option>
+        <option value="Marine Biology" <%= user.department_id === 'Marine Biology' ? 'selected' : '' %>>Marine Biology</option>
+        <option value="Botany" <%= user.department_id === 'Botany' ? 'selected' : '' %>>Botany</option>
+        <option value="Zoology" <%= user.department_id === 'Zoology' ? 'selected' : '' %>>Zoology</option>
+        <option value="Genetics" <%= user.department_id === 'Genetics' ? 'selected' : '' %>>Genetics</option>
+        <option value="Cell Biology" <%= user.department_id === 'Cell Biology' ? 'selected' : '' %>>Cell Biology</option>
+        <option value="Molecular Biology" <%= user.department_id === 'Molecular Biology' ? 'selected' : '' %>>Molecular Biology</option>
+        <option value="Bioinformatics" <%= user.department_id === 'Bioinformatics' ? 'selected' : '' %>>Bioinformatics</option>
+        <option value="Environmental Biology" <%= user.department_id === 'Environmental Biology' ? 'selected' : '' %>>Environmental Biology</option>
+        <option value="Ecology" <%= user.department_id === 'Ecology' ? 'selected' : '' %>>Ecology</option>
+        <option value="Oceanography" <%= user.department_id === 'Oceanography' ? 'selected' : '' %>>Oceanography</option>
+        <option value="Meteorology" <%= user.department_id === 'Meteorology' ? 'selected' : '' %>>Meteorology</option>
+        <option value="Geology" <%= user.department_id === 'Geology' ? 'selected' : '' %>>Geology</option>
+        <option value="Earth Science" <%= user.department_id === 'Earth Science' ? 'selected' : '' %>>Earth Science</option>
+        <option value="Earth and Environmental Science" <%= user.department_id === 'Earth and Environmental Science' ? 'selected' : '' %>>Earth and Environmental Science</option>
+        <option value="Mineral Resources" <%= user.department_id === 'Mineral Resources' ? 'selected' : '' %>>Mineral Resources</option>
+        <option value="Petroleum Geoscience" <%= user.department_id === 'Petroleum Geoscience' ? 'selected' : '' %>>Petroleum Geoscience</option>
+    </optgroup>
+    <optgroup label="SOCIAL SCIENCES">
+        <option value="Economics" <%= user.department_id === 'Economics' ? 'selected' : '' %>>Economics</option>
+        <option value="Sociology" <%= user.department_id === 'Sociology' ? 'selected' : '' %>>Sociology</option>
+        <option value="Political Science" <%= user.department_id === 'Political Science' ? 'selected' : '' %>>Political Science</option>
+        <option value="Psychology" <%= user.department_id === 'Psychology' ? 'selected' : '' %>>Psychology</option>
+        <option value="Criminology" <%= user.department_id === 'Criminology' ? 'selected' : '' %>>Criminology</option>
+        <option value="Criminology and Security Studies" <%= user.department_id === 'Criminology and Security Studies' ? 'selected' : '' %>>Criminology and Security Studies</option>
+        <option value="Peace and Conflict Studies" <%= user.department_id === 'Peace and Conflict Studies' ? 'selected' : '' %>>Peace and Conflict Studies</option>
+        <option value="International Relations" <%= user.department_id === 'International Relations' ? 'selected' : '' %>>International Relations</option>
+        <option value="International Studies" <%= user.department_id === 'International Studies' ? 'selected' : '' %>>International Studies</option>
+        <option value="Public Administration" <%= user.department_id === 'Public Administration' ? 'selected' : '' %>>Public Administration</option>
+        <option value="Public Policy" <%= user.department_id === 'Public Policy' ? 'selected' : '' %>>Public Policy</option>
+        <option value="Development Studies" <%= user.department_id === 'Development Studies' ? 'selected' : '' %>>Development Studies</option>
+        <option value="Demography" <%= user.department_id === 'Demography' ? 'selected' : '' %>>Demography</option>
+        <option value="Population Studies" <%= user.department_id === 'Population Studies' ? 'selected' : '' %>>Population Studies</option>
+        <option value="Social Work" <%= user.department_id === 'Social Work' ? 'selected' : '' %>>Social Work</option>
+        <option value="Industrial Relations" <%= user.department_id === 'Industrial Relations' ? 'selected' : '' %>>Industrial Relations</option>
+        <option value="Labour Studies" <%= user.department_id === 'Labour Studies' ? 'selected' : '' %>>Labour Studies</option>
+        <option value="Intelligence and Security Studies" <%= user.department_id === 'Intelligence and Security Studies' ? 'selected' : '' %>>Intelligence and Security Studies</option>
+        <option value="Gender Studies" <%= user.department_id === 'Gender Studies' ? 'selected' : '' %>>Gender Studies</option>
+    </optgroup>
+    <optgroup label="MANAGEMENT SCIENCES">
+        <option value="Accounting" <%= user.department_id === 'Accounting' ? 'selected' : '' %>>Accounting</option>
+        <option value="Banking and Finance" <%= user.department_id === 'Banking and Finance' ? 'selected' : '' %>>Banking and Finance</option>
+        <option value="Finance" <%= user.department_id === 'Finance' ? 'selected' : '' %>>Finance</option>
+        <option value="Business Administration" <%= user.department_id === 'Business Administration' ? 'selected' : '' %>>Business Administration</option>
+        <option value="Business Management" <%= user.department_id === 'Business Management' ? 'selected' : '' %>>Business Management</option>
+        <option value="Commerce" <%= user.department_id === 'Commerce' ? 'selected' : '' %>>Commerce</option>
+        <option value="Entrepreneurship" <%= user.department_id === 'Entrepreneurship' ? 'selected' : '' %>>Entrepreneurship</option>
+        <option value="Insurance" <%= user.department_id === 'Insurance' ? 'selected' : '' %>>Insurance</option>
+        <option value="Taxation" <%= user.department_id === 'Taxation' ? 'selected' : '' %>>Taxation</option>
+        <option value="Marketing" <%= user.department_id === 'Marketing' ? 'selected' : '' %>>Marketing</option>
+        <option value="Human Resource Management" <%= user.department_id === 'Human Resource Management' ? 'selected' : '' %>>Human Resource Management</option>
+        <option value="Procurement Management" <%= user.department_id === 'Procurement Management' ? 'selected' : '' %>>Procurement Management</option>
+        <option value="Project Management" <%= user.department_id === 'Project Management' ? 'selected' : '' %>>Project Management</option>
+        <option value="Logistics and Supply Chain Management" <%= user.department_id === 'Logistics and Supply Chain Management' ? 'selected' : '' %>>Logistics and Supply Chain Management</option>
+        <option value="Office Technology and Management" <%= user.department_id === 'Office Technology and Management' ? 'selected' : '' %>>Office Technology and Management</option>
+        <option value="Actuarial Science" <%= user.department_id === 'Actuarial Science' ? 'selected' : '' %>>Actuarial Science</option>
+        <option value="Cooperative Economics" <%= user.department_id === 'Cooperative Economics' ? 'selected' : '' %>>Cooperative Economics</option>
+        <option value="Cooperative Management" <%= user.department_id === 'Cooperative Management' ? 'selected' : '' %>>Cooperative Management</option>
+    </optgroup>
+    <optgroup label="LAW">
+        <option value="Law (LL.B.)" <%= user.department_id === 'Law (LL.B.)' ? 'selected' : '' %>>Law (LL.B.)</option>
+        <option value="Civil Law" <%= user.department_id === 'Civil Law' ? 'selected' : '' %>>Civil Law</option>
+        <option value="Common Law" <%= user.department_id === 'Common Law' ? 'selected' : '' %>>Common Law</option>
+        <option value="Islamic Law" <%= user.department_id === 'Islamic Law' ? 'selected' : '' %>>Islamic Law</option>
+        <option value="Customary Law" <%= user.department_id === 'Customary Law' ? 'selected' : '' %>>Customary Law</option>
+    </optgroup>
+    <optgroup label="EDUCATION">
+        <option value="Adult Education" <%= user.department_id === 'Adult Education' ? 'selected' : '' %>>Adult Education</option>
+        <option value="Adult and Non-Formal Education" <%= user.department_id === 'Adult and Non-Formal Education' ? 'selected' : '' %>>Adult and Non-Formal Education</option>
+        <option value="Agricultural Education" <%= user.department_id === 'Agricultural Education' ? 'selected' : '' %>>Agricultural Education</option>
+        <option value="Biology Education" <%= user.department_id === 'Biology Education' ? 'selected' : '' %>>Biology Education</option>
+        <option value="Business Education" <%= user.department_id === 'Business Education' ? 'selected' : '' %>>Business Education</option>
+        <option value="Chemistry Education" <%= user.department_id === 'Chemistry Education' ? 'selected' : '' %>>Chemistry Education</option>
+        <option value="Computer Education" <%= user.department_id === 'Computer Education' ? 'selected' : '' %>>Computer Education</option>
+        <option value="Curriculum Studies" <%= user.department_id === 'Curriculum Studies' ? 'selected' : '' %>>Curriculum Studies</option>
+        <option value="Early Childhood Education" <%= user.department_id === 'Early Childhood Education' ? 'selected' : '' %>>Early Childhood Education</option>
+        <option value="Economics Education" <%= user.department_id === 'Economics Education' ? 'selected' : '' %>>Economics Education</option>
+        <option value="Educational Administration" <%= user.department_id === 'Educational Administration' ? 'selected' : '' %>>Educational Administration</option>
+        <option value="Educational Foundations" <%= user.department_id === 'Educational Foundations' ? 'selected' : '' %>>Educational Foundations</option>
+        <option value="Educational Management" <%= user.department_id === 'Educational Management' ? 'selected' : '' %>>Educational Management</option>
+        <option value="Educational Planning" <%= user.department_id === 'Educational Planning' ? 'selected' : '' %>>Educational Planning</option>
+        <option value="Educational Psychology" <%= user.department_id === 'Educational Psychology' ? 'selected' : '' %>>Educational Psychology</option>
+        <option value="Educational Technology" <%= user.department_id === 'Educational Technology' ? 'selected' : '' %>>Educational Technology</option>
+        <option value="English Education" <%= user.department_id === 'English Education' ? 'selected' : '' %>>English Education</option>
+        <option value="Fine Arts Education" <%= user.department_id === 'Fine Arts Education' ? 'selected' : '' %>>Fine Arts Education</option>
+        <option value="French Education" <%= user.department_id === 'French Education' ? 'selected' : '' %>>French Education</option>
+        <option value="Geography Education" <%= user.department_id === 'Geography Education' ? 'selected' : '' %>>Geography Education</option>
+        <option value="Guidance and Counselling" <%= user.department_id === 'Guidance and Counselling' ? 'selected' : '' %>>Guidance and Counselling</option>
+        <option value="Health Education" <%= user.department_id === 'Health Education' ? 'selected' : '' %>>Health Education</option>
+        <option value="History Education" <%= user.department_id === 'History Education' ? 'selected' : '' %>>History Education</option>
+        <option value="Home Economics Education" <%= user.department_id === 'Home Economics Education' ? 'selected' : '' %>>Home Economics Education</option>
+        <option value="Human Kinetics Education" <%= user.department_id === 'Human Kinetics Education' ? 'selected' : '' %>>Human Kinetics Education</option>
+        <option value="Integrated Science Education" <%= user.department_id === 'Integrated Science Education' ? 'selected' : '' %>>Integrated Science Education</option>
+        <option value="Library Education" <%= user.department_id === 'Library Education' ? 'selected' : '' %>>Library Education</option>
+        <option value="Mathematics Education" <%= user.department_id === 'Mathematics Education' ? 'selected' : '' %>>Mathematics Education</option>
+        <option value="Music Education" <%= user.department_id === 'Music Education' ? 'selected' : '' %>>Music Education</option>
+        <option value="Nursery Education" <%= user.department_id === 'Nursery Education' ? 'selected' : '' %>>Nursery Education</option>
+        <option value="Physical Education" <%= user.department_id === 'Physical Education' ? 'selected' : '' %>>Physical Education</option>
+        <option value="Physics Education" <%= user.department_id === 'Physics Education' ? 'selected' : '' %>>Physics Education</option>
+        <option value="Political Science Education" <%= user.department_id === 'Political Science Education' ? 'selected' : '' %>>Political Science Education</option>
+        <option value="Primary Education" <%= user.department_id === 'Primary Education' ? 'selected' : '' %>>Primary Education</option>
+        <option value="Religious Studies Education" <%= user.department_id === 'Religious Studies Education' ? 'selected' : '' %>>Religious Studies Education</option>
+        <option value="Science Education" <%= user.department_id === 'Science Education' ? 'selected' : '' %>>Science Education</option>
+        <option value="Social Studies Education" <%= user.department_id === 'Social Studies Education' ? 'selected' : '' %>>Social Studies Education</option>
+        <option value="Special Education" <%= user.department_id === 'Special Education' ? 'selected' : '' %>>Special Education</option>
+        <option value="Technical Education" <%= user.department_id === 'Technical Education' ? 'selected' : '' %>>Technical Education</option>
+        <option value="Vocational Education" <%= user.department_id === 'Vocational Education' ? 'selected' : '' %>>Vocational Education</option>
+        <option value="Yoruba Education" <%= user.department_id === 'Yoruba Education' ? 'selected' : '' %>>Yoruba Education</option>
+        <option value="Igbo Education" <%= user.department_id === 'Igbo Education' ? 'selected' : '' %>>Igbo Education</option>
+        <option value="Hausa Education" <%= user.department_id === 'Hausa Education' ? 'selected' : '' %>>Hausa Education</option>
+    </optgroup>
+    <optgroup label="ARTS & HUMANITIES">
+        <option value="English Language" <%= user.department_id === 'English Language' ? 'selected' : '' %>>English Language</option>
+        <option value="English Literature" <%= user.department_id === 'English Literature' ? 'selected' : '' %>>English Literature</option>
+        <option value="Linguistics" <%= user.department_id === 'Linguistics' ? 'selected' : '' %>>Linguistics</option>
+        <option value="Linguistics and Nigerian Languages" <%= user.department_id === 'Linguistics and Nigerian Languages' ? 'selected' : '' %>>Linguistics and Nigerian Languages</option>
+        <option value="Literature in English" <%= user.department_id === 'Literature in English' ? 'selected' : '' %>>Literature in English</option>
+        <option value="History" <%= user.department_id === 'History' ? 'selected' : '' %>>History</option>
+        <option value="History and International Studies" <%= user.department_id === 'History and International Studies' ? 'selected' : '' %>>History and International Studies</option>
+        <option value="Philosophy" <%= user.department_id === 'Philosophy' ? 'selected' : '' %>>Philosophy</option>
+        <option value="Religious Studies" <%= user.department_id === 'Religious Studies' ? 'selected' : '' %>>Religious Studies</option>
+        <option value="Christian Religious Studies" <%= user.department_id === 'Christian Religious Studies' ? 'selected' : '' %>>Christian Religious Studies</option>
+        <option value="Islamic Studies" <%= user.department_id === 'Islamic Studies' ? 'selected' : '' %>>Islamic Studies</option>
+        <option value="Arabic Studies" <%= user.department_id === 'Arabic Studies' ? 'selected' : '' %>>Arabic Studies</option>
+        <option value="French" <%= user.department_id === 'French' ? 'selected' : '' %>>French</option>
+        <option value="German" <%= user.department_id === 'German' ? 'selected' : '' %>>German</option>
+        <option value="Russian" <%= user.department_id === 'Russian' ? 'selected' : '' %>>Russian</option>
+        <option value="Portuguese" <%= user.department_id === 'Portuguese' ? 'selected' : '' %>>Portuguese</option>
+        <option value="Chinese Studies" <%= user.department_id === 'Chinese Studies' ? 'selected' : '' %>>Chinese Studies</option>
+        <option value="Theatre Arts" <%= user.department_id === 'Theatre Arts' ? 'selected' : '' %>>Theatre Arts</option>
+        <option value="Theatre and Film Studies" <%= user.department_id === 'Theatre and Film Studies' ? 'selected' : '' %>>Theatre and Film Studies</option>
+        <option value="Creative Arts" <%= user.department_id === 'Creative Arts' ? 'selected' : '' %>>Creative Arts</option>
+        <option value="Fine Arts" <%= user.department_id === 'Fine Arts' ? 'selected' : '' %>>Fine Arts</option>
+        <option value="Performing Arts" <%= user.department_id === 'Performing Arts' ? 'selected' : '' %>>Performing Arts</option>
+        <option value="Music" <%= user.department_id === 'Music' ? 'selected' : '' %>>Music</option>
+        <option value="Dance" <%= user.department_id === 'Dance' ? 'selected' : '' %>>Dance</option>
+        <option value="Archaeology" <%= user.department_id === 'Archaeology' ? 'selected' : '' %>>Archaeology</option>
+        <option value="Heritage Studies" <%= user.department_id === 'Heritage Studies' ? 'selected' : '' %>>Heritage Studies</option>
+        <option value="Classics" <%= user.department_id === 'Classics' ? 'selected' : '' %>>Classics</option>
+        <option value="Comparative Religion" <%= user.department_id === 'Comparative Religion' ? 'selected' : '' %>>Comparative Religion</option>
+    </optgroup>
+    <optgroup label="MASS COMMUNICATION & MEDIA">
+        <option value="Mass Communication" <%= user.department_id === 'Mass Communication' ? 'selected' : '' %>>Mass Communication</option>
+        <option value="Journalism" <%= user.department_id === 'Journalism' ? 'selected' : '' %>>Journalism</option>
+        <option value="Broadcasting" <%= user.department_id === 'Broadcasting' ? 'selected' : '' %>>Broadcasting</option>
+        <option value="Public Relations" <%= user.department_id === 'Public Relations' ? 'selected' : '' %>>Public Relations</option>
+        <option value="Advertising" <%= user.department_id === 'Advertising' ? 'selected' : '' %>>Advertising</option>
+        <option value="Media Studies" <%= user.department_id === 'Media Studies' ? 'selected' : '' %>>Media Studies</option>
+        <option value="Film Production" <%= user.department_id === 'Film Production' ? 'selected' : '' %>>Film Production</option>
+        <option value="Communication Arts" <%= user.department_id === 'Communication Arts' ? 'selected' : '' %>>Communication Arts</option>
+        <option value="Strategic Communication" <%= user.department_id === 'Strategic Communication' ? 'selected' : '' %>>Strategic Communication</option>
+        <option value="Digital Media" <%= user.department_id === 'Digital Media' ? 'selected' : '' %>>Digital Media</option>
+        <option value="Multimedia Studies" <%= user.department_id === 'Multimedia Studies' ? 'selected' : '' %>>Multimedia Studies</option>
+    </optgroup>
+    <optgroup label="ARCHITECTURE & BUILT ENVIRONMENT">
+        <option value="Architecture" <%= user.department_id === 'Architecture' ? 'selected' : '' %>>Architecture</option>
+        <option value="Building" <%= user.department_id === 'Building' ? 'selected' : '' %>>Building</option>
+        <option value="Quantity Surveying" <%= user.department_id === 'Quantity Surveying' ? 'selected' : '' %>>Quantity Surveying</option>
+        <option value="Estate Management" <%= user.department_id === 'Estate Management' ? 'selected' : '' %>>Estate Management</option>
+        <option value="Estate Management and Valuation" <%= user.department_id === 'Estate Management and Valuation' ? 'selected' : '' %>>Estate Management and Valuation</option>
+        <option value="Urban and Regional Planning" <%= user.department_id === 'Urban and Regional Planning' ? 'selected' : '' %>>Urban and Regional Planning</option>
+        <option value="Surveying and Geoinformatics" <%= user.department_id === 'Surveying and Geoinformatics' ? 'selected' : '' %>>Surveying and Geoinformatics</option>
+        <option value="Geomatics" <%= user.department_id === 'Geomatics' ? 'selected' : '' %>>Geomatics</option>
+        <option value="Landscape Architecture" <%= user.department_id === 'Landscape Architecture' ? 'selected' : '' %>>Landscape Architecture</option>
+        <option value="Interior Design" <%= user.department_id === 'Interior Design' ? 'selected' : '' %>>Interior Design</option>
+        <option value="Housing Studies" <%= user.department_id === 'Housing Studies' ? 'selected' : '' %>>Housing Studies</option>
+    </optgroup>
+    <optgroup label="EARTH SCIENCES">
+        <option value="Geography" <%= user.department_id === 'Geography' ? 'selected' : '' %>>Geography</option>
+        <option value="Geology" <%= user.department_id === 'Geology' ? 'selected' : '' %>>Geology</option>
+        <option value="Applied Geology" <%= user.department_id === 'Applied Geology' ? 'selected' : '' %>>Applied Geology</option>
+        <option value="Remote Sensing" <%= user.department_id === 'Remote Sensing' ? 'selected' : '' %>>Remote Sensing</option>
+        <option value="GIS" <%= user.department_id === 'GIS' ? 'selected' : '' %>>GIS</option>
+        <option value="Geophysics" <%= user.department_id === 'Geophysics' ? 'selected' : '' %>>Geophysics</option>
+        <option value="Cartography" <%= user.department_id === 'Cartography' ? 'selected' : '' %>>Cartography</option>
+        <option value="Hydrology" <%= user.department_id === 'Hydrology' ? 'selected' : '' %>>Hydrology</option>
+        <option value="Marine Geology" <%= user.department_id === 'Marine Geology' ? 'selected' : '' %>>Marine Geology</option>
+        <option value="Petroleum Geoscience" <%= user.department_id === 'Petroleum Geoscience' ? 'selected' : '' %>>Petroleum Geoscience</option>
+    </optgroup>
+    <optgroup label="FOOD & HOME SCIENCES">
+        <option value="Food Science" <%= user.department_id === 'Food Science' ? 'selected' : '' %>>Food Science</option>
+        <option value="Food Science and Technology" <%= user.department_id === 'Food Science and Technology' ? 'selected' : '' %>>Food Science and Technology</option>
+        <option value="Food Technology" <%= user.department_id === 'Food Technology' ? 'selected' : '' %>>Food Technology</option>
+        <option value="Nutrition and Dietetics" <%= user.department_id === 'Nutrition and Dietetics' ? 'selected' : '' %>>Nutrition and Dietetics</option>
+        <option value="Home Economics" <%= user.department_id === 'Home Economics' ? 'selected' : '' %>>Home Economics</option>
+        <option value="Consumer Sciences" <%= user.department_id === 'Consumer Sciences' ? 'selected' : '' %>>Consumer Sciences</option>
+        <option value="Hospitality Management" <%= user.department_id === 'Hospitality Management' ? 'selected' : '' %>>Hospitality Management</option>
+        <option value="Hotel Management" <%= user.department_id === 'Hotel Management' ? 'selected' : '' %>>Hotel Management</option>
+        <option value="Catering Management" <%= user.department_id === 'Catering Management' ? 'selected' : '' %>>Catering Management</option>
+    </optgroup>
+    <optgroup label="SECURITY & DEFENCE">
+        <option value="Security Studies" <%= user.department_id === 'Security Studies' ? 'selected' : '' %>>Security Studies</option>
+        <option value="Intelligence Studies" <%= user.department_id === 'Intelligence Studies' ? 'selected' : '' %>>Intelligence Studies</option>
+        <option value="Criminology" <%= user.department_id === 'Criminology' ? 'selected' : '' %>>Criminology</option>
+        <option value="Peace Studies" <%= user.department_id === 'Peace Studies' ? 'selected' : '' %>>Peace Studies</option>
+        <option value="Peace and Conflict Resolution" <%= user.department_id === 'Peace and Conflict Resolution' ? 'selected' : '' %>>Peace and Conflict Resolution</option>
+        <option value="Disaster Management" <%= user.department_id === 'Disaster Management' ? 'selected' : '' %>>Disaster Management</option>
+        <option value="Emergency Management" <%= user.department_id === 'Emergency Management' ? 'selected' : '' %>>Emergency Management</option>
+    </optgroup>
+    <optgroup label="TRANSPORT & AVIATION">
+        <option value="Transport Management" <%= user.department_id === 'Transport Management' ? 'selected' : '' %>>Transport Management</option>
+        <option value="Logistics Management" <%= user.department_id === 'Logistics Management' ? 'selected' : '' %>>Logistics Management</option>
+        <option value="Aviation Management" <%= user.department_id === 'Aviation Management' ? 'selected' : '' %>>Aviation Management</option>
+        <option value="Nautical Science" <%= user.department_id === 'Nautical Science' ? 'selected' : '' %>>Nautical Science</option>
+        <option value="Maritime Studies" <%= user.department_id === 'Maritime Studies' ? 'selected' : '' %>>Maritime Studies</option>
+        <option value="Marine Transport" <%= user.department_id === 'Marine Transport' ? 'selected' : '' %>>Marine Transport</option>
+        <option value="Shipping Management" <%= user.department_id === 'Shipping Management' ? 'selected' : '' %>>Shipping Management</option>
+    </optgroup>
+    <optgroup label="CREATIVE & DESIGN">
+        <option value="Fine and Applied Arts" <%= user.department_id === 'Fine and Applied Arts' ? 'selected' : '' %>>Fine and Applied Arts</option>
+        <option value="Graphic Design" <%= user.department_id === 'Graphic Design' ? 'selected' : '' %>>Graphic Design</option>
+        <option value="Industrial Design" <%= user.department_id === 'Industrial Design' ? 'selected' : '' %>>Industrial Design</option>
+        <option value="Textile Design" <%= user.department_id === 'Textile Design' ? 'selected' : '' %>>Textile Design</option>
+        <option value="Fashion Design" <%= user.department_id === 'Fashion Design' ? 'selected' : '' %>>Fashion Design</option>
+        <option value="Animation" <%= user.department_id === 'Animation' ? 'selected' : '' %>>Animation</option>
+        <option value="Photography" <%= user.department_id === 'Photography' ? 'selected' : '' %>>Photography</option>
+        <option value="Ceramics" <%= user.department_id === 'Ceramics' ? 'selected' : '' %>>Ceramics</option>
+        <option value="Sculpture" <%= user.department_id === 'Sculpture' ? 'selected' : '' %>>Sculpture</option>
+        <option value="Painting" <%= user.department_id === 'Painting' ? 'selected' : '' %>>Painting</option>
+        <option value="Visual Arts" <%= user.department_id === 'Visual Arts' ? 'selected' : '' %>>Visual Arts</option>
+    </optgroup>
+    <optgroup label="ENERGY & PETROLEUM">
+        <option value="Petroleum Engineering" <%= user.department_id === 'Petroleum Engineering' ? 'selected' : '' %>>Petroleum Engineering</option>
+        <option value="Gas Engineering" <%= user.department_id === 'Gas Engineering' ? 'selected' : '' %>>Gas Engineering</option>
+        <option value="Petrochemical Engineering" <%= user.department_id === 'Petrochemical Engineering' ? 'selected' : '' %>>Petrochemical Engineering</option>
+        <option value="Energy Engineering" <%= user.department_id === 'Energy Engineering' ? 'selected' : '' %>>Energy Engineering</option>
+        <option value="Renewable Energy" <%= user.department_id === 'Renewable Energy' ? 'selected' : '' %>>Renewable Energy</option>
+        <option value="Petroleum Economics" <%= user.department_id === 'Petroleum Economics' ? 'selected' : '' %>>Petroleum Economics</option>
+        <option value="Petroleum Geoscience" <%= user.department_id === 'Petroleum Geoscience' ? 'selected' : '' %>>Petroleum Geoscience</option>
+    </optgroup>
+    <optgroup label="SPECIALIZED PROGRAMMES">
+        <option value="Industrial Physics" <%= user.department_id === 'Industrial Physics' ? 'selected' : '' %>>Industrial Physics</option>
+        <option value="Industrial Mathematics" <%= user.department_id === 'Industrial Mathematics' ? 'selected' : '' %>>Industrial Mathematics</option>
+        <option value="Industrial Chemistry" <%= user.department_id === 'Industrial Chemistry' ? 'selected' : '' %>>Industrial Chemistry</option>
+        <option value="Industrial Biology" <%= user.department_id === 'Industrial Biology' ? 'selected' : '' %>>Industrial Biology</option>
+        <option value="Bioengineering" <%= user.department_id === 'Bioengineering' ? 'selected' : '' %>>Bioengineering</option>
+        <option value="Nanotechnology" <%= user.department_id === 'Nanotechnology' ? 'selected' : '' %>>Nanotechnology</option>
+        <option value="Renewable Energy Technology" <%= user.department_id === 'Renewable Energy Technology' ? 'selected' : '' %>>Renewable Energy Technology</option>
+        <option value="Environmental Toxicology" <%= user.department_id === 'Environmental Toxicology' ? 'selected' : '' %>>Environmental Toxicology</option>
+        <option value="Biotechnology" <%= user.department_id === 'Biotechnology' ? 'selected' : '' %>>Biotechnology</option>
+        <option value="Marine Science" <%= user.department_id === 'Marine Science' ? 'selected' : '' %>>Marine Science</option>
+        <option value="Marine Technology" <%= user.department_id === 'Marine Technology' ? 'selected' : '' %>>Marine Technology</option>
+        <option value="Fisheries Technology" <%= user.department_id === 'Fisheries Technology' ? 'selected' : '' %>>Fisheries Technology</option>
+        <option value="Wood Science" <%= user.department_id === 'Wood Science' ? 'selected' : '' %>>Wood Science</option>
+        <option value="Wood Technology" <%= user.department_id === 'Wood Technology' ? 'selected' : '' %>>Wood Technology</option>
+        <option value="Textile Technology" <%= user.department_id === 'Textile Technology' ? 'selected' : '' %>>Textile Technology</option>
+        <option value="Polymer Technology" <%= user.department_id === 'Polymer Technology' ? 'selected' : '' %>>Polymer Technology</option>
+        <option value="Ceramics Technology" <%= user.department_id === 'Ceramics Technology' ? 'selected' : '' %>>Ceramics Technology</option>
+        <option value="Glass Technology" <%= user.department_id === 'Glass Technology' ? 'selected' : '' %>>Glass Technology</option>
+    </optgroup>
+    <optgroup label="NEW & EMERGING PROGRAMMES">
+        <option value="Artificial Intelligence" <%= user.department_id === 'Artificial Intelligence' ? 'selected' : '' %>>Artificial Intelligence</option>
+        <option value="Data Science" <%= user.department_id === 'Data Science' ? 'selected' : '' %>>Data Science</option>
+        <option value="Robotics" <%= user.department_id === 'Robotics' ? 'selected' : '' %>>Robotics</option>
+        <option value="Robotics Engineering" <%= user.department_id === 'Robotics Engineering' ? 'selected' : '' %>>Robotics Engineering</option>
+        <option value="Mechatronics" <%= user.department_id === 'Mechatronics' ? 'selected' : '' %>>Mechatronics</option>
+        <option value="Cyber Security" <%= user.department_id === 'Cyber Security' ? 'selected' : '' %>>Cyber Security</option>
+        <option value="Digital Forensics" <%= user.department_id === 'Digital Forensics' ? 'selected' : '' %>>Digital Forensics</option>
+        <option value="Blockchain Technology" <%= user.department_id === 'Blockchain Technology' ? 'selected' : '' %>>Blockchain Technology</option>
+        <option value="FinTech" <%= user.department_id === 'FinTech' ? 'selected' : '' %>>FinTech</option>
+        <option value="Financial Technology" <%= user.department_id === 'Financial Technology' ? 'selected' : '' %>>Financial Technology</option>
+        <option value="Cloud Computing" <%= user.department_id === 'Cloud Computing' ? 'selected' : '' %>>Cloud Computing</option>
+        <option value="Internet of Things (IoT)" <%= user.department_id === 'Internet of Things (IoT)' ? 'selected' : '' %>>Internet of Things (IoT)</option>
+        <option value="DevOps Engineering" <%= user.department_id === 'DevOps Engineering' ? 'selected' : '' %>>DevOps Engineering</option>
+        <option value="Geographic Information Systems (GIS)" <%= user.department_id === 'Geographic Information Systems (GIS)' ? 'selected' : '' %>>Geographic Information Systems (GIS)</option>
+        <option value="Bioinformatics" <%= user.department_id === 'Bioinformatics' ? 'selected' : '' %>>Bioinformatics</option>
+        <option value="Health Informatics" <%= user.department_id === 'Health Informatics' ? 'selected' : '' %>>Health Informatics</option>
+        <option value="e-Commerce" <%= user.department_id === 'e-Commerce' ? 'selected' : '' %>>e-Commerce</option>
+        <option value="UX/UI Design" <%= user.department_id === 'UX/UI Design' ? 'selected' : '' %>>UX/UI Design</option>
+        <option value="Game Development" <%= user.department_id === 'Game Development' ? 'selected' : '' %>>Game Development</option>
+    </optgroup>
+</select>
                     </div>
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label>Level</label>
