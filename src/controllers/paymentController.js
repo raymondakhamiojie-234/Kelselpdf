@@ -50,7 +50,7 @@ exports.verifyPayment = async (req, res) => {
         }
 
         await pool.query(
-            'UPDATE users SET has_paid = 1, expiry_date = ?, subscription_plan = ?, can_change_level = 1 WHERE id = ?',
+            'UPDATE users SET has_paid = 1, expiry_date = ?, subscription_plan = ?, can_change_level = 1, account_locked = 0 WHERE id = ?',
             [expiry_date, plan_name, user_id]
         );
 
@@ -64,6 +64,7 @@ exports.verifyPayment = async (req, res) => {
         req.session.user.has_paid = 1;
         req.session.user.expiry_date = expiry_date;
         req.session.user.subscription_plan = plan_name;
+        req.session.user.account_locked = 0;
 
         res.json({ status: 'success' });
     } catch (err) {
