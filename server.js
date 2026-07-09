@@ -1201,6 +1201,24 @@ app.get('/migrate-db', async (req, res) => {
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIza-placeholder');
 
+async function getBestGeminiModel() {
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
+        const data = await response.json();
+        if (!data.models) return "gemini-1.5-flash";
+        
+        const supported = data.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
+        const flashModel = supported.find(m => m.name.includes('flash') && !m.name.includes('vision'));
+        const proModel = supported.find(m => m.name.includes('pro') && !m.name.includes('vision'));
+        
+        if (flashModel) return flashModel.name.replace('models/', '');
+        if (proModel) return proModel.name.replace('models/', '');
+        return "gemini-1.5-flash";
+    } catch (err) {
+        return "gemini-1.5-flash";
+    }
+}
+
 // AI Exam Take Route (GET)
 app.get('/exam/ai/take/:course', checkAuth, (req, res) => {
     res.render('acct/ai_exam', { course: req.params.course });
@@ -1234,8 +1252,9 @@ Return ONLY a raw JSON object with this exact structure:
   "theory": "..."
 }`;
 
+        const modelName = await getBestGeminiModel();
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: modelName,
             generationConfig: { responseMimeType: "application/json" },
             systemInstruction: "You are a university professor creating an exam. Output strict JSON."
         });
@@ -1269,8 +1288,9 @@ app.post('/api/ai/grade', checkAuth, async (req, res) => {
 
         const prompt = `Question: ${question}\nStudent's Answer: ${answer}\n\nGrade this answer out of 10 and provide 2 sentences of constructive feedback. Return ONLY JSON like this: {"score": 8, "feedback": "..."}`;
 
+        const modelName = await getBestGeminiModel();
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: modelName,
             generationConfig: { responseMimeType: "application/json" },
             systemInstruction: "You are a fair but rigorous university professor. Output strict JSON."
         });
