@@ -1228,6 +1228,8 @@ app.get('/exam/ai/take/:course', checkAuth, (req, res) => {
 app.get('/api/ai/generate', checkAuth, async (req, res) => {
     try {
         const course = req.query.course || 'General Knowledge';
+        let count = parseInt(req.query.count) || 4;
+        if (count > 20) count = 20; // safety limit
 
         if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'AIza-placeholder') {
             // Return mock JSON if no API key
@@ -1243,7 +1245,7 @@ app.get('/api/ai/generate', checkAuth, async (req, res) => {
             return res.json(mock_exam);
         }
 
-        const prompt = `Generate exactly 4 multiple-choice questions and 1 open-ended theory question for a university-level course named '${course}'. 
+        const prompt = `Generate exactly ${count} multiple-choice questions and 1 open-ended theory question for a university-level course named '${course}'. 
 Return ONLY a raw JSON object with this exact structure:
 {
   "mcqs": [

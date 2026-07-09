@@ -23,7 +23,20 @@
                 <a href="/dashboard" class="btn">Exit Exam</a>
             </div>
 
-            <div id="loading" class="text-center mb-2">
+            <div id="setupContainer" class="text-center mb-2">
+                <h3>Exam Setup</h3>
+                <p>How many multiple-choice questions would you like?</p>
+                <select id="questionCount" style="padding: 10px; margin: 1rem 0; border-radius: 5px; width: 100%; max-width: 200px;">
+                    <option value="5">5 Questions</option>
+                    <option value="10">10 Questions</option>
+                    <option value="15">15 Questions</option>
+                    <option value="20">20 Questions</option>
+                </select>
+                <br>
+                <button onclick="startExam()" class="btn btn-ai">Start Exam</button>
+            </div>
+
+            <div id="loading" class="text-center mb-2" style="display: none;">
                 <p>Generating your custom AI exam... Please wait.</p>
                 <div class="btn-ai" style="width: 50px; height: 50px; border-radius: 50%; margin: 1rem auto;"></div>
             </div>
@@ -54,12 +67,18 @@
     <script>
         let examData = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>`)
+        function startExam() {
+            const count = document.getElementById('questionCount').value;
+            document.getElementById('setupContainer').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
                         alert("Error generating exam: " + data.error);
+                        document.getElementById('setupContainer').style.display = 'block';
+                        document.getElementById('loading').style.display = 'none';
                         return;
                     }
                     examData = data;
@@ -68,8 +87,10 @@
                 .catch(err => {
                     alert("Failed to connect to AI engine.");
                     console.error(err);
+                    document.getElementById('setupContainer').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
                 });
-        });
+        }
 
         function renderExam() {
             document.getElementById('loading').style.display = 'none';
