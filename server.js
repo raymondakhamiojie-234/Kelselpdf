@@ -106,6 +106,14 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
+app.get('/privacy', (req, res) => {
+    res.render('privacy');
+});
+
+app.get('/terms', (req, res) => {
+    res.render('terms');
+});
+
 // Temporary Database Setup Route
 app.get('/setup-db', async (req, res) => {
     try {
