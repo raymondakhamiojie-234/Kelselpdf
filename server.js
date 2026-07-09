@@ -1247,8 +1247,8 @@ Return ONLY a raw JSON object with this exact structure:
         const result = JSON.parse(completion.choices[0].message.content);
         res.json(result);
     } catch (err) {
-        console.error(err);
-        res.json({ error: 'Failed to generate exam from AI provider.' });
+        console.error("AI Generation Error:", err);
+        res.json({ error: 'Failed to generate exam from AI provider: ' + (err.message || 'Unknown error') });
     }
 });
 
@@ -1284,8 +1284,8 @@ app.post('/api/ai/grade', checkAuth, async (req, res) => {
         const result = JSON.parse(completion.choices[0].message.content);
         res.json(result);
     } catch (err) {
-        console.error(err);
-        res.json({ error: 'Failed to grade theory answer.' });
+        console.error("AI Grading Error:", err);
+        res.json({ error: 'Failed to grade theory answer: ' + (err.message || 'Unknown error') });
     }
 });
 
