@@ -1198,9 +1198,8 @@ app.get('/migrate-db', async (req, res) => {
 });
 
 // AI Tutor Setup
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'sk-proj-placeholder'
-});
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIza-placeholder');
 
 // AI Exam Take Route (GET)
 app.get('/exam/ai/take/:course', checkAuth, (req, res) => {
@@ -1212,7 +1211,7 @@ app.get('/api/ai/generate', checkAuth, async (req, res) => {
     try {
         const course = req.query.course || 'General Knowledge';
 
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'AIza-placeholder') {
             // Return mock JSON if no API key
             const mock_exam = {
                 mcqs: [
@@ -1235,16 +1234,14 @@ Return ONLY a raw JSON object with this exact structure:
   "theory": "..."
 }`;
 
-        const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a university professor creating an exam. Output strict JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "gpt-3.5-turbo",
-            response_format: { type: "json_object" }
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { responseMimeType: "application/json" },
+            systemInstruction: "You are a university professor creating an exam. Output strict JSON."
         });
 
-        const result = JSON.parse(completion.choices[0].message.content);
+        const completion = await model.generateContent(prompt);
+        const result = JSON.parse(completion.response.text());
         res.json(result);
     } catch (err) {
         console.error("AI Generation Error:", err);
@@ -1262,7 +1259,7 @@ app.post('/api/ai/grade', checkAuth, async (req, res) => {
             return res.json({ error: 'Missing data' });
         }
 
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-proj-placeholder') {
+        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'AIza-placeholder') {
             const mock_grade = {
                 score: 8,
                 feedback: "Excellent start, but your answer lacks depth on the architectural trade-offs. You demonstrated a solid understanding of the fundamental concepts."
@@ -1272,16 +1269,14 @@ app.post('/api/ai/grade', checkAuth, async (req, res) => {
 
         const prompt = `Question: ${question}\nStudent's Answer: ${answer}\n\nGrade this answer out of 10 and provide 2 sentences of constructive feedback. Return ONLY JSON like this: {"score": 8, "feedback": "..."}`;
 
-        const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a fair but rigorous university professor. Output strict JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "gpt-3.5-turbo",
-            response_format: { type: "json_object" }
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { responseMimeType: "application/json" },
+            systemInstruction: "You are a fair but rigorous university professor. Output strict JSON."
         });
 
-        const result = JSON.parse(completion.choices[0].message.content);
+        const completion = await model.generateContent(prompt);
+        const result = JSON.parse(completion.response.text());
         res.json(result);
     } catch (err) {
         console.error("AI Grading Error:", err);
