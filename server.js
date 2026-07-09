@@ -7,7 +7,7 @@ const mysql = require('mysql2/promise');
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
-const { OpenAI } = require('openai');
+
 
 const os = require('os');
 const app = express();
