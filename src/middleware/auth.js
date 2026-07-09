@@ -17,6 +17,26 @@ const checkAuth = async (req, res, next) => {
             return res.redirect('/login');
         }
     }
+
+    // Global Payment Enforcement
+    const user = req.session.user;
+    const allowedWithoutPayment = ['/payment', '/payment_history', '/api/verify_payment', '/profile', '/logout', '/dashboard'];
+    
+    if (user.role !== 'admin' && !allowedWithoutPayment.includes(req.path)) {
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        
+        const hasPaid = user.has_paid === 1;
+        const isExpired = !user.expiry_date || new Date(user.expiry_date) <= currentDate;
+        
+        if (!hasPaid || isExpired) {
+            if (req.path.startsWith('/api/')) {
+                return res.status(403).json({ error: 'Subscription required or expired. Please renew your plan.' });
+            }
+            return res.redirect('/payment');
+        }
+    }
+
     next();
 };
 

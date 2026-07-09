@@ -81,7 +81,12 @@
                                 <td><%= s.email %></td>
                                 <td style="text-transform: capitalize;"><%= s.subscription_plan %></td>
                                 <td><%= s.expiry_date ? new Date(s.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %></td>
-                                <td style="color: <%= status_color %>; font-weight: bold;"><%= status_text %></td>
+                                <td style="color: <%= status_color %>; font-weight: bold;">
+                                    <%= status_text %>
+                                    <% if (status_text === 'Unpaid' || status_text === 'Expired') { %>
+                                        <button onclick="copyPaymentLink()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; border-radius: 4px; border: none; background: var(--primary); color: white; cursor: pointer;" title="Copy Payment Link">🔗 Copy Link</button>
+                                    <% } %>
+                                </td>
                             </tr>
                             <% }); %>
                         <% } %>
@@ -90,6 +95,16 @@
             </div>
         </div>
     </main>
+    <script>
+        function copyPaymentLink() {
+            const paymentUrl = window.location.origin + '/payment';
+            navigator.clipboard.writeText(paymentUrl).then(() => {
+                alert('Payment link copied to clipboard: ' + paymentUrl);
+            }).catch(err => {
+                alert('Failed to copy link. Please manually send: ' + paymentUrl);
+            });
+        }
+    </script>
 </body>
 </html>
 
