@@ -7,11 +7,39 @@ const mysql = require('mysql2/promise');
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
-
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 
 const os = require('os');
 const app = express();
 app.set('trust proxy', 1);
+
+// Security and Logging Middleware
+app.use(helmet({ contentSecurityPolicy: false })); // Disabled CSP temporarily to prevent breaking inline scripts/styles
+app.use(morgan('dev'));
+
+// Rate Limiting
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 500, // Limit each IP to 500 requests per windowMs
+    message: "Too many requests from this IP, please try again later.",
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use(globalLimiter);
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: "Too many authentication attempts, please try again later."
+});
+
+const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { error: "You have exceeded the AI request limit for now. Please wait a few minutes." }
+});
 const upload = multer({ dest: os.tmpdir() + '/uploads/' });
 const PORT = process.env.PORT || 3000;
 
@@ -35,7 +63,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieSession({
     name: 'session',
     keys: [process.env.SESSION_SECRET || 'fallback_secret_key'],
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
 }));
 
 // View Engine
@@ -411,7 +441,7 @@ app.get('/login', (req, res) => {
     res.render('acct/login', { error: null });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', authLimiter, async (req, res) => {
     const { email, password } = req.body;
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -433,7 +463,7 @@ app.get('/register', (req, res) => {
     res.render('acct/register', { error: null });
 });
 
-app.post('/register', async (req, res) => {
+app.post('/register', authLimiter, async (req, res) => {
     const { full_name, lastname, email, password, department_id, level } = req.body;
     try {
         // Check if user exists
@@ -1233,7 +1263,7 @@ app.get('/exam/ai/take/:course', checkAuth, (req, res) => {
 });
 
 // AI Generate Mock Exam (API GET)
-app.get('/api/ai/generate', checkAuth, async (req, res) => {
+app.get('/api/ai/generate', checkAuth, aiLimiter, async (req, res) => {
     try {
         const course = req.query.course || 'General Knowledge';
         let count = parseInt(req.query.count) || 4;
@@ -1279,7 +1309,7 @@ Return ONLY a raw JSON object with this exact structure:
 });
 
 // AI Grade Theory (API POST)
-app.post('/api/ai/grade', checkAuth, async (req, res) => {
+app.post('/api/ai/grade', checkAuth, aiLimiter, async (req, res) => {
     try {
         const question = req.body.question || '';
         const answer = req.body.answer || '';
@@ -1670,6 +1700,15 @@ app.get('/certificates', checkAuth, async (req, res) => {
         console.error(err);
         res.status(500).send("Error loading certificates");
     }
+});
+
+// Centralized Error Handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err.stack);
+    if (res.headersSent) {
+        return next(err);
+    }
+    res.status(500).send('Something broke! Our engineers have been notified.');
 });
 
 // Server Start
