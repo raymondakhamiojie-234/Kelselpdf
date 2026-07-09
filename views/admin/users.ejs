@@ -54,7 +54,15 @@
                             <tr>
                                 <td><%= u.full_name %></td>
                                 <td><%= u.email %></td>
-                                <td><%= u.level %> / <%= u.department_id || 'General' %></td>
+                                <td>
+                                    <% 
+                                        let dept = u.department_id;
+                                        if (dept == '1') dept = 'Computer Science';
+                                        else if (dept == '2') dept = 'Electrical Engineering';
+                                        else if (dept == '3') dept = 'Business Administration';
+                                    %>
+                                    <%= u.level %> / <%= dept || 'General' %>
+                                </td>
                                 <td style="text-transform: capitalize; font-weight: bold; color: <%= u.role === 'admin' ? 'var(--accent)' : 'var(--text-color)' %>;"><%= u.role || 'student' %></td>
                                 <td><%= new Date(u.created_at).toLocaleDateString() %></td>
                                 <td>
