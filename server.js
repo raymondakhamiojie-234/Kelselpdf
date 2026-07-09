@@ -23,7 +23,12 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Security and Logging Middleware
-app.use(helmet({ contentSecurityPolicy: false })); 
+app.use(helmet({ 
+    contentSecurityPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+})); 
 app.use(morgan('dev'));
 app.use(globalLimiter);
 
