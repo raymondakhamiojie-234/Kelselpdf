@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Users - Admin Panel</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+</head>
+<body class="dashboard-body">
+    <nav class="sidebar">
+        <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" class="brand-logo" style="max-width: 150px; margin: 0 auto 2rem; display: block;">
+        <ul>
+            <li><a href="/admin">📊 Overview</a></li>
+            <li><a href="/admin/users" class="active">👥 Users</a></li>
+            <li><a href="/admin/payments">💰 Payments</a></li>
+            <li><a href="/admin/subscriptions">📅 Subscriptions</a></li>
+            <li><a href="/admin/questions">📝 Upload Questions</a></li>
+            <li><a href="/admin/past_questions">📁 Past Questions</a></li>
+            <li style="margin-top: 2rem;"><a href="/dashboard">← Back to App</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { page_title: 'User Management', page_desc: 'Manage all accounts' }) %>
+
+        <h2>All Users</h2>
+        <div class="glass-panel">
+            <div class="table-responsive">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Level/Dept</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (users.length === 0) { %>
+                            <tr><td colspan="6" class="text-center">No users found.</td></tr>
+                        <% } else { %>
+                            <% users.forEach(u => { %>
+                            <tr>
+                                <td><%= u.full_name %></td>
+                                <td><%= u.email %></td>
+                                <td><%= u.level %> / <%= u.department_id === 1 ? 'GST' : 'General' %></td>
+                                <td style="text-transform: capitalize; font-weight: bold; color: <%= u.role === 'admin' ? 'var(--accent)' : 'var(--text-color)' %>;"><%= u.role || 'student' %></td>
+                                <td><%= new Date(u.created_at).toLocaleDateString() %></td>
+                                <td>
+                                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                        <!-- Toggle Role -->
+                                        <form action="/admin/users/role" method="POST" style="margin: 0;">
+                                            <input type="hidden" name="user_id" value="<%= u.id %>">
+                                            <% if (u.role === 'admin') { %>
+                                                <input type="hidden" name="role" value="student">
+                                                <button type="submit" class="btn" style="background: var(--text-muted); padding: 5px 10px; font-size: 0.8rem;">Remove Admin</button>
+                                            <% } else { %>
+                                                <input type="hidden" name="role" value="admin">
+                                                <button type="submit" class="btn" style="background: var(--success); padding: 5px 10px; font-size: 0.8rem;">Make Admin</button>
+                                            <% } %>
+                                        </form>
+                                        
+                                        <!-- Delete Account -->
+                                        <form action="/admin/users/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this account? This cannot be undone.');">
+                                            <input type="hidden" name="user_id" value="<%= u.id %>">
+                                            <button type="submit" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.8rem;">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

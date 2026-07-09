@@ -220,3 +220,42 @@ exports.postSkillsCourseDelete = async (req, res) => {
         res.status(500).send("Error deleting course");
     }
 };
+
+exports.getUsers = async (req, res) => {
+    try {
+        const [users] = await pool.query('SELECT id, full_name, email, department_id, level, role, created_at FROM users ORDER BY created_at DESC');
+        res.render('admin/users', { users });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.postUpdateUserRole = async (req, res) => {
+    try {
+        const { user_id, role } = req.body;
+        // Don't let admin remove their own admin privileges easily if they are the only one, but we'll assume they know what they are doing.
+        if (req.session.user.id == user_id && role !== 'admin') {
+            return res.status(400).send("You cannot remove your own admin role.");
+        }
+        await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, user_id]);
+        res.redirect('/admin/users');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.postDeleteUser = async (req, res) => {
+    try {
+        const { user_id } = req.body;
+        if (req.session.user.id == user_id) {
+            return res.status(400).send("You cannot delete yourself.");
+        }
+        await pool.query('DELETE FROM users WHERE id = ?', [user_id]);
+        res.redirect('/admin/users');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
