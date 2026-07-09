@@ -3,7 +3,8 @@ const pool = require('../config/db');
 exports.getPayment = (req, res) => {
     res.render('acct/payment', { 
         user: req.session.user,
-        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913' 
+        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
+        locked: req.query.locked === 'true'
     });
 };
 

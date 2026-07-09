@@ -130,11 +130,22 @@ exports.postPastQuestions = async (req, res) => {
 exports.getSubscriptions = async (req, res) => {
     try {
         const [subs] = await pool.query(`
-            SELECT id, full_name, email, department_id, level, subscription_plan, expiry_date, has_paid 
+            SELECT id, full_name, email, department_id, level, subscription_plan, expiry_date, has_paid, account_locked 
             FROM users 
             ORDER BY expiry_date ASC
         `);
         res.render('admin/subscriptions', { subs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.postLockUser = async (req, res) => {
+    try {
+        const { user_id, locked } = req.body;
+        await pool.query('UPDATE users SET account_locked = ? WHERE id = ?', [locked ? 1 : 0, user_id]);
+        res.redirect('/admin/subscriptions');
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");

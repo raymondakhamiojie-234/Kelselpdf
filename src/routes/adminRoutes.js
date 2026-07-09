@@ -12,6 +12,7 @@ router.post('/admin/questions', requireAdmin, upload.single('csv_file'), adminCo
 router.get('/admin/past_questions', requireAdmin, adminController.getPastQuestions);
 router.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), adminController.postPastQuestions);
 router.get('/admin/subscriptions', requireAdmin, adminController.getSubscriptions);
+router.post('/admin/lock_user', requireAdmin, adminController.postLockUser);
 router.get('/admin/payments', requireAdmin, adminController.getPayments);
 router.get('/admin/skills', requireAdmin, adminController.getSkills);
 router.post('/admin/skills/category', requireAdmin, adminController.postSkillsCategory);

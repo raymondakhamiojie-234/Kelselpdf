@@ -43,6 +43,7 @@
                             <th>Plan</th>
                             <th>Expiry Date</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,10 +82,22 @@
                                 <td><%= s.email %></td>
                                 <td style="text-transform: capitalize;"><%= s.subscription_plan %></td>
                                 <td><%= s.expiry_date ? new Date(s.expiry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %></td>
-                                <td style="color: <%= status_color %>; font-weight: bold;">
-                                    <%= status_text %>
-                                    <% if (status_text === 'Unpaid' || status_text === 'Expired') { %>
-                                        <button onclick="copyPaymentLink()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; border-radius: 4px; border: none; background: var(--primary); color: white; cursor: pointer;" title="Copy Payment Link">🔗 Copy Link</button>
+                                <td style="color: <%= status_color %>; font-weight: bold;"><%= status_text %></td>
+                                <td>
+                                    <% if (s.account_locked) { %>
+                                        <form action="/admin/lock_user" method="POST" style="display:inline;">
+                                            <input type="hidden" name="user_id" value="<%= s.id %>">
+                                            <input type="hidden" name="locked" value="">
+                                            <button type="submit" class="btn" style="background: var(--success); padding: 5px 10px; font-size: 0.8rem;">Unlock</button>
+                                        </form>
+                                    <% } else if (status_text === 'Unpaid' || status_text === 'Expired') { %>
+                                        <form action="/admin/lock_user" method="POST" style="display:inline;">
+                                            <input type="hidden" name="user_id" value="<%= s.id %>">
+                                            <input type="hidden" name="locked" value="1">
+                                            <button type="submit" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.8rem;">Lock Account</button>
+                                        </form>
+                                    <% } else { %>
+                                        <span style="color: var(--text-muted); font-size: 0.8rem;">Active</span>
                                     <% } %>
                                 </td>
                             </tr>
@@ -95,16 +108,6 @@
             </div>
         </div>
     </main>
-    <script>
-        function copyPaymentLink() {
-            const paymentUrl = window.location.origin + '/payment';
-            navigator.clipboard.writeText(paymentUrl).then(() => {
-                alert('Payment link copied to clipboard: ' + paymentUrl);
-            }).catch(err => {
-                alert('Failed to copy link. Please manually send: ' + paymentUrl);
-            });
-        }
-    </script>
 </body>
 </html>
 

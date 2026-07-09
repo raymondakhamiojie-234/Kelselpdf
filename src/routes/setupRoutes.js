@@ -32,7 +32,7 @@ router.get('/setup-db', async (req, res) => {
 
 router.get('/migrate-db', async (req, res) => {
     try {
-        await pool.query('ALTER TABLE users ADD COLUMN can_change_level BOOLEAN DEFAULT 0');
+        await pool.query('ALTER TABLE users ADD COLUMN account_locked BOOLEAN DEFAULT 0');
         res.send("Migration completed!");
     } catch (err) {
         res.send("Migration error (maybe column exists): " + err.message);

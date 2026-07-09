@@ -14,6 +14,9 @@
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
             });
         }
+        <% if (typeof locked !== 'undefined' && locked) { %>
+            alert('Your account access has been restricted by an Admin. Please purchase a subscription to continue using KelselPDF.');
+        <% } %>
     </script>
 </head>
 <body class="dashboard-body">
