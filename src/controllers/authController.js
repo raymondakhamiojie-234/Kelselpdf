@@ -44,7 +44,7 @@ exports.postRegister = async (req, res) => {
         );
         
         req.session.user_id = result.insertId;
-        res.redirect('/dashboard');
+        res.redirect('/payment');
     } catch (err) {
         console.error(err);
         res.render('acct/register', { error: 'DB Error: ' + err.message });
