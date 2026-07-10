@@ -79,8 +79,12 @@ exports.postQuestions = async (req, res) => {
 
 exports.getPastQuestions = async (req, res) => {
     try {
-        const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
-        res.render('admin/past_questions', { courses, success: '', error: '' });
+        // Fetch all courses for the dropdown (if needed) but the view uses it for the uploaded panel too.
+        // Wait, the view uses `courses` for BOTH the uploaded panel and... wait, the dropdown?
+        // Let's check past_questions.ejs first. I'll just change the uploaded panel query.
+        const [all_courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
+        const [uploaded_courses] = await pool.query('SELECT DISTINCT c.course_code FROM courses c JOIN past_questions pq ON c.id = pq.course_id ORDER BY c.course_code ASC');
+        res.render('admin/past_questions', { courses: uploaded_courses, all_courses, success: '', error: '' });
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");
@@ -89,8 +93,6 @@ exports.getPastQuestions = async (req, res) => {
 
 exports.postPastQuestions = async (req, res) => {
     try {
-        const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC');
-        
         let course_code_input = req.body.course_code || '';
         course_code_input = course_code_input.toUpperCase().trim();
         const course_dept = req.body.department_id === 'gst' ? null : req.body.department_id || null;
@@ -129,10 +131,11 @@ exports.postPastQuestions = async (req, res) => {
             success = "Past question added successfully!";
         }
 
+        const [courses] = await pool.query('SELECT DISTINCT c.course_code FROM courses c JOIN past_questions pq ON c.id = pq.course_id ORDER BY c.course_code ASC');
         res.render('admin/past_questions', { courses, success, error });
     } catch (err) {
         console.error(err);
-        const [courses] = await pool.query('SELECT id, course_code FROM courses ORDER BY course_code ASC').catch(()=>[[]]);
+        const [courses] = await pool.query('SELECT DISTINCT c.course_code FROM courses c JOIN past_questions pq ON c.id = pq.course_id ORDER BY c.course_code ASC').catch(()=>[[]]);
         res.render('admin/past_questions', { courses, success: '', error: 'Error: ' + err.message + ' | Stack: ' + String(err.stack).substring(0,200) });
     }
 };
