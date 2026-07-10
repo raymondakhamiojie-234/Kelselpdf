@@ -9,6 +9,7 @@ const upload = multer({ dest: os.tmpdir() + '/uploads/' });
 router.get('/admin', requireAdmin, adminController.getAdmin);
 router.get('/admin/questions', requireAdmin, adminController.getQuestions);
 router.post('/admin/questions', requireAdmin, upload.single('csv_file'), adminController.postQuestions);
+router.post('/admin/questions/clear', requireAdmin, adminController.postClearQuestions);
 router.get('/admin/past_questions', requireAdmin, adminController.getPastQuestions);
 router.post('/admin/past_questions', requireAdmin, upload.single('pq_file'), adminController.postPastQuestions);
 router.get('/admin/subscriptions', requireAdmin, adminController.getSubscriptions);

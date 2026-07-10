@@ -47,11 +47,37 @@
             </div>
 
             <form method="POST" action="/admin/questions" enctype="multipart/form-data">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Department</label>
+                        <select name="department_id" required>
+                            <option value="1">Computer Science</option>
+                            <option value="2">Electrical Engineering</option>
+                            <option value="3">Business Administration</option>
+                            <option value="gst">General Studies (All Depts)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Level</label>
+                        <select name="level" required>
+                            <option value="100">100 Level</option>
+                            <option value="200">200 Level</option>
+                            <option value="300">300 Level</option>
+                            <option value="400">400 Level</option>
+                            <option value="500">500 Level</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Select CSV File</label>
                     <input type="file" name="csv_file" accept=".csv" required style="padding: 20px; border: 2px dashed var(--cbg-color-2); text-align: center; cursor: pointer;">
                 </div>
                 <button type="submit" class="btn btn-ai" style="width: 100%;">Upload & Import</button>
+            </form>
+            
+            <form method="POST" action="/admin/questions/clear" style="margin-top: 2rem;">
+                <button type="submit" class="btn" style="width: 100%; background: #ff4d4d; color: white;" onclick="return confirm('Are you sure you want to delete ALL mock exam questions? This cannot be undone.');">🗑️ Clear All Uploaded Questions</button>
             </form>
         </div>
 

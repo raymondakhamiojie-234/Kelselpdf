@@ -10,10 +10,13 @@ exports.getExamSetup = async (req, res) => {
         }
 
         const [courses] = await pool.query(`
-            SELECT DISTINCT course_code 
-            FROM questions 
-            ORDER BY course_code ASC
-        `);
+            SELECT DISTINCT c.course_code 
+            FROM courses c
+            JOIN questions q ON REPLACE(c.course_code, ' ', '') = REPLACE(q.course_code, ' ', '')
+            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            AND c.level_access <= ?
+            ORDER BY c.course_code ASC
+        `, [user.department_id, user.level]);
         
         res.render('acct/exam_setup', { courses });
     } catch (err) {
@@ -30,9 +33,11 @@ exports.getExamMaterials = async (req, res) => {
         const query = `
             SELECT pq.*, c.course_code FROM past_questions pq 
             JOIN courses c ON pq.course_id = c.id 
+            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            AND c.level_access <= ?
             ORDER BY c.course_code ASC, pq.year DESC
         `;
-        const [materials] = await pool.query(query);
+        const [materials] = await pool.query(query, [dept_id, level]);
         res.render('acct/exam_materials', { user: req.session.user, materials });
     } catch (err) {
         console.error(err);
@@ -166,7 +171,10 @@ exports.getExamAnalytics = async (req, res) => {
         // Fetch past questions
         const [past_questions] = await pool.query(
             `SELECT pq.*, c.course_code FROM past_questions pq 
-             JOIN courses c ON pq.course_id = c.id`
+             JOIN courses c ON pq.course_id = c.id 
+             WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+             AND c.level_access <= ?`,
+            [dept_id, level]
         );
 
         res.render('acct/exam_analytics', {

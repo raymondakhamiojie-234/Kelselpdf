@@ -51,15 +51,37 @@ exports.postQuestions = async (req, res) => {
         })
         .on('end', async () => {
             try {
+                // Determine course dept and level
+                const course_dept = req.body.department_id === 'gst' ? null : req.body.department_id || null;
+                const shared_group = req.body.department_id === 'gst' ? 'gst' : 'general';
+                const course_level = parseInt(req.body.level) || 100;
+
+                const uniqueCourseCodes = new Set();
+                
                 for (const row of results) {
                     if (row.course_code && row.question_text) {
-                        await pool.query(
-                            'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            [(row.course_code||'').replace(/^\\uFEFF/, '').trim(), (row.question_text||'').replace(/^\\uFEFF/, '').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
-                        );
-                        count++;
+                        const code = (row.course_code||'').replace(/^\uFEFF/, '').trim();
+                        if (code) {
+                            uniqueCourseCodes.add(code.toUpperCase());
+                            await pool.query(
+                                'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                                [code, (row.question_text||'').replace(/^\uFEFF/, '').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
+                            );
+                            count++;
+                        }
                     }
                 }
+                
+                // Add/update course metadata so they show up for users
+                for (const code of uniqueCourseCodes) {
+                    const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [code]);
+                    if (existingCourse.length > 0) {
+                        await pool.query('UPDATE courses SET department_id = COALESCE(department_id, ?), level_access = COALESCE(level_access, ?), shared_access_group = COALESCE(shared_access_group, ?) WHERE id = ?', [course_dept, course_level, shared_group, existingCourse[0].id]);
+                    } else {
+                        await pool.query('INSERT INTO courses (course_code, department_id, level_access, shared_access_group) VALUES (?, ?, ?, ?)', [code, course_dept, course_level, shared_group]);
+                    }
+                }
+
                 fs.unlinkSync(req.file.path); 
                 const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC');
                 res.render('admin/questions', { courses, success: `Successfully imported ${count} questions!`, error: '' });
@@ -75,6 +97,18 @@ exports.postQuestions = async (req, res) => {
             const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
             res.render('admin/questions', { courses, success: '', error: 'Error reading CSV file.' });
         });
+};
+
+exports.postClearQuestions = async (req, res) => {
+    try {
+        await pool.query('DELETE FROM questions');
+        const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
+        res.render('admin/questions', { courses, success: 'All uploaded mock exam questions have been successfully deleted.', error: '' });
+    } catch (err) {
+        console.error(err);
+        const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
+        res.render('admin/questions', { courses, success: '', error: 'Error deleting questions.' });
+    }
 };
 
 exports.getPastQuestions = async (req, res) => {
