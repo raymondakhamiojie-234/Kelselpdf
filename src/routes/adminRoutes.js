@@ -4,7 +4,7 @@ const adminController = require('../controllers/adminController');
 const { requireAdmin } = require('../middleware/auth'); 
 const multer = require('multer');
 const os = require('os');
-const upload = multer({ dest: os.tmpdir() + '/uploads/' });
+const upload = multer({ dest: os.tmpdir() });
 
 router.get('/admin', requireAdmin, adminController.getAdmin);
 router.get('/admin/questions', requireAdmin, adminController.getQuestions);

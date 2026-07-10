@@ -4,6 +4,7 @@ const csv = require('csv-parser');
 
 exports.getAdmin = async (req, res) => {
     try {
+        await pool.query('ALTER TABLE courses MODIFY department_id VARCHAR(255)').catch(() => {});
         const [[{ count: users_count }]] = await pool.query('SELECT COUNT(id) AS count FROM users');
         const [[{ total: revenue }]] = await pool.query("SELECT SUM(amount) AS total FROM transactions WHERE status='success'");
         const [[{ count: active_subs }]] = await pool.query('SELECT COUNT(id) AS count FROM users WHERE has_paid = 1 AND expiry_date >= CURDATE()');
@@ -82,18 +83,19 @@ exports.postQuestions = async (req, res) => {
                     }
                 }
 
-                fs.unlinkSync(req.file.path); 
+                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path); 
                 const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC');
                 res.render('admin/questions', { courses, success: `Successfully imported ${count} questions!`, error: '' });
             } catch (err) {
-                console.error(err);
-                fs.unlinkSync(req.file.path);
+                console.error("DB Error in postQuestions:", err);
+                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
                 const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
                 res.render('admin/questions', { courses, success: '', error: 'Database error during import.' });
             }
         })
         .on('error', async (err) => {
-            console.error(err);
+            console.error("CSV Error in postQuestions:", err);
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
             const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
             res.render('admin/questions', { courses, success: '', error: 'Error reading CSV file.' });
         });
