@@ -23,13 +23,20 @@ exports.getAdmin = async (req, res) => {
     }
 };
 
-exports.getQuestions = (req, res) => {
-    res.render('admin/questions', { success: '', error: '' });
+exports.getQuestions = async (req, res) => {
+    try {
+        const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC');
+        res.render('admin/questions', { courses, success: '', error: '' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
 };
 
-exports.postQuestions = (req, res) => {
+exports.postQuestions = async (req, res) => {
     if (!req.file) {
-        return res.render('admin/questions', { success: '', error: 'Please upload a CSV file.' });
+        const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
+        return res.render('admin/questions', { courses, success: '', error: 'Please upload a CSV file.' });
     }
 
     const results = [];
@@ -54,16 +61,19 @@ exports.postQuestions = (req, res) => {
                     }
                 }
                 fs.unlinkSync(req.file.path); 
-                res.render('admin/questions', { success: `Successfully imported ${count} questions!`, error: '' });
+                const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC');
+                res.render('admin/questions', { courses, success: `Successfully imported ${count} questions!`, error: '' });
             } catch (err) {
                 console.error(err);
                 fs.unlinkSync(req.file.path);
-                res.render('admin/questions', { success: '', error: 'Database error during import.' });
+                const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
+                res.render('admin/questions', { courses, success: '', error: 'Database error during import.' });
             }
         })
-        .on('error', (err) => {
+        .on('error', async (err) => {
             console.error(err);
-            res.render('admin/questions', { success: '', error: 'Error reading CSV file.' });
+            const [courses] = await pool.query('SELECT DISTINCT course_code FROM questions ORDER BY course_code ASC').catch(()=>[[]]);
+            res.render('admin/questions', { courses, success: '', error: 'Error reading CSV file.' });
         });
 };
 

@@ -146,6 +146,19 @@
                 <button type="submit" class="btn btn-ai" style="width: 100%; margin-top: 1rem; padding: 15px; font-size: 1.1rem;">Save Past Question</button>
             </form>
         </div>
+
+        <div class="glass-panel" style="max-width: 650px; margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Uploaded Courses (Past Questions)</h3>
+            <% if (locals.courses && courses.length > 0) { %>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <% courses.forEach(c => { %>
+                        <span style="background: var(--cbg-color-2); padding: 5px 10px; border-radius: 5px; font-weight: bold; border: 1px solid var(--border-color);"><%= c.course_code %></span>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <p style="color: var(--ntxt-color);">No courses uploaded yet.</p>
+            <% } %>
+        </div>
     </main>
 
     <script>
