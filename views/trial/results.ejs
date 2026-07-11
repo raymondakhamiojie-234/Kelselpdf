@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Trial Results - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+        .header {
+            padding: 1rem 2rem;
+            background: var(--neu-color);
+            box-shadow: 0 2px 10px var(--shd-color);
+            text-align: center;
+        }
+        .header img {
+            height: 40px;
+        }
+        .results-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0 auto 2rem;
+            color: white;
+            background: conic-gradient(var(--cta-color) <%= percentage %>%, var(--cbg-color-2) 0);
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: 15px;
+            background: var(--neu-color);
+            border-radius: 50%;
+        }
+
+        .score-circle span {
+            position: relative;
+            z-index: 1;
+            color: var(--text-color);
+        }
+
+        .promo-box {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1));
+            border: 1px solid var(--cta-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Lock the trial
+        localStorage.setItem('kelsel_trial_taken', 'true');
+    </script>
+
+    <div class="header">
+        <a href="/"><img src="/acct/img/KelselPDF.png" alt="Logo"></a>
+    </div>
+
+    <div class="results-container">
+        <div class="glass-panel" style="max-width: 600px; width: 100%; text-align: center;">
+            <h1 style="color: var(--cta-color); margin-bottom: 1rem;">Trial Exam Completed!</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;"><%= course %></p>
+            
+            <div class="score-circle">
+                <span><%= percentage %>%</span>
+            </div>
+            
+            <h3>You scored <%= score %> out of <%= total_questions %></h3>
+            
+            <div class="promo-box">
+                <h3 style="margin-bottom: 10px; color: var(--cta-color);">Unlock Your Full Potential!</h3>
+                <p style="margin-bottom: 20px; color: var(--ntxt-color);">
+                    You've successfully completed your one-time free trial. To access all courses, deep analytics, AI-powered study aids, and unlimited mock exams, create an account and subscribe today!
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/register" class="btn btn-ai" style="padding: 15px 30px; font-size: 1.1rem; border-radius: 30px;">Create Account</a>
+                    <a href="/" class="btn" style="padding: 15px 30px; font-size: 1.1rem; border-radius: 30px;">Go to Homepage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

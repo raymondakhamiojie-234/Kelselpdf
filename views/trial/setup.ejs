@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Free Trial Exam - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+        .header {
+            padding: 1rem 2rem;
+            background: var(--neu-color);
+            box-shadow: 0 2px 10px var(--shd-color);
+            text-align: center;
+        }
+        .header img {
+            height: 40px;
+        }
+        .setup-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .glass-panel {
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Check if user has already taken the trial
+        if (localStorage.getItem('kelsel_trial_taken')) {
+            alert('You have already completed your free trial! Please create an account to access more exams.');
+            window.location.href = '/register';
+        }
+    </script>
+
+    <div class="header">
+        <a href="/"><img src="/acct/img/KelselPDF.png" alt="Logo"></a>
+    </div>
+
+    <div class="setup-container">
+        <div class="glass-panel">
+            <h2 class="text-center" style="margin-bottom: 0.5rem; color: var(--cta-color);">Free Trial Exam</h2>
+            <p class="text-center" style="margin-bottom: 2rem; color: var(--ntxt-color);">Select a GST course to test our grading engine.</p>
+            
+            <form id="trialForm" method="GET" action="/trial/start">
+                <div class="form-group">
+                    <label>GST Course</label>
+                    <select name="course" id="courseSelect" required>
+                        <option value="">Select a course...</option>
+                        <% if(courses && courses.length > 0) { %>
+                            <% courses.forEach(function(c) { %>
+                                <option value="<%= c.course_code %>"><%= c.course_code %></option>
+                            <% }); %>
+                        <% } else { %>
+                            <option value="GST101">GST101</option>
+                            <option value="GST102">GST102</option>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <p style="font-size: 0.9rem; color: var(--ntxt-color); text-align: center; margin-bottom: 1.5rem;">
+                    * The free trial is limited to 15 minutes and 20 questions.
+                </p>
+
+                <button type="submit" class="btn" style="width: 100%;">Start Trial Exam</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Free Trial Exam: <%= course %> - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .timer-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--error);
+        }
+        .exam-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <script>
+        // Check if user has already taken the trial
+        if (localStorage.getItem('kelsel_trial_taken')) {
+            alert('You have already completed your free trial! Please create an account to access more exams.');
+            window.location.href = '/register';
+        }
+    </script>
+    <style>
+        body { padding-left: 280px; padding-top: 2rem; }
+        @media (max-width: 768px) {
+            body { padding-left: 0; padding-top: 250px; }
+            .exam-nav { width: 100% !important; height: auto !important; max-height: 250px; border-right: none !important; border-bottom: 2px solid var(--cbg-color-2); flex-direction: row !important; flex-wrap: wrap; }
+            .exam-nav-top { width: 100%; display: flex !important; flex-direction: row !important; justify-content: space-between; align-items: center; border-bottom: none !important; padding-bottom: 0 !important; }
+            .timer-text { font-size: 1.5rem !important; }
+            .exam-nav-bottom { width: 100%; overflow-y: auto; max-height: 120px; }
+        }
+    </style>
+    <nav class="exam-nav" style="position: fixed; top: 0; left: 0; width: 280px; height: 100vh; box-sizing: border-box; z-index: 1000; background: var(--neu-color); padding: 20px; box-shadow: 2px 0 6px var(--shd-color); display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--cbg-color-2); overflow-y: auto;">
+        
+        <!-- Top section: Course, Timer -->
+        <div class="exam-nav-top" style="display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid var(--cbg-color-2); padding-bottom: 15px;">
+            <a href="/" style="display: block; text-align: center; margin-bottom: 1rem;"><img src="/acct/img/KelselPDF.png" alt="Logo" style="height: 35px;"></a>
+            <div style="font-weight: bold; font-size: 1.2rem; text-align: center; color: var(--cta-color);"><%= course %> Free Trial</div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; text-transform: uppercase; letter-spacing: 1px;">Time Remaining</div>
+                <div class="timer-text" id="timer" style="font-size: 2.5rem; font-weight: bold; color: var(--error);">00:00</div>
+            </div>
+        </div>
+
+        <!-- Bottom section: Question Navigation Links -->
+        <% if (questions && questions.length > 0) { %>
+        <div class="exam-nav-bottom" style="flex: 1;">
+            <div style="font-size: 0.9rem; font-weight: bold; color: var(--text-color); margin-bottom: 10px;">Questions Matrix</div>
+            <div class="question-nav" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-bottom: 20px;">
+                <% questions.forEach((q, index) => { %>
+                    <a href="#question_<%= index + 1 %>" style="padding: 10px 5px; background: var(--cbg-color); border-radius: 6px; text-decoration: none; color: var(--text-color); text-align: center; font-weight: bold; border: 1px solid var(--cbg-color-2); transition: background 0.3s; font-size: 0.95rem;"><%= index + 1 %></a>
+                <% }); %>
+            </div>
+        </div>
+        <% } %>
+    </nav>
+
+    <div class="exam-container">
+        <% if (!questions || questions.length === 0) { %>
+            <div class="glass-panel text-center">
+                <h3>No questions available.</h3>
+                <p>There are currently no mock questions uploaded for this course.</p>
+                <a href="/" class="btn mt-1">Return to Home</a>
+            </div>
+        <% } else { %>
+            <form id="examForm" method="POST" action="/trial/submit">
+                <input type="hidden" name="course" value="<%= course %>">
+                <input type="hidden" name="total_questions" value="<%= questions.length %>">
+                
+                <% questions.forEach((q, index) => { %>
+                    <div id="question_<%= index + 1 %>" class="glass-panel question-card" style="scroll-margin-top: 140px;">
+                        <h3 style="margin-bottom: 1rem;">Question <%= index + 1 %>:</h3>
+                        <p style="font-size: 1.1rem; color: var(--ntxt-color);"><%= q.question_text %></p>
+                        
+                        <ul class="options-list">
+                            <li>
+                                <label>
+                                    <input type="radio" name="q_<%= q.id %>" value="A" required>
+                                    <span><%= q.option_a %></span>
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="q_<%= q.id %>" value="B">
+                                    <span><%= q.option_b %></span>
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="q_<%= q.id %>" value="C">
+                                    <span><%= q.option_c %></span>
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="q_<%= q.id %>" value="D">
+                                    <span><%= q.option_d %></span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                <% }); %>
+
+                <div class="text-center" style="margin-top: 2rem; margin-bottom: 4rem;">
+                    <button type="submit" id="submitBtn" class="btn btn-ai" style="padding: 15px 40px; font-size: 1.2rem;">Submit Exam</button>
+                </div>
+            </form>
+        <% } %>
+    </div>
+
+    <script>
+        const form = document.getElementById('examForm');
+        if (form) {
+            let timeLimit = <%= time_limit %> * 60; // Convert to seconds
+            const timerEl = document.getElementById('timer');
+
+            function updateTimer() {
+                const minutes = Math.floor(timeLimit / 60);
+                const seconds = timeLimit % 60;
+                
+                timerEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLimit <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time is up! Submitting exam automatically.");
+                    form.submit();
+                }
+                timeLimit--;
+            }
+
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+        }
+    </script>
+</body>
+</html>

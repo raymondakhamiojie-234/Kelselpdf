@@ -217,6 +217,17 @@
         </div>
     </section>
 
+    <% if(!locals.user_id) { %>
+    <section class="trial-banner" style="max-width: 900px; margin: 2rem auto; padding: 2.5rem; background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1)); border: 1px solid var(--cbg-color-2); border-radius: 20px; text-align: center; animation: fadeInUp 0.8s ease-out 0.6s both;">
+        <h2 style="margin-bottom: 1rem; color: var(--text-color);">Want to test your knowledge first?</h2>
+        <p style="color: var(--ntxt-color); margin-bottom: 2rem; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;">Take a one-time free trial exam for General Studies (GST) courses. No account required. Experience our real-time grading engine today!</p>
+        <a href="/trial/setup" class="btn" style="background: var(--cta-color); color: white; padding: 15px 40px; font-size: 1.1rem; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px;">
+            <span>Take Free Trial Exam</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+    </section>
+    <% } %>
+
     <section class="features">
         <div class="glass-panel feature-card">
             <div class="feature-icon"><img src="/acct/img/Gemini_Generated_Image_xt0afhxt0afhxt0a.png" alt="Mock Exams" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"></div>
