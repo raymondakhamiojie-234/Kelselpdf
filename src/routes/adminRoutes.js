@@ -5,6 +5,10 @@ const { requireAdmin } = require('../middleware/auth');
 const multer = require('multer');
 const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
+const { authLimiter } = require('../middleware/limiters');
+
+router.get('/admin/login', adminController.getAdminLogin);
+router.post('/admin/login', authLimiter, adminController.postAdminLogin);
 
 router.get('/admin', requireAdmin, adminController.getAdmin);
 router.get('/admin/questions', requireAdmin, adminController.getQuestions);

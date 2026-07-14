@@ -32,7 +32,7 @@ const checkAuth = async (req, res, next) => {
 
 const requireAdmin = async (req, res, next) => {
     if (!req.session.user_id) {
-        return res.redirect('/login');
+        return res.redirect('/admin/login');
     }
     try {
         const [rows] = await pool.query("SELECT role FROM users WHERE id = ?", [req.session.user_id]);

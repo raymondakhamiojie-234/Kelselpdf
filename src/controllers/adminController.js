@@ -1,6 +1,32 @@
 const pool = require('../config/db');
 const fs = require('fs');
 const csv = require('csv-parser');
+const bcrypt = require('bcryptjs');
+
+exports.getAdminLogin = (req, res) => {
+    res.render('admin/login', { error: null });
+};
+
+exports.postAdminLogin = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        const user = rows[0];
+
+        if (user && await bcrypt.compare(password, user.password)) {
+            if (user.role !== 'admin') {
+                return res.render('admin/login', { error: 'Access Denied: You are not an administrator.' });
+            }
+            req.session.user_id = user.id;
+            res.redirect('/admin');
+        } else {
+            res.render('admin/login', { error: 'Invalid admin credentials.' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.render('admin/login', { error: 'System error: ' + err.message });
+    }
+};
 
 exports.getAdmin = async (req, res) => {
     try {

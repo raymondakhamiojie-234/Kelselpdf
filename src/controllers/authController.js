@@ -12,6 +12,9 @@ exports.postLogin = async (req, res) => {
         const user = rows[0];
 
         if (user && await bcrypt.compare(password, user.password)) {
+            if (user.role === 'admin') {
+                return res.render('acct/login', { error: 'Administrators must log in via the Admin Portal.' });
+            }
             req.session.user_id = user.id;
             res.redirect('/dashboard');
         } else {
