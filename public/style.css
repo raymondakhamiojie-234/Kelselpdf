@@ -496,7 +496,7 @@ a:hover { color: var(--cta-color-hover); }
         align-items: center;
         text-align: center;
     }
-    .pastel-card h4 { font-size: 1rem; }
+    .pastel-card h4 { font-size: 0.8rem; margin: 0; }
     .pastel-card p { display: none; }
     .card-arrow { display: none; }
     .icon-circle { width: 40px; height: 40px; margin-bottom: 0.5rem; }
