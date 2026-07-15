@@ -191,6 +191,20 @@ exports.postPastQuestions = async (req, res) => {
                 [course_id, year, type, file_link]
             );
             success = "Past question added successfully!";
+
+            try {
+                const message = `New study material uploaded for ${course_code_input} (${type})`;
+                const link = '/exam_materials';
+                if (shared_group === 'gst') {
+                    await pool.query('INSERT INTO notifications (user_id, message, link) SELECT id, ?, ? FROM users WHERE level = ? AND role != "admin"', [message, link, course_level]);
+                } else if (course_dept) {
+                    await pool.query('INSERT INTO notifications (user_id, message, link) SELECT id, ?, ? FROM users WHERE department_id = ? AND level = ? AND role != "admin"', [message, link, course_dept, course_level]);
+                } else {
+                    await pool.query('INSERT INTO notifications (user_id, message, link) SELECT id, ?, ? FROM users WHERE role != "admin"', [message, link]);
+                }
+            } catch (notifyErr) {
+                console.error("Notification Error:", notifyErr);
+            }
         }
 
         const [courses] = await pool.query('SELECT DISTINCT c.course_code FROM courses c JOIN past_questions pq ON c.id = pq.course_id ORDER BY c.course_code ASC');

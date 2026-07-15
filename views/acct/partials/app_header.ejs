@@ -10,13 +10,20 @@
                 <p>Welcome to KelselPDF</p>
             <% } %>
         </div>
-        <div>
-            <div style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
+        <div style="position: relative;">
+            <div id="notification-bell" style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer;">
                 <% if (typeof header_icon !== 'undefined') { %>
                     <%- header_icon %>
                 <% } else { %>
                     <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                    <span id="notification-badge" style="display: none; position: absolute; top: 0; right: 0; background: red; color: white; border-radius: 50%; font-size: 10px; width: 16px; height: 16px; justify-content: center; align-items: center;">0</span>
                 <% } %>
+            </div>
+            <div id="notification-dropdown" style="display: none; position: absolute; right: 0; top: 50px; width: 300px; background: var(--neu-color); border: 1px solid var(--cbg-color-2); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; max-height: 400px; overflow-y: auto;">
+                <div style="padding: 15px; border-bottom: 1px solid var(--cbg-color-2); font-weight: bold; color: var(--text-color);">Notifications</div>
+                <div id="notification-list" style="padding: 10px;">
+                    <div style="text-align: center; color: var(--tran-color); padding: 20px;">Loading...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -27,3 +34,61 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bell = document.getElementById('notification-bell');
+        const badge = document.getElementById('notification-badge');
+        const dropdown = document.getElementById('notification-dropdown');
+        const list = document.getElementById('notification-list');
+        let unreadCount = 0;
+
+        if (bell) {
+            // Fetch notifications
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        unreadCount = data.filter(n => !n.is_read).length;
+                        if (unreadCount > 0) {
+                            badge.style.display = 'flex';
+                            badge.textContent = unreadCount;
+                        }
+
+                        if (data.length === 0) {
+                            list.innerHTML = '<div style="text-align: center; color: var(--tran-color); padding: 20px;">No new notifications</div>';
+                        } else {
+                            list.innerHTML = data.map(n => 
+                                <a href=" + (n.link || '#') + " style="display: block; padding: 12px 10px; border-bottom: 1px solid var(--cbg-color-2); text-decoration: none; color: var(--text-color); background:  + (n.is_read ? 'transparent' : 'rgba(34,197,94,0.1)') + ;">
+                                    <div style="font-size: 0.85rem; margin-bottom: 4px;"> + n.message + </div>
+                                    <div style="font-size: 0.7rem; color: var(--tran-color);"> + new Date(n.created_at).toLocaleString() + </div>
+                                </a>
+                            ).join('');
+                        }
+                    }
+                })
+                .catch(err => console.error('Failed to load notifications', err));
+
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                
+                if (dropdown.style.display === 'block' && unreadCount > 0) {
+                    // Mark as read
+                    fetch('/api/notifications/read', { method: 'POST' })
+                        .then(() => {
+                            badge.style.display = 'none';
+                            unreadCount = 0;
+                            // Optionally update background color of items
+                            list.querySelectorAll('a').forEach(el => el.style.background = 'transparent');
+                        });
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (dropdown && dropdown.style.display === 'block' && !bell.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
