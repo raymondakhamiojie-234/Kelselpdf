@@ -25,7 +25,7 @@
                 <a href="/dashboard" class="btn">Exit Exam</a>
             </div>
 
-            <div id="setupContainer" class="text-center mb-2">
+            <div id="setupContainer" class="text-center mb-2" <%= course === 'MyMaterial' ? 'style="display:none;"' : '' %>>
                 <h3>Exam Setup</h3>
                 <p>How many multiple-choice questions would you like?</p>
                 <select id="questionCount" style="padding: 10px; margin: 1rem 0; border-radius: 5px; width: 100%; max-width: 200px;">
@@ -42,6 +42,14 @@
                 <p>Generating your custom AI exam... Please wait.</p>
                 <div class="btn-ai" style="width: 50px; height: 50px; border-radius: 50%; margin: 1rem auto;"></div>
             </div>
+
+            <% if (course === 'MyMaterial') { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    startExam();
+                });
+            </script>
+            <% } %>
 
             <div id="examContainer" style="display: none;">
                 <form id="aiExamForm">
@@ -74,24 +82,43 @@
             document.getElementById('setupContainer').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
 
-            fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        alert("Error generating exam: " + data.error);
+            <% if (course === 'MyMaterial') { %>
+                const cachedData = localStorage.getItem('generated_mock_exam');
+                if (cachedData) {
+                    try {
+                        examData = JSON.parse(cachedData);
+                        localStorage.removeItem('generated_mock_exam'); // clean up
+                        renderExam();
+                    } catch (e) {
+                        alert("Error parsing exam data.");
                         document.getElementById('setupContainer').style.display = 'block';
                         document.getElementById('loading').style.display = 'none';
-                        return;
                     }
-                    examData = data;
-                    renderExam();
-                })
-                .catch(err => {
-                    alert("Failed to connect to AI engine.");
-                    console.error(err);
+                } else {
+                    alert("No exam data found. Please go back to your materials and generate the exam again.");
                     document.getElementById('setupContainer').style.display = 'block';
                     document.getElementById('loading').style.display = 'none';
-                });
+                }
+            <% } else { %>
+                fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert("Error generating exam: " + data.error);
+                            document.getElementById('setupContainer').style.display = 'block';
+                            document.getElementById('loading').style.display = 'none';
+                            return;
+                        }
+                        examData = data;
+                        renderExam();
+                    })
+                    .catch(err => {
+                        alert("Failed to connect to AI engine.");
+                        console.error(err);
+                        document.getElementById('setupContainer').style.display = 'block';
+                        document.getElementById('loading').style.display = 'none';
+                    });
+            <% } %>
         }
 
         function renderExam() {

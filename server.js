@@ -19,6 +19,7 @@ const careerRoutes = require('./src/routes/careerRoutes');
 const setupRoutes = require('./src/routes/setupRoutes');
 const trialRoutes = require('./src/routes/trialRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const materialRoutes = require('./src/routes/materialRoutes');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -70,6 +71,7 @@ app.use('/', careerRoutes);
 app.use('/', setupRoutes);
 app.use('/', trialRoutes);
 app.use('/', notificationRoutes);
+app.use('/', materialRoutes);
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {

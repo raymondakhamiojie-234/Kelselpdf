@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Materials - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css?v=3">
+    <script src="/theme.js"></script>
+    <style>
+        .material-card {
+            background: var(--neu-color);
+            border: 1px solid var(--cbg-color-2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .material-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-ai {
+            background: var(--cta-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-ai-alt {
+            background: rgba(34,197,94,0.1);
+            color: #22c55e;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid #22c55e;
+            cursor: pointer;
+        }
+        .upload-section {
+            background: var(--neu-color);
+            border: 1px dashed var(--tran-color);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #ai-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--neu-color);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: var(--text-color);
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--tran-color);
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('partials/sidebar', { active_page: 'my_materials' }) %>
+
+    <main class="main-content">
+        <%- include('partials/app_header', { page_title: 'My Materials', page_desc: 'Upload and analyze your personal study files' }) %>
+
+        <div style="padding: 20px;">
+            <div class="upload-section">
+                <form action="/my_materials/upload" method="POST" enctype="multipart/form-data">
+                    <h3 style="color: var(--text-color); margin-bottom: 15px;">Upload a PDF Material</h3>
+                    <input type="file" name="material_file" accept=".pdf" required style="margin-bottom: 15px; color: var(--text-color);">
+                    <br>
+                    <button type="submit" class="cta-button" style="padding: 10px 20px; font-size: 1rem;">Upload File</button>
+                </form>
+            </div>
+
+            <h3 style="color: var(--text-color); margin-bottom: 15px;">Your Files</h3>
+            <% if (materials && materials.length > 0) { %>
+                <% materials.forEach(m => { %>
+                    <div class="material-card">
+                        <div>
+                            <h4 style="color: var(--ntxt-color); margin: 0 0 5px 0;"><%= m.original_name %></h4>
+                            <small style="color: var(--tran-color);">Uploaded: <%= new Date(m.uploaded_at).toLocaleDateString() %></small>
+                        </div>
+                        <div class="material-actions">
+                            <a href="/uploads/materials/<%= m.filename %>" target="_blank" class="btn-ai-alt">View PDF</a>
+                            <button onclick="explainMaterial(<%= m.id %>)" class="btn-ai-alt">🧠 AI Explain</button>
+                            <button onclick="generateExam(<%= m.id %>)" class="btn-ai">📝 Generate Mock Exam</button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p style="color: var(--tran-color); text-align: center; padding: 40px 0;">No materials uploaded yet.</p>
+            <% } %>
+        </div>
+    </main>
+
+    <!-- AI Response Modal -->
+    <div id="ai-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('ai-modal').style.display='none'">&times;</span>
+            <h3 id="modal-title" style="margin-top: 0; color: var(--cta-color);">AI Analysis</h3>
+            <div id="modal-body" style="line-height: 1.6; margin-top: 15px; white-space: pre-wrap;">
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function explainMaterial(id) {
+            const modal = document.getElementById('ai-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            modal.style.display = 'flex';
+            title.textContent = 'AI Explanation';
+            body.innerHTML = '<div style="text-align: center;">Extracting text and analyzing with Gemini... Please wait.</div>';
+
+            fetch('/api/ai/material_explain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ material_id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) body.innerHTML = '<span style="color:red;">' + data.error + '</span>';
+                else body.innerHTML = data.explanation;
+            })
+            .catch(err => {
+                body.innerHTML = '<span style="color:red;">An error occurred during AI analysis.</span>';
+            });
+        }
+
+        function generateExam(id) {
+            const modal = document.getElementById('ai-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            modal.style.display = 'flex';
+            title.textContent = 'Generating Exam';
+            body.innerHTML = '<div style="text-align: center;">Reading document and creating questions... Please wait.</div>';
+
+            fetch('/api/ai/material_exam', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ material_id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    body.innerHTML = '<span style="color:red;">' + data.error + '</span>';
+                } else {
+                    // Save to localStorage so ai_exam page can read it
+                    localStorage.setItem('generated_mock_exam', JSON.stringify(data));
+                    body.innerHTML = '<div style="text-align: center; color: green; font-weight: bold;">Exam ready! Redirecting...</div>';
+                    setTimeout(() => {
+                        window.location.href = '/exam/ai/take/MyMaterial';
+                    }, 1000);
+                }
+            })
+            .catch(err => {
+                body.innerHTML = '<span style="color:red;">An error occurred generating the exam.</span>';
+            });
+        }
+    </script>
+</body>
+</html>

@@ -25,6 +25,16 @@ const pool = mysql.createPool({
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_materials (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                filename VARCHAR(255) NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
     } catch (e) {
         console.error('Failed to create notifications table:', e);
     }
