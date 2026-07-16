@@ -14,9 +14,17 @@ const checkAuth = async (req, res, next) => {
             // Check if account is locked by admin
             if (user.account_locked) {
                 // Prevent infinite redirect loop if they are already going to payment
-                const isPaymentRoute = req.originalUrl.startsWith('/payment') || req.originalUrl.startsWith('/api/verify_payment');
+                const isPaymentRoute = req.originalUrl.startsWith('/payment') || req.originalUrl.startsWith('/api/verify_payment') || req.originalUrl.startsWith('/logout');
                 if (!isPaymentRoute) {
                     return res.redirect('/payment?locked=true');
+                }
+            }
+
+            // Check if user has paid
+            if (!user.has_paid && user.role !== 'admin') {
+                const isPaymentRoute = req.originalUrl.startsWith('/payment') || req.originalUrl.startsWith('/api/verify_payment') || req.originalUrl.startsWith('/logout');
+                if (!isPaymentRoute) {
+                    return res.redirect('/payment');
                 }
             }
         } else {
