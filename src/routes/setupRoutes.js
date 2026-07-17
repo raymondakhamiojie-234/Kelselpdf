@@ -7,23 +7,27 @@ const { checkAuth } = require('../middleware/auth');
 router.get('/setup-db', async (req, res) => {
     try {
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS notifications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                full_name VARCHAR(100) NOT NULL,
-                lastname VARCHAR(100),
-                email VARCHAR(100) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                department_id INT NOT NULL,
-                level INT NOT NULL,
-                can_change_level BOOLEAN DEFAULT 0,
-                role ENUM('student', 'admin') DEFAULT 'student',
-                has_paid BOOLEAN DEFAULT 0,
-                subscription_plan ENUM('none', 'basic', 'premium') DEFAULT 'none',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                user_id INT NOT NULL,
+                message TEXT NOT NULL,
+                link VARCHAR(255) DEFAULT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
-        // ... (truncated full setup logic to simplify controller, just preserving the route for now)
-        res.send("DB checked/setup. Run manually if full schema is needed.");
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_materials (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                filename VARCHAR(255) NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+        res.send("Tables checked/setup. The user_materials and notifications tables are now ready!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);
