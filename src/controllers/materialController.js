@@ -60,16 +60,22 @@ exports.explainMaterial = async (req, res) => {
             return res.json({ explanation: "Mock explanation: This document discusses key topics found in your PDF. (Add Gemini API Key to see real results)." });
         }
 
-        const modelName = await getBestGeminiModel();
-        const model = genAI.getGenerativeModel({ model: modelName });
-        
-        const prompt = `You are a helpful AI tutor. Summarize and explain the core concepts of the following document. Make it easy to understand for a student.\n\nDocument Text:\n${text}`;
-        const completion = await model.generateContent(prompt);
+        let completion;
+        try {
+            const modelName = await getBestGeminiModel();
+            const model = genAI.getGenerativeModel({ model: modelName });
+            
+            const prompt = `You are a helpful AI tutor. Summarize and explain the core concepts of the following document. Make it easy to understand for a student.\n\nDocument Text:\n${text}`;
+            completion = await model.generateContent(prompt);
+        } catch (apiErr) {
+            console.error("Gemini API Error:", apiErr);
+            return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
+        }
         
         res.json({ explanation: completion.response.text() });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server Error" });
+        console.error("General Server Error:", err);
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
 
@@ -109,17 +115,31 @@ Return ONLY a raw JSON object with this exact structure (no markdown tags):
 Document Text:
 ${text}`;
 
-        const modelName = await getBestGeminiModel();
-        const model = genAI.getGenerativeModel({
-            model: modelName,
-            generationConfig: { responseMimeType: "application/json" }
-        });
-        
-        const completion = await model.generateContent(prompt);
-        const result = JSON.parse(completion.response.text());
-        res.json(result);
+        let completion;
+        try {
+            const modelName = await getBestGeminiModel();
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                generationConfig: { responseMimeType: "application/json" }
+            });
+            completion = await model.generateContent(prompt);
+        } catch (apiErr) {
+            console.error("Gemini API Error:", apiErr);
+            return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
+        }
+
+        try {
+            let responseText = completion.response.text();
+            // Clean markdown if present
+            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const result = JSON.parse(responseText);
+            res.json(result);
+        } catch (parseErr) {
+            console.error("JSON Parse Error:", parseErr, completion.response.text());
+            return res.status(500).json({ error: "AI returned invalid format." });
+        }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server Error" });
+        console.error("General Server Error:", err);
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
