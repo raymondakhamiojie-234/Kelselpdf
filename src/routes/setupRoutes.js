@@ -23,10 +23,16 @@ router.get('/setup-db', async (req, res) => {
                 user_id INT UNSIGNED NOT NULL,
                 original_name VARCHAR(255) NOT NULL,
                 filename VARCHAR(255) NOT NULL,
+                content MEDIUMTEXT,
                 uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
+        try {
+            await pool.query('ALTER TABLE user_materials ADD COLUMN content MEDIUMTEXT');
+        } catch (err) {
+            // ignore if column already exists
+        }
         res.send("Tables checked/setup. The user_materials and notifications tables are now ready!");
     } catch (err) {
         console.error(err);

@@ -23,10 +23,18 @@ exports.uploadMaterial = async (req, res) => {
         const originalName = req.file.originalname;
         const filename = req.file.filename;
 
+        // Parse PDF immediately instead of storing it
+        const dataBuffer = fs.readFileSync(req.file.path);
+        const pdfData = await pdfParse(dataBuffer);
+        const content = pdfData.text;
+
         await pool.query(
-            'INSERT INTO user_materials (user_id, original_name, filename) VALUES (?, ?, ?)',
-            [req.session.user_id, originalName, filename]
+            'INSERT INTO user_materials (user_id, original_name, filename, content) VALUES (?, ?, ?, ?)',
+            [req.session.user_id, originalName, filename, content]
         );
+
+        // Delete the temp file now that we have the text
+        fs.unlinkSync(req.file.path);
 
         res.redirect('/my_materials');
     } catch (err) {
@@ -43,13 +51,10 @@ exports.explainMaterial = async (req, res) => {
         if (rows.length === 0) return res.status(404).json({ error: "Material not found" });
         
         const material = rows[0];
-        const filePath = path.join(__dirname, '../../public/uploads/materials', material.filename);
         
-        if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found on server" });
-
-        const dataBuffer = fs.readFileSync(filePath);
-        const data = await pdfParse(dataBuffer);
-        const text = data.text.substring(0, 30000); // Limit text to avoid token limits
+        if (!material.content) return res.status(400).json({ error: "Material content is empty or not parsed correctly." });
+        
+        const text = material.content.substring(0, 30000); // Limit text to avoid token limits
 
         if (!genAI) {
             return res.json({ explanation: "Mock explanation: This document discusses key topics found in your PDF. (Add Gemini API Key to see real results)." });
@@ -76,20 +81,19 @@ exports.generateExam = async (req, res) => {
         if (rows.length === 0) return res.status(404).json({ error: "Material not found" });
         
         const material = rows[0];
-        const filePath = path.join(__dirname, '../../public/uploads/materials', material.filename);
         
-        if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found on server" });
-
-        const dataBuffer = fs.readFileSync(filePath);
-        const data = await pdfParse(dataBuffer);
-        const text = data.text.substring(0, 30000);
+        if (!material.content) return res.status(400).json({ error: "Material content is empty or not parsed correctly." });
+        
+        const text = material.content.substring(0, 30000);
 
         if (!genAI) {
-            return res.json({
-                mcqs: [
-                    { question: "Mock question based on PDF?", options: ["A", "B", "C", "D"], answer_index: 0 }
-                ],
-                theory: "Mock theory question based on PDF."
+            return res.json({ 
+                success: true, 
+                exam_data: { 
+                    questions: [{ id: 1, type: 'mcq', question: "Mock question?", options: ["A","B","C","D"], answer: "A", explanation: "Add API Key" }],
+                    title: `Exam on ${material.original_name}`, 
+                    course: "Custom" 
+                } 
             });
         }
 

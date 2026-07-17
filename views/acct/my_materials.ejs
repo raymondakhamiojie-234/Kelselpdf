@@ -105,7 +105,6 @@
                             <small style="color: var(--tran-color);">Uploaded: <%= new Date(m.uploaded_at).toLocaleDateString() %></small>
                         </div>
                         <div class="material-actions">
-                            <a href="/uploads/materials/<%= m.filename %>" target="_blank" class="btn-ai-alt">View PDF</a>
                             <button onclick="explainMaterial(<%= m.id %>)" class="btn-ai-alt">🧠 AI Explain</button>
                             <button onclick="generateExam(<%= m.id %>)" class="btn-ai">📝 Generate Mock Exam</button>
                         </div>

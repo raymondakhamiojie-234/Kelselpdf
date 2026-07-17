@@ -31,6 +31,7 @@ const pool = mysql.createPool({
                 user_id INT UNSIGNED NOT NULL,
                 original_name VARCHAR(255) NOT NULL,
                 filename VARCHAR(255) NOT NULL,
+                content MEDIUMTEXT,
                 uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
