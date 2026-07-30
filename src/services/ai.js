@@ -1,47 +1,39 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-let genAI = null;
-if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'AIza-placeholder') {
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-}
-
-async function getBestGeminiModel() {
-    try {
-        let models = [];
-        let nextPageToken = "";
-        do {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}&pageSize=100${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.error("Failed to fetch models, status:", response.status);
-                break;
-            }
-            const data = await response.json();
-            if (data.models) models = models.concat(data.models);
-            nextPageToken = data.nextPageToken;
-        } while (nextPageToken);
-
-        if (models.length > 0) {
-            // Try 1.5 flash
-            const flashModel = models.find(m => m.name.includes('gemini-1.5-flash') && m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-            if (flashModel) return flashModel.name.replace('models/', '');
-            
-            // Try 1.5 pro
-            const pro15Model = models.find(m => m.name.includes('gemini-1.5-pro') && m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-            if (pro15Model) return pro15Model.name.replace('models/', '');
-
-            // Try 1.0 pro
-            const proModel = models.find(m => m.name.includes('gemini-pro') && m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-            if (proModel) return proModel.name.replace('models/', '');
-            
-            // Fallback to literally ANY model that supports generateContent
-            const anyModel = models.find(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-            if (anyModel) return anyModel.name.replace('models/', '');
-        }
-    } catch (error) {
-        console.error("Failed to dynamically fetch Gemini models", error);
+// ai.js - NVIDIA NIM Cloud Client
+async function generateNvidiaCompletion(prompt, systemInstruction) {
+    const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey || apiKey === 'PASTE_API_KEY_HERE') {
+        throw new Error("NVIDIA_API_KEY is not configured.");
     }
-    return "gemini-1.5-flash"; 
+
+    const messages = [];
+    if (systemInstruction) {
+        messages.push({ role: "system", content: systemInstruction });
+    }
+    messages.push({ role: "user", content: prompt });
+
+    const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            model: "google/diffusiongemma-26b-a4b-it",
+            messages: messages,
+            max_tokens: 2048,
+            temperature: 0.7
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("NVIDIA API Error:", response.status, errorText);
+        throw new Error(`NVIDIA API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
 }
 
-module.exports = { genAI, getBestGeminiModel };
+module.exports = { generateNvidiaCompletion };
