@@ -75,9 +75,9 @@ Return ONLY a raw JSON object with this exact structure:
         );
         let result = {};
         try {
-            // Some models wrap in markdown ```json
-            const cleanedText = completionText.replace(/```json\n?|```/g, '').trim();
-            result = JSON.parse(cleanedText);
+            const match = completionText.match(/\{[\s\S]*\}/);
+            const jsonText = match ? match[0] : completionText;
+            result = JSON.parse(jsonText);
         } catch (parseError) {
             console.error("Failed to parse JSON:", completionText);
             throw new Error("AI returned invalid JSON format.");
@@ -139,8 +139,9 @@ Return ONLY a raw JSON object with this exact structure:
         );
         let result = {};
         try {
-            const cleanedText = completionText.replace(/```json\n?|```/g, '').trim();
-            result = JSON.parse(cleanedText);
+            const match = completionText.match(/\{[\s\S]*\}/);
+            const jsonText = match ? match[0] : completionText;
+            result = JSON.parse(jsonText);
         } catch (parseError) {
             console.error("Failed to parse JSON:", completionText);
             throw new Error("AI returned invalid JSON format.");

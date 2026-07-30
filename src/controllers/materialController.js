@@ -2,12 +2,20 @@ const pool = require('../config/db');
 const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
-const { genAI, getBestGeminiModel } = require('../services/ai');
+const { generateNvidiaCompletion } = require('../services/ai');
 
 exports.getMyMaterials = async (req, res) => {
     try {
         const [materials] = await pool.query('SELECT * FROM user_materials WHERE user_id = ? ORDER BY uploaded_at DESC', [req.session.user_id]);
-        res.render('acct/my_materials', { materials });
+        
+        let limit_message = null;
+        let materials_remaining = null;
+        if (req.session.user.subscription_plan === 'Premium') {
+            materials_remaining = Math.max(0, 3 - materials.length);
+            limit_message = `Premium Plan: You have used ${materials.length} of 3 material uploads.`;
+        }
+        
+        res.render('acct/my_materials', { materials, limit_message, materials_remaining });
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");
@@ -19,6 +27,16 @@ exports.uploadMaterial = async (req, res) => {
         if (!req.file) {
             return res.status(400).send("No file uploaded.");
         }
+
+        // --- Usage Limit Check ---
+        if (req.session.user.subscription_plan === 'Premium') {
+            const [rows] = await pool.query('SELECT COUNT(*) as count FROM user_materials WHERE user_id = ?', [req.session.user_id]);
+            if (rows[0].count >= 3) {
+                fs.unlinkSync(req.file.path); // Delete temp file
+                return res.status(403).send("You have reached the maximum limit of 3 materials on the Premium plan. Please upgrade to Full Premium for unlimited materials.");
+            }
+        }
+        // -----------------------
         
         const originalName = req.file.originalname;
         const filename = req.file.filename;
@@ -45,6 +63,16 @@ exports.uploadMaterial = async (req, res) => {
 
 exports.explainMaterial = async (req, res) => {
     try {
+        // --- Usage Limit Check ---
+        if (req.session.user.subscription_plan === 'Premium') {
+            const today = new Date().toISOString().split('T')[0];
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            if (usage.length > 0 && usage[0].exams_generated >= 3) {
+                return res.status(403).json({ error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+            }
+        }
+        // -----------------------
+
         const materialId = req.body.material_id;
         const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, req.session.user_id]);
         
@@ -56,23 +84,32 @@ exports.explainMaterial = async (req, res) => {
         
         const text = material.content.substring(0, 30000); // Limit text to avoid token limits
 
-        if (!genAI) {
-            return res.json({ explanation: "Mock explanation: This document discusses key topics found in your PDF. (Add Gemini API Key to see real results)." });
+        if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY === 'PASTE_API_KEY_HERE') {
+            return res.json({ explanation: "Mock explanation: This document discusses key topics found in your PDF. (Add NVIDIA API Key to see real results)." });
         }
 
-        let completion;
+        let completionText;
         try {
-            const modelName = await getBestGeminiModel();
-            const model = genAI.getGenerativeModel({ model: modelName });
-            
             const prompt = `You are a helpful AI tutor. Summarize and explain the core concepts of the following document. Make it easy to understand for a student.\n\nDocument Text:\n${text}`;
-            completion = await model.generateContent(prompt);
+            completionText = await generateNvidiaCompletion(prompt, "You are an AI tutor.");
+
+            // --- Increment Usage ---
+            if (req.session.user.subscription_plan === 'Premium') {
+                const today = new Date().toISOString().split('T')[0];
+                await pool.query(`
+                    INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
+                    VALUES (?, ?, 1) 
+                    ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
+                `, [req.session.user_id, today]);
+            }
+            // -----------------------
+
         } catch (apiErr) {
-            console.error("Gemini API Error:", apiErr);
+            console.error("NVIDIA API Error:", apiErr);
             return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
         }
         
-        res.json({ explanation: completion.response.text() });
+        res.json({ explanation: completionText });
     } catch (err) {
         console.error("General Server Error:", err);
         res.status(500).json({ error: "Server Error: " + err.message });
@@ -81,6 +118,16 @@ exports.explainMaterial = async (req, res) => {
 
 exports.generateExam = async (req, res) => {
     try {
+        // --- Usage Limit Check ---
+        if (req.session.user.subscription_plan === 'Premium') {
+            const today = new Date().toISOString().split('T')[0];
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            if (usage.length > 0 && usage[0].exams_generated >= 3) {
+                return res.status(403).json({ error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+            }
+        }
+        // -----------------------
+
         const materialId = req.body.material_id;
         const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, req.session.user_id]);
         
@@ -92,7 +139,7 @@ exports.generateExam = async (req, res) => {
         
         const text = material.content.substring(0, 30000);
 
-        if (!genAI) {
+        if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY === 'PASTE_API_KEY_HERE') {
             return res.json({ 
                 success: true, 
                 exam_data: { 
@@ -115,27 +162,33 @@ Return ONLY a raw JSON object with this exact structure (no markdown tags):
 Document Text:
 ${text}`;
 
-        let completion;
+        let completionText;
         try {
-            const modelName = await getBestGeminiModel();
-            const model = genAI.getGenerativeModel({
-                model: modelName,
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            completion = await model.generateContent(prompt);
+            completionText = await generateNvidiaCompletion(prompt, "You are a university professor creating an exam. Output strict JSON only. Do not wrap in markdown tags.");
         } catch (apiErr) {
-            console.error("Gemini API Error:", apiErr);
+            console.error("NVIDIA API Error:", apiErr);
             return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
         }
 
         try {
-            let responseText = completion.response.text();
-            // Clean markdown if present
-            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const result = JSON.parse(responseText);
+            const match = completionText.match(/\{[\s\S]*\}/);
+            const jsonText = match ? match[0] : completionText;
+            const result = JSON.parse(jsonText);
+
+            // --- Increment Usage ---
+            if (req.session.user.subscription_plan === 'Premium') {
+                const today = new Date().toISOString().split('T')[0];
+                await pool.query(`
+                    INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
+                    VALUES (?, ?, 1) 
+                    ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
+                `, [req.session.user_id, today]);
+            }
+            // -----------------------
+
             res.json(result);
         } catch (parseErr) {
-            console.error("JSON Parse Error:", parseErr, completion.response.text());
+            console.error("JSON Parse Error:", parseErr, completionText);
             return res.status(500).json({ error: "AI returned invalid format." });
         }
     } catch (err) {
