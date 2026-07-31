@@ -1,4 +1,4 @@
-const { generateNvidiaCompletion } = require('../services/ai');
+const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
 const pool = require('../config/db');
 exports.getAiExamView = async (req, res) => {
     let ai_limit_message = null;
@@ -20,13 +20,6 @@ exports.getAiExamView = async (req, res) => {
     }
 
     res.render('acct/ai_exam', { course: req.params.course, ai_limit_message, ai_remaining });
-};
-
-const withTimeout = (promise, ms, timeoutError = new Error('Promise timed out')) => {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(timeoutError), ms))
-    ]);
 };
 
 exports.generateExam = async (req, res) => {
@@ -70,7 +63,7 @@ Return ONLY a raw JSON object with this exact structure:
 
         const completionText = await withTimeout(
             generateNvidiaCompletion(prompt, "You are a university professor creating an exam. Output strict JSON only. Do not wrap in markdown tags."),
-            15000,
+            30000,
             new Error("AI service busy. Please try again.")
         );
         let result = {};
@@ -134,7 +127,7 @@ Return ONLY a raw JSON object with this exact structure:
 
         const completionText = await withTimeout(
             generateNvidiaCompletion(prompt, "You are a university professor grading exams. Output strict JSON only. Do not wrap in markdown tags."),
-            15000,
+            30000,
             new Error("AI service busy. Please try again.")
         );
         let result = {};

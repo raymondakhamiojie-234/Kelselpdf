@@ -56,11 +56,20 @@ exports.getSkillsCourse = async (req, res) => {
             WHERE p.user_id = ? AND m.course_id = ? LIMIT 1
         `, [req.session.user.id, course.id]);
 
+        let whitelist_status = null;
+        if (req.session.user.subscription_plan === 'Premium') {
+            const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [req.session.user.id, course.id]);
+            if (whitelistRows.length > 0) {
+                whitelist_status = whitelistRows[0].status;
+            }
+        }
+
         res.render('skills/course_details', {
             user: req.session.user,
             course,
             modules,
-            is_enrolled: progressRows.length > 0
+            is_enrolled: progressRows.length > 0,
+            whitelist_status
         });
     } catch (err) {
         console.error(err);
@@ -76,8 +85,13 @@ exports.postSkillsEnroll = async (req, res) => {
         if(courseRows.length === 0) return res.status(404).send("Course not found");
         
         // Premium Check
-        if (courseRows[0].is_premium && req.session.user.has_paid === 0) {
-            return res.redirect('/payment');
+        if (courseRows[0].is_premium) {
+            if (req.session.user.has_paid === 0) {
+                return res.redirect('/payment');
+            }
+            if (req.session.user.subscription_plan === 'Premium') {
+                return res.status(403).send("You must be on the Full Premium plan to enroll directly. Premium users must apply for the whitelist.");
+            }
         }
 
         // Get first lesson
@@ -98,6 +112,26 @@ exports.postSkillsEnroll = async (req, res) => {
     }
 };
 
+exports.postSkillsWhitelist = async (req, res) => {
+    try {
+        const { course_id } = req.body;
+        
+        if (req.session.user.subscription_plan !== 'Premium') {
+            return res.status(403).send("Only Premium users can apply for whitelisting.");
+        }
+
+        await pool.query(
+            'INSERT IGNORE INTO whitelist_requests (user_id, course_id, status) VALUES (?, ?, ?)',
+            [req.session.user.id, course_id, 'pending']
+        );
+
+        res.redirect('back');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error applying for whitelist");
+    }
+};
+
 exports.getSkillsPlayer = async (req, res) => {
     try {
         const slug = req.params.slug;
@@ -106,8 +140,16 @@ exports.getSkillsPlayer = async (req, res) => {
         const course = courseRows[0];
         
         // Premium Check
-        if (course.is_premium && req.session.user.has_paid === 0) {
-            return res.redirect('/payment');
+        if (course.is_premium) {
+            if (req.session.user.has_paid === 0) {
+                return res.redirect('/payment');
+            }
+            if (req.session.user.subscription_plan === 'Premium') {
+                const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [req.session.user.id, course.id]);
+                if (whitelistRows.length === 0 || whitelistRows[0].status !== 'approved') {
+                    return res.status(403).send("You must be approved on the whitelist to access this course. Please apply on the course details page.");
+                }
+            }
         }
 
         // Fetch Modules & Lessons

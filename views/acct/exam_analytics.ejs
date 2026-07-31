@@ -31,12 +31,47 @@
             <p id="aiInsightText">Analyzing your performance...</p>
         </div>
 
-        <div class="glass-panel mb-2">
-            <h2>Performance Overview</h2>
-            <div style="height: 300px; width: 100%;">
-                <canvas id="scoreChart"></canvas>
+        <!-- Analytics Metrics & Content -->
+        <% 
+            let totalExams = attempts.length;
+            let totalScore = 0;
+            let totalPossible = 0;
+            attempts.forEach(a => {
+                totalScore += a.score;
+                totalPossible += a.total_questions;
+            });
+            let avgPassRate = totalPossible > 0 ? Math.round((totalScore / totalPossible) * 100) : 0;
+        %>
+
+        <% if (totalExams === 0) { %>
+            <div class="glass-panel text-center" style="padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <h2 style="margin-bottom: 10px;">No exams completed yet.</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Take a mock exam to see your analytics and track your progress!</p>
+                <a href="/dashboard" class="btn btn-ai">Take a Mock Exam</a>
             </div>
-        </div>
+        <% } else { %>
+            <!-- Metric Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="glass-panel text-center">
+                    <h3 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Total Exams Taken</h3>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--accent);"><%= totalExams %></div>
+                </div>
+                <div class="glass-panel text-center">
+                    <h3 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Average Pass Rate</h3>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--success);"><%= avgPassRate %>%</div>
+                </div>
+            </div>
+
+            <div class="glass-panel mb-2">
+                <h2>Performance Overview</h2>
+                <div style="position: relative; height: 300px; width: 100%; max-width: 100%; overflow: hidden;">
+                    <!-- Skeleton Loader -->
+                    <div id="chartSkeleton" style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 400% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 8px;"></div>
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+        <% } %>
 
         <div class="glass-panel mb-2">
             <h2>Recent Attempts</h2>
@@ -53,7 +88,7 @@
                     </thead>
                     <tbody>
                         <% if (attempts.length === 0) { %>
-                            <tr><td colspan="5">No attempts recorded yet.</td></tr>
+                            <tr><td colspan="5" class="text-center" style="padding: 20px;">No attempts recorded yet.</td></tr>
                         <% } else { %>
                             <% attempts.forEach(a => { %>
                             <tr>
@@ -61,7 +96,7 @@
                                 <td><%= a.course_code %></td>
                                 <td><%= a.score %></td>
                                 <td><%= a.total_questions %></td>
-                                <td><%= Math.round((a.score / a.total_questions) * 100 * 10) / 10 %>%</td>
+                                <td><%= a.total_questions > 0 ? (Math.round((a.score / a.total_questions) * 100 * 10) / 10) + '%' : '--' %></td>
                             </tr>
                             <% }); %>
                         <% } %>
@@ -102,13 +137,20 @@
         </div>
     </main>
 
+    <style>
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+
     <script>
         // Chart.js Setup
-        const ctx = document.getElementById('scoreChart').getContext('2d');
-        const labels = <%- labels %>;
-        const data = <%- data %>;
+        const ctx = document.getElementById('scoreChart')?.getContext('2d');
+        const labels = <%- labels || '[]' %>;
+        const data = <%- data || '[]' %>;
 
-        if (labels.length > 0) {
+        if (ctx && labels.length > 0) {
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -132,6 +174,9 @@
                     plugins: { legend: { labels: { color: '#f8fafc' } } }
                 }
             });
+            // Hide skeleton after render
+            const skeleton = document.getElementById('chartSkeleton');
+            if (skeleton) skeleton.style.display = 'none';
         }
 
         // Fetch AI Insights (Optional, to be implemented later in AI endpoints)

@@ -33,7 +33,30 @@ router.get('/setup-db', async (req, res) => {
         } catch (err) {
             // ignore if column already exists
         }
-        res.send("Tables checked/setup. The user_materials and notifications tables are now ready!");
+        
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS ai_usage_tracking (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                usage_date DATE NOT NULL,
+                exams_generated INT DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE KEY user_date_unique (user_id, usage_date)
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS whitelist_requests (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                course_id INT NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending',
+                requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        res.send("Tables checked/setup. AI usage and whitelist tables are ready!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);

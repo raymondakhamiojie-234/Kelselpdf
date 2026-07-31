@@ -102,25 +102,25 @@
                         <ul class="options-list">
                             <li>
                                 <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="A" required>
+                                    <input type="radio" name="q_<%= q.id %>" value="A" required onchange="saveExamProgress(this.name, this.value)">
                                     <span><%= q.option_a %></span>
                                 </label>
                             </li>
                             <li>
                                 <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="B">
+                                    <input type="radio" name="q_<%= q.id %>" value="B" onchange="saveExamProgress(this.name, this.value)">
                                     <span><%= q.option_b %></span>
                                 </label>
                             </li>
                             <li>
                                 <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="C">
+                                    <input type="radio" name="q_<%= q.id %>" value="C" onchange="saveExamProgress(this.name, this.value)">
                                     <span><%= q.option_c %></span>
                                 </label>
                             </li>
                             <li>
                                 <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="D">
+                                    <input type="radio" name="q_<%= q.id %>" value="D" onchange="saveExamProgress(this.name, this.value)">
                                     <span><%= q.option_d %></span>
                                 </label>
                             </li>
@@ -136,8 +136,31 @@
     </div>
 
     <script>
+        const course = '<%= encodeURIComponent(course) %>';
+        
+        function saveExamProgress(key, value) {
+            localStorage.setItem(`exam_${course}_${key}`, value);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                const savedValue = localStorage.getItem(`exam_${course}_${radio.name}`);
+                if (savedValue && savedValue === radio.value) {
+                    radio.checked = true;
+                }
+            });
+        });
+
         const form = document.getElementById('examForm');
         if (form) {
+            form.addEventListener('submit', () => {
+                const radios = document.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    localStorage.removeItem(`exam_${course}_${radio.name}`);
+                });
+            });
+
             let timeLimit = <%= time_limit %> * 60; // Convert to seconds
             const timerEl = document.getElementById('timer');
 

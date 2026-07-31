@@ -25,6 +25,15 @@
         <%- include('partials/app_header', { page_title: 'Portal', page_desc: '' }) %>
 
         <h2>Study Material: AI Tutor</h2>
+
+        <% if (locals.ai_limit_message) { %>
+            <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem;">
+                <strong>Notice:</strong> <%= ai_limit_message %>
+                <% if (locals.ai_remaining === 0) { %>
+                    <br><a href="/payment" class="btn" style="margin-top: 10px; display: inline-block;">Upgrade Plan</a>
+                <% } %>
+            </div>
+        <% } %>
         
         <div class="split-screen">
             <div class="pdf-pane">
@@ -35,7 +44,7 @@
                 <div id="initSection" class="text-center" style="margin-top: 5rem;">
                     <h3>🤖 Chat with this Document</h3>
                     <p>Initialize the AI tutor to ask questions about this specific PDF.</p>
-                    <button onclick="initAI()" id="initBtn" class="btn btn-ai mt-1">Initialize AI Tutor</button>
+                    <button onclick="initAI()" id="initBtn" class="btn btn-ai mt-1" <%= locals.ai_remaining === 0 ? 'disabled style="background:#666;cursor:not-allowed;"' : '' %>>Initialize AI Tutor</button>
                 </div>
 
                 <div id="chatSection" style="display: none; height: 100%; flex-direction: column;">

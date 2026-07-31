@@ -2,7 +2,7 @@ const pool = require('../config/db');
 const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
-const { generateNvidiaCompletion } = require('../services/ai');
+const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
 
 exports.getMyMaterials = async (req, res) => {
     try {
@@ -68,7 +68,7 @@ exports.explainMaterial = async (req, res) => {
             const today = new Date().toISOString().split('T')[0];
             const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
             if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                return res.status(403).json({ error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+                return res.json({ success: false, error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
         }
         // -----------------------
@@ -76,11 +76,11 @@ exports.explainMaterial = async (req, res) => {
         const materialId = req.body.material_id;
         const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, req.session.user_id]);
         
-        if (rows.length === 0) return res.status(404).json({ error: "Material not found" });
+        if (rows.length === 0) return res.json({ success: false, error: "Material not found" });
         
         const material = rows[0];
         
-        if (!material.content) return res.status(400).json({ error: "Material content is empty or not parsed correctly." });
+        if (!material.content) return res.json({ success: false, error: "Material content is empty or not parsed correctly." });
         
         const text = material.content.substring(0, 30000); // Limit text to avoid token limits
 
@@ -91,7 +91,11 @@ exports.explainMaterial = async (req, res) => {
         let completionText;
         try {
             const prompt = `You are a helpful AI tutor. Summarize and explain the core concepts of the following document. Make it easy to understand for a student.\n\nDocument Text:\n${text}`;
-            completionText = await generateNvidiaCompletion(prompt, "You are an AI tutor.");
+            completionText = await withTimeout(
+                generateNvidiaCompletion(prompt, "You are an AI tutor."),
+                30000,
+                new Error("AI service busy. Please try again.")
+            );
 
             // --- Increment Usage ---
             if (req.session.user.subscription_plan === 'Premium') {
@@ -106,13 +110,13 @@ exports.explainMaterial = async (req, res) => {
 
         } catch (apiErr) {
             console.error("NVIDIA API Error:", apiErr);
-            return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
+            return res.json({ success: false, error: "AI Service Error: " + apiErr.message });
         }
         
-        res.json({ explanation: completionText });
+        res.json({ success: true, explanation: completionText });
     } catch (err) {
         console.error("General Server Error:", err);
-        res.status(500).json({ error: "Server Error: " + err.message });
+        res.json({ success: false, error: "Server Error: " + err.message });
     }
 };
 
@@ -123,7 +127,7 @@ exports.generateExam = async (req, res) => {
             const today = new Date().toISOString().split('T')[0];
             const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
             if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                return res.status(403).json({ error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+                return res.json({ success: false, error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
         }
         // -----------------------
@@ -164,10 +168,14 @@ ${text}`;
 
         let completionText;
         try {
-            completionText = await generateNvidiaCompletion(prompt, "You are a university professor creating an exam. Output strict JSON only. Do not wrap in markdown tags.");
+            completionText = await withTimeout(
+                generateNvidiaCompletion(prompt, "You are a university professor creating an exam. Output strict JSON only. Do not wrap in markdown tags."),
+                30000,
+                new Error("AI service busy. Please try again.")
+            );
         } catch (apiErr) {
             console.error("NVIDIA API Error:", apiErr);
-            return res.status(500).json({ error: "AI Service Error: " + apiErr.message });
+            return res.json({ success: false, error: "AI Service Error: " + apiErr.message });
         }
 
         try {
@@ -186,13 +194,13 @@ ${text}`;
             }
             // -----------------------
 
-            res.json(result);
+            res.json({ success: true, exam_data: result });
         } catch (parseErr) {
             console.error("JSON Parse Error:", parseErr, completionText);
-            return res.status(500).json({ error: "AI returned invalid format." });
+            return res.json({ success: false, error: "AI returned invalid format." });
         }
     } catch (err) {
         console.error("General Server Error:", err);
-        res.status(500).json({ error: "Server Error: " + err.message });
+        res.json({ success: false, error: "Server Error: " + err.message });
     }
 };

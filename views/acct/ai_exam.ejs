@@ -25,6 +25,15 @@
                 <a href="/dashboard" class="btn">Exit Exam</a>
             </div>
 
+            <% if (locals.ai_limit_message) { %>
+                <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem;">
+                    <strong>Notice:</strong> <%= ai_limit_message %>
+                    <% if (locals.ai_remaining === 0) { %>
+                        <br><a href="/payment" class="btn" style="margin-top: 10px; display: inline-block;">Upgrade Plan</a>
+                    <% } %>
+                </div>
+            <% } %>
+
             <div id="setupContainer" class="text-center mb-2" <%= course === 'MyMaterial' ? 'style="display:none;"' : '' %>>
                 <h3>Exam Setup</h3>
                 <p>How many multiple-choice questions would you like?</p>
@@ -35,7 +44,7 @@
                     <option value="20">20 Questions</option>
                 </select>
                 <br>
-                <button onclick="startExam()" class="btn btn-ai">Start Exam</button>
+                <button onclick="startExam()" class="btn btn-ai" <%= locals.ai_remaining === 0 ? 'disabled style="background:#666;cursor:not-allowed;"' : '' %>>Start Exam</button>
             </div>
 
             <div id="loading" class="text-center mb-2" style="display: none;">
@@ -43,7 +52,7 @@
                 <div class="btn-ai" style="width: 50px; height: 50px; border-radius: 50%; margin: 1rem auto;"></div>
             </div>
 
-            <% if (course === 'MyMaterial') { %>
+            <% if (course === 'MyMaterial' && locals.ai_remaining !== 0) { %>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     startExam();
@@ -58,7 +67,7 @@
                     <div class="question-card glass-panel" style="background: rgba(0,0,0,0.2); margin-top: 2rem;">
                         <h3>Theory Question</h3>
                         <p id="theoryQuestionText" style="font-weight: 500;"></p>
-                        <textarea id="theoryAnswer" rows="5" placeholder="Type your detailed answer here..." required style="width: 100%; background: var(--cbg-color-2); border: none; color: var(--text-color); padding: 10px; border-radius: 5px;"></textarea>
+                        <textarea id="theoryAnswer" rows="5" placeholder="Type your detailed answer here..." required style="width: 100%; background: var(--cbg-color-2); border: none; color: var(--text-color); padding: 10px; border-radius: 5px;" oninput="saveAIProgress('theory', this.value)"></textarea>
                         <div id="theoryFeedback" style="margin-top: 1rem; display: none;" class="alert alert-success"></div>
                     </div>
 
@@ -98,27 +107,49 @@
                     alert("No exam data found. Please go back to your materials and generate the exam again.");
                     document.getElementById('setupContainer').style.display = 'block';
                     document.getElementById('loading').style.display = 'none';
-                }
+            <% if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'AIza-placeholder') { %>
+                alert("Warning: AI is running in mock mode because API key is not configured.");
+                fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        examData = data;
+                        renderExam();
+                    })
+                    .catch(err => {
+                        showRetryError("Failed to connect to local mock AI.");
+                    });
             <% } else { %>
                 fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.error) {
-                            alert("Error generating exam: " + data.error);
-                            document.getElementById('setupContainer').style.display = 'block';
-                            document.getElementById('loading').style.display = 'none';
+                        if (data.success === false || data.error) {
+                            showRetryError("Error generating exam: " + (data.error || "Unknown Error"));
                             return;
                         }
                         examData = data;
                         renderExam();
                     })
                     .catch(err => {
-                        alert("Failed to connect to AI engine.");
                         console.error(err);
-                        document.getElementById('setupContainer').style.display = 'block';
-                        document.getElementById('loading').style.display = 'none';
+                        showRetryError("Network timeout: AI service busy. Please try again.");
                     });
             <% } %>
+        }
+
+        function showRetryError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            const setupContainer = document.getElementById('setupContainer');
+            setupContainer.style.display = 'block';
+            
+            // Add a temporary error banner inside setupContainer if one doesn't exist
+            let errBanner = document.getElementById('retryBanner');
+            if (!errBanner) {
+                errBanner = document.createElement('div');
+                errBanner.id = 'retryBanner';
+                errBanner.className = 'alert alert-error';
+                setupContainer.insertBefore(errBanner, setupContainer.firstChild);
+            }
+            errBanner.innerHTML = `${msg} <button onclick="startAIExam()" class="btn btn-ai" style="padding:5px 10px; margin-left: 10px; border-radius: 4px; font-size: 0.9rem;">Retry</button>`;
         }
 
         function renderExam() {
@@ -127,6 +158,9 @@
 
             const mcqContainer = document.getElementById('mcqContainer');
             examData.mcqs.forEach((mcq, index) => {
+                // Restore MCQ from local storage if exists
+                const savedValue = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_q${index}`);
+                
                 let html = `
                     <div class="question-card" id="qcard-${index}">
                         <h4>Question ${index + 1}</h4>
@@ -134,10 +168,11 @@
                         <ul class="options-list">
                 `;
                 mcq.options.forEach((opt, oIndex) => {
+                    const checked = savedValue == oIndex ? "checked" : "";
                     html += `
                         <li>
                             <label>
-                                <input type="radio" name="q${index}" value="${oIndex}" required>
+                                <input type="radio" name="q${index}" value="${oIndex}" ${checked} required onchange="saveAIProgress('q${index}', '${oIndex}')">
                                 ${opt}
                             </label>
                         </li>
@@ -148,11 +183,24 @@
             });
 
             document.getElementById('theoryQuestionText').innerText = examData.theory;
+            
+            // Restore theory
+            const savedTheory = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
+            if (savedTheory) {
+                document.getElementById('theoryAnswer').value = savedTheory;
+            }
+        }
+
+        function saveAIProgress(key, value) {
+            localStorage.setItem(`ai_exam_<%= encodeURIComponent(course) %>_${key}`, value);
         }
 
         function submitExam() {
             let score = 0;
-            
+            const submitBtn = document.querySelector('button[onclick="submitExam()"]');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting...";
+
             // Grade MCQs instantly
             examData.mcqs.forEach((mcq, index) => {
                 const selected = document.querySelector(`input[name="q${index}"]:checked`);
@@ -175,7 +223,7 @@
             const feedbackBox = document.getElementById('theoryFeedback');
             feedbackBox.style.display = 'block';
             feedbackBox.className = 'alert';
-            feedbackBox.innerText = '🤖 Grading theory answer...';
+            feedbackBox.innerText = 'Grading theory answer...';
 
             fetch('/api/ai/grade', {
                 method: 'POST',
@@ -187,24 +235,32 @@
             })
             .then(res => res.json())
             .then(data => {
-                if(data.error) {
+                if(data.success === false || data.error) {
                     feedbackBox.className = 'alert alert-error';
-                    feedbackBox.innerText = "Error: " + data.error;
+                    feedbackBox.innerHTML = `Error: ${data.error || "Unknown Error"}<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Answers for Grading";
                 } else {
+                    // Clear local storage ONLY on success
+                    for (let i = 0; i < examData.mcqs.length; i++) {
+                        localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_q${i}`);
+                    }
+                    localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
+
                     feedbackBox.className = 'alert alert-success';
                     feedbackBox.innerHTML = `<strong>Score: ${data.score}/10</strong><br>${data.feedback}`;
+                    submitBtn.style.display = 'none'; // hide submit button on full success
                 }
             })
             .catch(err => {
                 feedbackBox.className = 'alert alert-error';
-                feedbackBox.innerText = "Failed to grade theory.";
+                feedbackBox.innerHTML = `Network timeout: Failed to grade theory.<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Answers for Grading";
             });
         }
     </script>
 </body>
+
+</body>
 </html>
-
-
-
-
-

@@ -117,11 +117,25 @@
                 </div>
 
                 <% if (is_enrolled) { %>
-                    <a href="/academy/player/<%= course.slug %>" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Continue Learning</a>
+                    <a href="/skills/player/<%= course.slug %>" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Continue Learning</a>
                 <% } else if (course.is_premium && (!locals.user || !locals.user.has_paid)) { %>
                     <a href="/payment" class="btn btn-ai" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Unlock Premium to Enroll</a>
+                <% } else if (course.is_premium && locals.user.subscription_plan === 'Premium') { %>
+                    <% if (locals.whitelist_status === 'pending') { %>
+                        <button disabled class="btn" style="font-size: 1.1rem; padding: 0.8rem 2rem; background: #666; cursor: not-allowed;">Whitelist Pending</button>
+                    <% } else if (locals.whitelist_status === 'approved') { %>
+                        <form action="/skills/enroll" method="POST" style="display: inline;">
+                            <input type="hidden" name="course_id" value="<%= course.id %>">
+                            <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Enroll Now (Approved)</button>
+                        </form>
+                    <% } else { %>
+                        <form action="/skills/whitelist" method="POST" style="display: inline;">
+                            <input type="hidden" name="course_id" value="<%= course.id %>">
+                            <button type="submit" class="btn btn-ai" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Apply for Whitelist</button>
+                        </form>
+                    <% } %>
                 <% } else { %>
-                    <form action="/academy/enroll" method="POST" style="display: inline;">
+                    <form action="/skills/enroll" method="POST" style="display: inline;">
                         <input type="hidden" name="course_id" value="<%= course.id %>">
                         <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Enroll Now</button>
                     </form>

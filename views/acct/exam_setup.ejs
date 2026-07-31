@@ -38,10 +38,7 @@
                                 <option value="<%= c.course_code %>"><%= c.course_code %></option>
                             <% }); %>
                         <% } else { %>
-                            <!-- Fallback -->
-                            <option value="GST101">GST101</option>
-                            <option value="MTH101">MTH101</option>
-                            <option value="PHY101">PHY101</option>
+                            <option value="">No courses available for your department/level</option>
                         <% } %>
                     </select>
                 </div>

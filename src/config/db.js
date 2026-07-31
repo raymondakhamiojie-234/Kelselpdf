@@ -39,6 +39,20 @@ const pool = mysql.createPool({
     } catch (e) {
         console.error('Failed to create notifications table:', e);
     }
+
+    try {
+        await pool.query('ALTER TABLE courses MODIFY department_id TEXT');
+        // Migrate existing string department IDs to JSON array strings if not already JSON
+        await pool.query(`
+            UPDATE courses 
+            SET department_id = CONCAT('["', department_id, '"]') 
+            WHERE department_id IS NOT NULL 
+            AND department_id != '' 
+            AND department_id NOT LIKE '[%'
+        `);
+    } catch (e) {
+        console.error('Failed to migrate courses table:', e);
+    }
 })();
 
 module.exports = pool;

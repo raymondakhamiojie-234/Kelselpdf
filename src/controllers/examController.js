@@ -12,11 +12,11 @@ exports.getExamSetup = async (req, res) => {
         const [courses] = await pool.query(`
             SELECT DISTINCT c.course_code 
             FROM courses c
-            JOIN questions q ON REPLACE(c.course_code, ' ', '') = REPLACE(q.course_code, ' ', '')
-            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            JOIN questions q ON LOWER(REPLACE(c.course_code, ' ', '')) = LOWER(REPLACE(q.course_code, ' ', ''))
+            WHERE ((JSON_VALID(c.department_id) AND JSON_CONTAINS(c.department_id, JSON_QUOTE(?), '$')) OR c.department_id = ? OR c.shared_access_group = 'gst') 
             AND c.level_access <= ?
             ORDER BY c.course_code ASC
-        `, [user.department_id, user.level]);
+        `, [user.department_id, user.department_id, user.level]);
         
         res.render('acct/exam_setup', { courses });
     } catch (err) {
@@ -33,11 +33,11 @@ exports.getExamMaterials = async (req, res) => {
         const query = `
             SELECT pq.*, c.course_code FROM past_questions pq 
             JOIN courses c ON pq.course_id = c.id 
-            WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+            WHERE ((JSON_VALID(c.department_id) AND JSON_CONTAINS(c.department_id, JSON_QUOTE(?), '$')) OR c.department_id = ? OR c.shared_access_group = 'gst') 
             AND c.level_access <= ?
             ORDER BY c.course_code ASC, pq.year DESC
         `;
-        const [materials] = await pool.query(query, [dept_id, level]);
+        const [materials] = await pool.query(query, [dept_id, dept_id, level]);
         res.render('acct/exam_materials', { user: req.session.user, materials });
     } catch (err) {
         console.error(err);
@@ -60,8 +60,8 @@ exports.getTakeExam = async (req, res) => {
         const question_limit = parseInt(req.query.questions) || 20;
 
         const [questions] = await pool.query(
-            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE REPLACE(course_code, ' ', '') = ? ORDER BY RAND() LIMIT ?",
-            [(course||'').replace(/\\s+/g, ''), question_limit]
+            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE LOWER(REPLACE(course_code, ' ', '')) = LOWER(?) ORDER BY RAND() LIMIT ?",
+            [(course||'').replace(/\s+/g, ''), question_limit]
         );
 
         res.render('acct/take_exam', {
@@ -172,9 +172,9 @@ exports.getExamAnalytics = async (req, res) => {
         const [past_questions] = await pool.query(
             `SELECT pq.*, c.course_code FROM past_questions pq 
              JOIN courses c ON pq.course_id = c.id 
-             WHERE (c.department_id = ? OR c.shared_access_group = 'gst') 
+             WHERE ((JSON_VALID(c.department_id) AND JSON_CONTAINS(c.department_id, JSON_QUOTE(?), '$')) OR c.department_id = ? OR c.shared_access_group = 'gst') 
              AND c.level_access <= ?`,
-            [dept_id, level]
+            [dept_id, dept_id, level]
         );
 
         res.render('acct/exam_analytics', {

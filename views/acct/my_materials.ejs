@@ -87,12 +87,21 @@
         <%- include('partials/app_header', { page_title: 'My Materials', page_desc: 'Upload and analyze your personal study files' }) %>
 
         <div style="padding: 20px;">
+            <% if (locals.limit_message) { %>
+                <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem;">
+                    <strong>Notice:</strong> <%= limit_message %>
+                    <% if (locals.materials_remaining === 0) { %>
+                        <br><a href="/payment" class="btn" style="margin-top: 10px; display: inline-block;">Upgrade Plan</a>
+                    <% } %>
+                </div>
+            <% } %>
+
             <div class="upload-section">
                 <form action="/my_materials/upload" method="POST" enctype="multipart/form-data">
                     <h3 style="color: var(--text-color); margin-bottom: 15px;">Upload a PDF Material</h3>
-                    <input type="file" name="material_file" accept=".pdf" required style="margin-bottom: 15px; color: var(--text-color);">
+                    <input type="file" name="material_file" accept=".pdf" required style="margin-bottom: 15px; color: var(--text-color);" <%= locals.materials_remaining === 0 ? 'disabled' : '' %>>
                     <br>
-                    <button type="submit" class="cta-button" style="padding: 10px 20px; font-size: 1rem;">Upload File</button>
+                    <button type="submit" class="cta-button" style="padding: 10px 20px; font-size: 1rem;" <%= locals.materials_remaining === 0 ? 'disabled style="background:#666;cursor:not-allowed;"' : '' %>>Upload File</button>
                 </form>
             </div>
 
@@ -144,11 +153,15 @@
             })
             .then(res => res.json())
             .then(data => {
-                if(data.error) body.innerHTML = '<span style="color:red;">' + data.error + '</span>';
+                if(data.success === false || data.error) {
+                    body.innerHTML = `<span style="color:red;">Error: ${data.error || 'Failed to explain material'}</span>
+                                      <br><br><button onclick="explainMaterial(${id})" class="btn-ai-alt">dY"  Try Again</button>`;
+                }
                 else body.innerHTML = data.explanation;
             })
             .catch(err => {
-                body.innerHTML = '<span style="color:red;">An error occurred during AI analysis.</span>';
+                body.innerHTML = `<span style="color:red;">Network timeout: AI service busy. Please try again.</span>
+                                  <br><br><button onclick="explainMaterial(${id})" class="btn-ai-alt">dY"  Try Again</button>`;
             });
         }
 
@@ -168,11 +181,12 @@
             })
             .then(res => res.json())
             .then(data => {
-                if(data.error) {
-                    body.innerHTML = '<span style="color:red;">' + data.error + '</span>';
+                if(data.success === false || data.error) {
+                    body.innerHTML = `<span style="color:red;">Error: ${data.error || 'Failed to generate exam'}</span>
+                                      <br><br><button onclick="generateExam(${id})" class="btn-ai">Try Again</button>`;
                 } else {
                     // Save to localStorage so ai_exam page can read it
-                    localStorage.setItem('generated_mock_exam', JSON.stringify(data));
+                    localStorage.setItem('generated_mock_exam', JSON.stringify(data.exam_data || data));
                     body.innerHTML = '<div style="text-align: center; color: green; font-weight: bold;">Exam ready! Redirecting...</div>';
                     setTimeout(() => {
                         window.location.href = '/exam/ai/take/MyMaterial';
@@ -180,7 +194,8 @@
                 }
             })
             .catch(err => {
-                body.innerHTML = '<span style="color:red;">An error occurred generating the exam.</span>';
+                body.innerHTML = `<span style="color:red;">Network timeout: AI service busy. Please try again.</span>
+                                  <br><br><button onclick="generateExam(${id})" class="btn-ai">Try Again</button>`;
             });
         }
     </script>

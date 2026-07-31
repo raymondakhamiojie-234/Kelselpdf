@@ -79,17 +79,26 @@ exports.postQuestions = async (req, res) => {
         .on('end', async () => {
             try {
                 // Determine course dept and level
-                const course_dept = req.body.department_id === 'gst' ? null : req.body.department_id || null;
-                const shared_group = req.body.department_id === 'gst' ? 'gst' : 'general';
+                let rawDepts = req.body.department_id;
+                if (!rawDepts) rawDepts = [];
+                if (!Array.isArray(rawDepts)) rawDepts = [rawDepts];
+                
+                const hasGst = rawDepts.includes('gst');
+                const shared_group = hasGst ? 'gst' : 'general';
+                const filteredDepts = rawDepts.filter(d => d !== 'gst' && d.trim() !== '');
+                const course_dept = filteredDepts.length > 0 ? JSON.stringify(filteredDepts) : null;
                 const course_level = parseInt(req.body.level) || 100;
 
                 const uniqueCourseCodes = new Set();
                 
                 for (const row of results) {
                     if (row.course_code && row.question_text) {
-                        const code = (row.course_code||'').replace(/^\uFEFF/, '').trim();
+                        const rawCode = (row.course_code||'').replace(/^\uFEFF/, '').trim();
+                        // Normalize all internal spaces to a single standard space
+                        const code = rawCode.replace(/\s+/g, ' ').toUpperCase();
+                        
                         if (code) {
-                            uniqueCourseCodes.add(code.toUpperCase());
+                            uniqueCourseCodes.add(code);
                             await pool.query(
                                 'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
                                 [code, (row.question_text||'').replace(/^\uFEFF/, '').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
@@ -103,7 +112,7 @@ exports.postQuestions = async (req, res) => {
                 for (const code of uniqueCourseCodes) {
                     const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [code]);
                     if (existingCourse.length > 0) {
-                        await pool.query('UPDATE courses SET department_id = COALESCE(department_id, ?), level_access = COALESCE(level_access, ?), shared_access_group = COALESCE(shared_access_group, ?) WHERE id = ?', [course_dept, course_level, shared_group, existingCourse[0].id]);
+                        await pool.query('UPDATE courses SET department_id = COALESCE(?, department_id), level_access = COALESCE(?, level_access), shared_access_group = COALESCE(?, shared_access_group) WHERE id = ?', [course_dept, course_level, shared_group, existingCourse[0].id]);
                     } else {
                         await pool.query('INSERT INTO courses (course_code, department_id, level_access, shared_access_group) VALUES (?, ?, ?, ?)', [code, course_dept, course_level, shared_group]);
                     }
@@ -157,15 +166,21 @@ exports.postPastQuestions = async (req, res) => {
     try {
         let course_code_input = req.body.course_code || '';
         course_code_input = course_code_input.toUpperCase().trim();
-        const course_dept = req.body.department_id === 'gst' ? null : req.body.department_id || null;
-        const shared_group = req.body.department_id === 'gst' ? 'gst' : 'general';
+        let rawDepts = req.body.department_id;
+        if (!rawDepts) rawDepts = [];
+        if (!Array.isArray(rawDepts)) rawDepts = [rawDepts];
+        
+        const hasGst = rawDepts.includes('gst');
+        const shared_group = hasGst ? 'gst' : 'general';
+        const filteredDepts = rawDepts.filter(d => d !== 'gst' && d.trim() !== '');
+        const course_dept = filteredDepts.length > 0 ? JSON.stringify(filteredDepts) : null;
         const course_level = parseInt(req.body.level) || 100;
         
         let course_id;
         const [existingCourse] = await pool.query('SELECT id FROM courses WHERE course_code = ?', [course_code_input]);
         if (existingCourse.length > 0) {
             course_id = existingCourse[0].id;
-            await pool.query('UPDATE courses SET department_id = COALESCE(department_id, ?), level_access = COALESCE(level_access, ?), shared_access_group = COALESCE(shared_access_group, ?) WHERE id = ?', [course_dept, course_level, shared_group, course_id]);
+            await pool.query('UPDATE courses SET department_id = COALESCE(?, department_id), level_access = COALESCE(?, level_access), shared_access_group = COALESCE(?, shared_access_group) WHERE id = ?', [course_dept, course_level, shared_group, course_id]);
         } else {
             const [result] = await pool.query('INSERT INTO courses (course_code, department_id, level_access, shared_access_group) VALUES (?, ?, ?, ?)', [course_code_input, course_dept, course_level, shared_group]);
             course_id = result.insertId;

@@ -2,27 +2,39 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 exports.getLogin = (req, res) => {
-    res.render('acct/login', { error: null });
+    const redirectUrl = req.query.redirectUrl || '';
+    res.render('acct/login', { error: null, redirectUrl });
 };
 
 exports.postLogin = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, redirectUrl } = req.body;
+    
+    if (!email || !password) {
+        return res.render('acct/login', { error: 'Invalid credentials. Please enter both email and password.', redirectUrl });
+    }
+
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         const user = rows[0];
 
         if (user && await bcrypt.compare(password, user.password)) {
             if (user.role === 'admin') {
-                return res.render('acct/login', { error: 'Administrators must log in via the Admin Portal.' });
+                return res.render('acct/login', { error: 'Administrators must log in via the Admin Portal.', redirectUrl });
             }
             req.session.user_id = user.id;
-            res.redirect('/dashboard');
+            
+            // Redirect to original URL if safe, else dashboard
+            if (redirectUrl && redirectUrl.startsWith('/')) {
+                res.redirect(redirectUrl);
+            } else {
+                res.redirect('/dashboard');
+            }
         } else {
-            res.render('acct/login', { error: 'Invalid email or password' });
+            res.render('acct/login', { error: 'Invalid email or password', redirectUrl });
         }
     } catch (err) {
         console.error(err);
-        res.render('acct/login', { error: 'DB Error: ' + err.message });
+        res.render('acct/login', { error: 'DB Error: ' + err.message, redirectUrl });
     }
 };
 
@@ -32,6 +44,11 @@ exports.getRegister = (req, res) => {
 
 exports.postRegister = async (req, res) => {
     const { full_name, lastname, email, password, department_id, level } = req.body;
+    
+    if (!password || password.length < 8) {
+        return res.render('acct/register', { error: 'Password must be at least 8 characters long.' });
+    }
+
     try {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {

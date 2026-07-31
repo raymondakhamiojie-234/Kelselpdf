@@ -36,4 +36,11 @@ async function generateNvidiaCompletion(prompt, systemInstruction) {
     return data.choices[0].message.content;
 }
 
-module.exports = { generateNvidiaCompletion };
+const withTimeout = (promise, ms, timeoutError = new Error('Promise timed out')) => {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(timeoutError), ms))
+    ]);
+};
+
+module.exports = { generateNvidiaCompletion, withTimeout };
