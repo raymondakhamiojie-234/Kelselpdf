@@ -107,32 +107,35 @@
                     alert("No exam data found. Please go back to your materials and generate the exam again.");
                     document.getElementById('setupContainer').style.display = 'block';
                     document.getElementById('loading').style.display = 'none';
-            <% if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'AIza-placeholder') { %>
-                alert("Warning: AI is running in mock mode because API key is not configured.");
-                fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        examData = data;
-                        renderExam();
-                    })
-                    .catch(err => {
-                        showRetryError("Failed to connect to local mock AI.");
-                    });
+                }
             <% } else { %>
-                fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success === false || data.error) {
-                            showRetryError("Error generating exam: " + (data.error || "Unknown Error"));
-                            return;
-                        }
-                        examData = data;
-                        renderExam();
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showRetryError("Network timeout: AI service busy. Please try again.");
-                    });
+                <% if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY === 'PASTE_API_KEY_HERE') { %>
+                    alert("Warning: AI is running in mock mode because API key is not configured.");
+                    fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            examData = data;
+                            renderExam();
+                        })
+                        .catch(err => {
+                            showRetryError("Failed to connect to local mock AI.");
+                        });
+                <% } else { %>
+                    fetch(`/api/ai/generate?course=<%= encodeURIComponent(course) %>&count=${count}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success === false || data.error) {
+                                showRetryError("Error generating exam: " + (data.error || "Unknown Error"));
+                                return;
+                            }
+                            examData = data;
+                            renderExam();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            showRetryError("Network timeout: AI service busy. Please try again.");
+                        });
+                <% } %>
             <% } %>
         }
 
