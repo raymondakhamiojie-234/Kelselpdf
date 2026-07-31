@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
 const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
+const { jsonrepair } = require('jsonrepair');
 
 exports.getMyMaterials = async (req, res) => {
     try {
@@ -180,8 +181,14 @@ ${text}`;
 
         try {
             const match = completionText.match(/\{[\s\S]*\}/);
-            const jsonText = match ? match[0] : completionText;
-            const result = JSON.parse(jsonText);
+            let jsonText = match ? match[0] : completionText;
+            
+            // Clean control characters that break JSON parsing (e.g. unescaped newlines in strings)
+            jsonText = jsonText.replace(/[\u0000-\u001F]+/g, ' ');
+            
+            // Use jsonrepair for trailing commas, missing quotes, etc.
+            const repairedJson = jsonrepair(jsonText);
+            const result = JSON.parse(repairedJson);
 
             // --- Increment Usage ---
             if (req.session.user.subscription_plan === 'Premium') {

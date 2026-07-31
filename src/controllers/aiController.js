@@ -1,5 +1,6 @@
 const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
 const pool = require('../config/db');
+const { jsonrepair } = require('jsonrepair');
 exports.getAiExamView = async (req, res) => {
     let ai_limit_message = null;
     let ai_remaining = null;
@@ -69,8 +70,12 @@ Return ONLY a raw JSON object with this exact structure:
         let result = {};
         try {
             const match = completionText.match(/\{[\s\S]*\}/);
-            const jsonText = match ? match[0] : completionText;
-            result = JSON.parse(jsonText);
+            let jsonText = match ? match[0] : completionText;
+            
+            jsonText = jsonText.replace(/[\u0000-\u001F]+/g, ' ');
+            const repairedJson = jsonrepair(jsonText);
+            
+            result = JSON.parse(repairedJson);
         } catch (parseError) {
             console.error("Failed to parse JSON:", completionText);
             throw new Error("AI returned invalid JSON format.");
@@ -133,8 +138,12 @@ Return ONLY a raw JSON object with this exact structure:
         let result = {};
         try {
             const match = completionText.match(/\{[\s\S]*\}/);
-            const jsonText = match ? match[0] : completionText;
-            result = JSON.parse(jsonText);
+            let jsonText = match ? match[0] : completionText;
+            
+            jsonText = jsonText.replace(/[\u0000-\u001F]+/g, ' ');
+            const repairedJson = jsonrepair(jsonText);
+            
+            result = JSON.parse(repairedJson);
         } catch (parseError) {
             console.error("Failed to parse JSON:", completionText);
             throw new Error("AI returned invalid JSON format.");
