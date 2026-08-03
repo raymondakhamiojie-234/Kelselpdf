@@ -29,8 +29,8 @@ exports.generateExam = async (req, res) => {
         if (req.session.user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
             const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
-            if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                return res.json({ success: false, error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium for unlimited AI access." });
+            if (usage.length > 0 && usage[0].exams_generated >= 7) {
+                return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium for unlimited AI access." });
             }
         }
         // -----------------------
@@ -189,8 +189,8 @@ exports.chatPdf = async (req, res) => {
             try {
                 const today = new Date().toISOString().split('T')[0];
                 const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
-                if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                    return res.json({ error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+                if (usage.length > 0 && usage[0].exams_generated >= 7) {
+                    return res.json({ error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
                 }
             } catch (e) {
                 console.error("Usage limit query error:", e);

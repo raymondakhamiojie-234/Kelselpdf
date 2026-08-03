@@ -12,8 +12,8 @@ exports.getMyMaterials = async (req, res) => {
         let limit_message = null;
         let materials_remaining = null;
         if (req.session.user.subscription_plan === 'Premium') {
-            materials_remaining = Math.max(0, 3 - materials.length);
-            limit_message = `Premium Plan: You have used ${materials.length} of 3 material uploads.`;
+            materials_remaining = Math.max(0, 7 - materials.length);
+            limit_message = `Premium Plan: You have used ${materials.length} of 7 material uploads.`;
         }
         
         res.render('acct/my_materials', { materials, limit_message, materials_remaining });
@@ -32,9 +32,9 @@ exports.uploadMaterial = async (req, res) => {
         // --- Usage Limit Check ---
         if (req.session.user.subscription_plan === 'Premium') {
             const [rows] = await pool.query('SELECT COUNT(*) as count FROM user_materials WHERE user_id = ?', [req.session.user_id]);
-            if (rows[0].count >= 3) {
+            if (rows[0].count >= 7) {
                 fs.unlinkSync(req.file.path); // Delete temp file
-                return res.status(403).send("You have reached the maximum limit of 3 materials on the Premium plan. Please upgrade to Full Premium for unlimited materials.");
+                return res.status(403).send("You have reached the maximum limit of 7 materials on the Premium plan. Please upgrade to Full Premium for unlimited materials.");
             }
         }
         // -----------------------
@@ -68,8 +68,8 @@ exports.explainMaterial = async (req, res) => {
         if (req.session.user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
             const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
-            if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                return res.json({ success: false, error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+            if (usage.length > 0 && usage[0].exams_generated >= 7) {
+                return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
         }
         // -----------------------
@@ -127,8 +127,8 @@ exports.generateExam = async (req, res) => {
         if (req.session.user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
             const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
-            if (usage.length > 0 && usage[0].exams_generated >= 3) {
-                return res.json({ success: false, error: "You have reached the maximum limit of 3 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
+            if (usage.length > 0 && usage[0].exams_generated >= 7) {
+                return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
         }
         // -----------------------
