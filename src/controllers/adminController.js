@@ -91,6 +91,7 @@ exports.postQuestions = async (req, res) => {
 
                 const uniqueCourseCodes = new Set();
                 
+                const bulkValues = [];
                 for (const row of results) {
                     if (row.course_code && row.question_text) {
                         const rawCode = (row.course_code||'').replace(/^\uFEFF/, '').trim();
@@ -99,13 +100,25 @@ exports.postQuestions = async (req, res) => {
                         
                         if (code) {
                             uniqueCourseCodes.add(code);
-                            await pool.query(
-                                'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                                [code, (row.question_text||'').replace(/^\uFEFF/, '').trim(), (row.option_a||'').trim(), (row.option_b||'').trim(), (row.option_c||'').trim(), (row.option_d||'').trim(), (row.correct_option||'').trim()]
-                            );
-                            count++;
+                            bulkValues.push([
+                                code,
+                                (row.question_text||'').replace(/^\uFEFF/, '').trim(),
+                                (row.option_a||'').trim(),
+                                (row.option_b||'').trim(),
+                                (row.option_c||'').trim(),
+                                (row.option_d||'').trim(),
+                                (row.correct_option||'').trim()
+                            ]);
                         }
                     }
+                }
+
+                if (bulkValues.length > 0) {
+                    await pool.query(
+                        'INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option) VALUES ?',
+                        [bulkValues]
+                    );
+                    count = bulkValues.length;
                 }
                 
                 // Add/update course metadata so they show up for users
