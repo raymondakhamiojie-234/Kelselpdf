@@ -44,7 +44,7 @@ exports.verifyPayment = async (req, res) => {
             plan_name = 'Full Premium';
         } else {
             const date = new Date();
-            date.setMonth(date.getMonth() + 3);
+            date.setMonth(date.getMonth() + 1);
             expiry_date = date.toISOString().split('T')[0];
             plan_name = 'Premium';
         }
