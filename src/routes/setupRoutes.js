@@ -56,7 +56,22 @@ router.get('/setup-db', async (req, res) => {
             )
         `);
 
-        res.send("Tables checked/setup. AI usage and whitelist tables are ready!");
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS referral_links (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                code VARCHAR(50) UNIQUE NOT NULL,
+                description VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN referred_by_code VARCHAR(50) DEFAULT NULL');
+        } catch (err) {
+            // ignore if column already exists
+        }
+
+        res.send("Tables checked/setup. AI usage, whitelist, and referrals tables are ready!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);

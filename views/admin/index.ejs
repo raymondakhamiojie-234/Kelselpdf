@@ -108,6 +108,34 @@
             </a>
         </div>
         
+
+
+        <h3 style="padding: 0 1.5rem; margin-bottom: 1rem; color: var(--ntxt-color); margin-top: 2rem;">Paid Students by Department</h3>
+        <div style="padding: 0 1.5rem 2rem 1.5rem;">
+            <div class="glass-panel" style="overflow-x: auto;">
+                <table class="styled-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Total Paid Students</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (dept_stats && dept_stats.length > 0) { %>
+                            <% dept_stats.forEach(dept => { %>
+                                <tr>
+                                    <td style="text-transform: capitalize;"><strong><%= dept.department_id %></strong></td>
+                                    <td style="color: var(--success); font-weight: bold;"><%= dept.paid_count %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="2" class="text-center">No paid students found yet.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
     </main>
 </body>
 </html>

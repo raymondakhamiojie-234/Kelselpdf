@@ -33,6 +33,7 @@
             <% } %>
 
             <form method="POST" action="/register">
+                <input type="hidden" name="referral_code" value="<%= locals.ref || '' %>">
                 <div style="display: flex; gap: 1rem;">
                     <div class="form-group" style="flex: 1;">
                         <label>First Name</label>

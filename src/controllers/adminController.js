@@ -36,13 +36,21 @@ exports.getAdmin = async (req, res) => {
         const [[{ count: active_subs }]] = await pool.query('SELECT COUNT(id) AS count FROM users WHERE has_paid = 1 AND expiry_date >= CURDATE()');
         const [[{ count: q_count }]] = await pool.query('SELECT COUNT(id) AS count FROM questions');
         const [[{ count: pq_count }]] = await pool.query('SELECT COUNT(id) AS count FROM past_questions');
+        const [dept_stats] = await pool.query(`
+            SELECT department_id, COUNT(id) as paid_count 
+            FROM users 
+            WHERE has_paid = 1 
+            GROUP BY department_id 
+            ORDER BY paid_count DESC
+        `);
 
         res.render('admin/index', {
             users_count,
             revenue: revenue || 0,
             active_subs,
             q_count,
-            pq_count
+            pq_count,
+            dept_stats
         });
     } catch (err) {
         console.error(err);
@@ -365,14 +373,46 @@ exports.postUpdateUserRole = async (req, res) => {
 
 exports.postDeleteUser = async (req, res) => {
     try {
-        const { user_id } = req.body;
-        if (req.session.user.id == user_id) {
-            return res.status(400).send("You cannot delete yourself.");
-        }
-        await pool.query('DELETE FROM users WHERE id = ?', [user_id]);
+        await pool.query('DELETE FROM users WHERE id = ?', [req.body.user_id]);
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.getReferrals = async (req, res) => {
+    try {
+        const [referrals] = await pool.query(`
+            SELECT r.*, 
+            (SELECT COUNT(*) FROM users WHERE referred_by_code = r.code) as total_signups,
+            (SELECT COUNT(*) FROM users WHERE referred_by_code = r.code AND has_paid = 1) as paid_signups
+            FROM referral_links r 
+            ORDER BY r.created_at DESC
+        `);
+        res.render('admin/referrals', { referrals });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+exports.postReferrals = async (req, res) => {
+    try {
+        const { code, description } = req.body;
+        if (!code || !code.trim()) {
+            return res.status(400).send("Referral code is required.");
+        }
+        await pool.query(
+            'INSERT INTO referral_links (code, description) VALUES (?, ?)',
+            [code.trim().toUpperCase(), description || '']
+        );
+        res.redirect('/admin/referrals');
+    } catch (err) {
+        console.error(err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).send("This referral code already exists.");
+        }
         res.status(500).send("Server Error");
     }
 };

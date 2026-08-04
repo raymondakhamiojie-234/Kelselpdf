@@ -25,6 +25,9 @@ router.post('/admin/skills/course', requireAdmin, adminController.postSkillsCour
 router.post('/admin/skills/category/delete', requireAdmin, adminController.postSkillsCategoryDelete);
 router.post('/admin/skills/course/delete', requireAdmin, adminController.postSkillsCourseDelete);
 
+router.get('/admin/referrals', requireAdmin, adminController.getReferrals);
+router.post('/admin/referrals', requireAdmin, adminController.postReferrals);
+
 router.get('/admin/users', requireAdmin, adminController.getUsers);
 router.post('/admin/users/role', requireAdmin, adminController.postUpdateUserRole);
 router.post('/admin/users/delete', requireAdmin, adminController.postDeleteUser);

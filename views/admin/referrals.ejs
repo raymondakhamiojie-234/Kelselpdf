@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral System - Admin Panel</title>
+    <link rel="stylesheet" href="/style.css?v=3">
+    <script src="/theme.js"></script>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'admin_referrals' }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: 'Referrals', 
+            page_desc: 'Manage affiliate codes & track conversions' 
+        }) %>
+        
+        <div style="padding: 20px;">
+            <h3>Generate New Referral Code</h3>
+            <div class="glass-panel" style="margin-bottom: 2rem;">
+                <form action="/admin/referrals" method="POST" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label>Referral Code (e.g. SUMMER50)</label>
+                        <input type="text" name="code" required placeholder="Enter unique code" style="text-transform: uppercase;">
+                    </div>
+                    <div style="flex: 2; min-width: 300px;">
+                        <label>Description / Affiliate Name</label>
+                        <input type="text" name="description" placeholder="Who is this for?">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-ai">Generate Link</button>
+                    </div>
+                </form>
+            </div>
+
+            <h3>Active Referral Links</h3>
+            <div class="glass-panel" style="overflow-x: auto;">
+                <table class="styled-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Total Signups</th>
+                            <th>Paid Conversions</th>
+                            <th>Created Date</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (referrals.length === 0) { %>
+                            <tr><td colspan="6" class="text-center">No referral codes found.</td></tr>
+                        <% } else { %>
+                            <% referrals.forEach(r => { %>
+                            <tr>
+                                <td><strong><%= r.code %></strong></td>
+                                <td><%= r.description %></td>
+                                <td><%= r.total_signups %></td>
+                                <td style="color: var(--success); font-weight: bold;"><%= r.paid_signups %></td>
+                                <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem;" onclick="copyLink('<%= r.code %>')">Copy Link</button>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script>
+        function copyLink(code) {
+            const url = window.location.origin + '/register?ref=' + encodeURIComponent(code);
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Copied to clipboard: ' + url);
+            }).catch(err => {
+                alert('Failed to copy. Link is: ' + url);
+            });
+        }
+    </script>
+</body>
+</html>

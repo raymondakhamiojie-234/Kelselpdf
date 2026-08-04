@@ -39,35 +39,40 @@ exports.postLogin = async (req, res) => {
 };
 
 exports.getRegister = (req, res) => {
-    res.render('acct/register', { error: null });
+    const ref = req.query.ref || '';
+    res.render('acct/register', { error: null, ref });
 };
 
 exports.postRegister = async (req, res) => {
-    const { full_name, lastname, email, password, department_id, level } = req.body;
+    const { full_name, lastname, email, password, department_id, level, referral_code } = req.body;
     
     if (!password || password.length < 8) {
-        return res.render('acct/register', { error: 'Password must be at least 8 characters long.' });
+        return res.render('acct/register', { error: 'Password must be at least 8 characters long.', ref: referral_code || '' });
     }
 
     try {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {
-            return res.render('acct/register', { error: 'Email is already registered' });
+            return res.render('acct/register', { error: 'Email is already registered', ref: referral_code || '' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        const [result] = await pool.query(
-            `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan) 
-             VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none')`,
-            [full_name, lastname, email, hashedPassword, department_id, parseInt(level)]
-        );
+        let query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan) VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none')`;
+        let params = [full_name, lastname, email, hashedPassword, department_id, parseInt(level)];
+
+        if (referral_code && referral_code.trim() !== '') {
+            query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan, referred_by_code) VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none', ?)`;
+            params.push(referral_code.trim().toUpperCase());
+        }
+
+        const [result] = await pool.query(query, params);
         
         req.session.user_id = result.insertId;
         res.redirect('/payment');
     } catch (err) {
         console.error(err);
-        res.render('acct/register', { error: 'DB Error: ' + err.message });
+        res.render('acct/register', { error: 'DB Error: ' + err.message, ref: referral_code || '' });
     }
 };
 
