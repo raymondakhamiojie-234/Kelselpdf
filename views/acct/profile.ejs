@@ -461,7 +461,7 @@
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label>Level</label>
                         <% if (user.can_change_level) { %>
-                            <div style="font-size: 0.8rem; color: var(--success); margin-bottom: 5px;">🔓 1-time change allowed</div>
+                            <div style="font-size: 0.8rem; color: var(--success); margin-bottom: 5px;"> 1-time change allowed</div>
                             <select name="level" required>
                                 <option value="100" <%= user.level == 100 ? 'selected' : '' %>>100</option>
                                 <option value="200" <%= user.level == 200 ? 'selected' : '' %>>200</option>
@@ -474,7 +474,7 @@
                                 <option value="<%= user.level %>" selected><%= user.level %></option>
                             </select>
                             <input type="hidden" name="level" value="<%= user.level %>">
-                            <div style="font-size: 0.75rem; color: var(--ntxt-color); margin-top: 5px;">🔒 Level is locked. Renew subscription to change.</div>
+                            <div style="font-size: 0.75rem; color: var(--ntxt-color); margin-top: 5px;"> Level is locked. Renew subscription to change.</div>
                         <% } %>
                     </div>
                 </div>

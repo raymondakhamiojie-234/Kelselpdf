@@ -68,7 +68,7 @@
             <% if (certs && certs.length > 0) { %>
                 <% certs.forEach(cert => { %>
                     <div class="cert-card">
-                        <div class="cert-icon">🎓</div>
+                        <div class="cert-icon"></div>
                         <div class="cert-course"><%= cert.course_title %></div>
                         <div class="cert-date">Issued: <%= new Date(cert.issued_at).toLocaleDateString() %></div>
                         <a href="/academy/certificate/<%= cert.course_id %>" class="btn btn-primary" target="_blank">View Certificate</a>

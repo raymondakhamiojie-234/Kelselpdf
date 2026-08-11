@@ -148,7 +148,7 @@
                         %>
                             <a href="/skills/player/<%= course.slug %>?lesson=<%= lesson.id %>" class="lesson-item <%= isActive ? 'active' : '' %> <%= isCompleted ? 'completed' : '' %>">
                                 <span style="margin-right: 10px; font-size: 1.1rem;">
-                                    <% if(isCompleted) { %>✅<% } else if(lesson.type === 'video') { %>🎥<% } else if(lesson.type === 'quiz') { %>📝<% } else { %>📄<% } %>
+                                    <% if(isCompleted) { %><% } else if(lesson.type === 'video') { %><% } else if(lesson.type === 'quiz') { %><% } else { %><% } %>
                                 </span>
                                 <%= lesson.title %>
                             </a>
@@ -199,13 +199,13 @@
                                 <button type="submit" class="btn btn-success" style="background: var(--success); border: none;">Mark as Completed</button>
                             </form>
                         <% } else { %>
-                            <span class="btn" style="background: rgba(255,255,255,0.1); cursor: default;">✅ Completed</span>
+                            <span class="btn" style="background: rgba(255,255,255,0.1); cursor: default;"> Completed</span>
                         <% } %>
                         
                         <% if(next_lesson_id) { %>
                             <a href="/skills/player/<%= course.slug %>?lesson=<%= next_lesson_id %>" class="btn btn-primary" style="margin-left: 10px;">Next &rarr;</a>
                         <% } else if (progress_percent >= 90) { %>
-                            <a href="/skills/certificate/<%= course.id %>" class="btn btn-ai" style="margin-left: 10px;">Claim Certificate 🏆</a>
+                            <a href="/skills/certificate/<%= course.id %>" class="btn btn-ai" style="margin-left: 10px;">Claim Certificate </a>
                         <% } %>
                     </div>
                 </div>

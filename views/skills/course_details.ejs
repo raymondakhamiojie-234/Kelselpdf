@@ -165,11 +165,11 @@
                                     <% mod.lessons.forEach(function(lesson) { %>
                                         <li class="lesson-item">
                                             <% if(lesson.type === 'video') { %>
-                                                🎥
+                                                
                                             <% } else if(lesson.type === 'reading') { %>
-                                                📄
+                                                
                                             <% } else if(lesson.type === 'quiz') { %>
-                                                📝
+                                                
                                             <% } %>
                                             <span style="margin-left: 10px;"><%= lesson.title %></span>
                                             <span style="margin-left: auto; font-size: 0.85rem; opacity: 0.6;"><%= lesson.duration_minutes %> min</span>

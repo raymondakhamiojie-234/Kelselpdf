@@ -27,7 +27,7 @@
 
         <!-- AI Insights Card -->
         <div id="aiInsightCard" class="glass-panel mb-2" style="border-left: 4px solid var(--accent); display: none;">
-            <h3>🤖 AI Tutor Insights</h3>
+            <h3> AI Tutor Insights</h3>
             <p id="aiInsightText">Analyzing your performance...</p>
         </div>
 
@@ -45,7 +45,7 @@
 
         <% if (totalExams === 0) { %>
             <div class="glass-panel text-center" style="padding: 40px 20px;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
                 <h2 style="margin-bottom: 10px;">No exams completed yet.</h2>
                 <p style="color: var(--text-muted); margin-bottom: 20px;">Take a mock exam to see your analytics and track your progress!</p>
                 <a href="/dashboard" class="btn btn-ai">Take a Mock Exam</a>
@@ -117,7 +117,7 @@
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <a href="#" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download</a>
-                            <a href="/exam/ai/pdf?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;">🤖 Chat with PDF</a>
+                            <a href="/exam/ai/pdf?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;"> Chat with PDF</a>
                         </div>
                     </li>
                 <% } else { %>
@@ -128,7 +128,7 @@
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <a href="<%= (pq.file_link.startsWith('http') || pq.file_link.startsWith('data:')) ? pq.file_link : '/' + pq.file_link %>" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download File</a>
-                            <a href="/exam/ai/pdf?url=<%= encodeURIComponent(pq.file_link) %>" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;">🤖 Chat with PDF</a>
+                            <a href="/exam/ai/pdf?url=<%= encodeURIComponent(pq.file_link) %>" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;"> Chat with PDF</a>
                         </div>
                     </li>
                     <% }); %>

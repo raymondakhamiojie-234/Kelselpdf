@@ -5,7 +5,7 @@
             <% if (typeof page_desc !== 'undefined') { %>
                 <p><%= page_desc %></p>
             <% } else if (locals.user) { %>
-                <p>Hello, <%= locals.user.full_name ? locals.user.full_name.split(' ')[0] : 'Student' %> 👋<br>Have a great day ahead!</p>
+                <p>Hello, <%= locals.user.full_name ? locals.user.full_name.split(' ')[0] : 'Student' %> <br>Have a great day ahead!</p>
             <% } else { %>
                 <p>Welcome to KelselPDF</p>
             <% } %>
