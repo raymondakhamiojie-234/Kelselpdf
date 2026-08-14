@@ -9,5 +9,6 @@ router.get('/exam/start', examController.getExamStart);
 router.get('/exam/take/:course', checkAuth, examController.getTakeExam);
 router.post('/exam/submit', checkAuth, examController.postExamSubmit);
 router.get('/exam/analytics', checkAuth, examController.getExamAnalytics);
+router.get('/exam/download/:id', checkAuth, examController.trackMaterialDownload);
 
 module.exports = router;

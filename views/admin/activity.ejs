@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs - Admin Panel</title>
+    <link rel="stylesheet" href="/style.css?v=4">
+    <script src="/theme.js"></script>
+    <style>
+        .tabs { display: flex; border-bottom: 1px solid var(--cbg-color-2); margin-bottom: 20px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1.1rem; color: var(--ntxt-color); cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .tab-btn:hover { color: var(--text-color); }
+        .tab-btn.active { color: var(--cta-color); border-bottom-color: var(--cta-color); font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'activity' }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: 'Activity Logs', 
+            page_desc: 'Track recent user activities across the platform' 
+        }) %>
+        
+        <div style="padding: 20px;">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('exams')">Exam Attempts</button>
+                <button class="tab-btn" onclick="switchTab('ai')">AI Usage</button>
+                <button class="tab-btn" onclick="switchTab('downloads')">Material Downloads</button>
+            </div>
+
+            <!-- EXAMS TAB -->
+            <div id="exams" class="tab-content active">
+                <div class="glass-panel" style="overflow-x: auto;">
+                    <table class="styled-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Course</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (exams.length === 0) { %>
+                                <tr><td colspan="5" class="text-center">No exam attempts found.</td></tr>
+                            <% } else { %>
+                                <% exams.forEach(e => { %>
+                                <tr>
+                                    <td><strong><%= e.full_name %></strong></td>
+                                    <td><%= e.email %></td>
+                                    <td><%= e.course_code %></td>
+                                    <td><%= e.score %></td>
+                                    <td><%= new Date(e.created_at).toLocaleString() %></td>
+                                </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI USAGE TAB -->
+            <div id="ai" class="tab-content">
+                <div class="glass-panel" style="overflow-x: auto;">
+                    <table class="styled-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Date</th>
+                                <th>Exams Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (ai_usage.length === 0) { %>
+                                <tr><td colspan="4" class="text-center">No AI usage logged.</td></tr>
+                            <% } else { %>
+                                <% ai_usage.forEach(a => { %>
+                                <tr>
+                                    <td><strong><%= a.full_name %></strong></td>
+                                    <td><%= a.email %></td>
+                                    <td><%= new Date(a.usage_date).toLocaleDateString() %></td>
+                                    <td><%= a.exams_generated %></td>
+                                </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- DOWNLOADS TAB -->
+            <div id="downloads" class="tab-content">
+                <div class="glass-panel" style="overflow-x: auto;">
+                    <table class="styled-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Material Type</th>
+                                <th>Course</th>
+                                <th>Year</th>
+                                <th>Download Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (downloads.length === 0) { %>
+                                <tr><td colspan="6" class="text-center">No materials downloaded yet.</td></tr>
+                            <% } else { %>
+                                <% downloads.forEach(d => { %>
+                                <tr>
+                                    <td><strong><%= d.full_name %></strong></td>
+                                    <td><%= d.email %></td>
+                                    <td><%= d.type %></td>
+                                    <td><%= d.course_code %></td>
+                                    <td><%= d.year %></td>
+                                    <td><%= new Date(d.downloaded_at).toLocaleString() %></td>
+                                </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>

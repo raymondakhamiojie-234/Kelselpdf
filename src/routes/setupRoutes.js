@@ -65,13 +65,24 @@ router.get('/setup-db', async (req, res) => {
             )
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS material_downloads (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                material_id INT NOT NULL,
+                downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (material_id) REFERENCES past_questions(id) ON DELETE CASCADE
+            )
+        `);
+
         try {
             await pool.query('ALTER TABLE users ADD COLUMN referred_by_code VARCHAR(50) DEFAULT NULL');
         } catch (err) {
             // ignore if column already exists
         }
 
-        res.send("Tables checked/setup. AI usage, whitelist, and referrals tables are ready!");
+        res.send("Tables checked/setup. AI usage, whitelist, referrals, and material downloads tables are ready!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);

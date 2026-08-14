@@ -11,6 +11,7 @@ router.get('/admin/login', adminController.getAdminLogin);
 router.post('/admin/login', authLimiter, adminController.postAdminLogin);
 
 router.get('/admin', requireAdmin, adminController.getAdmin);
+router.get('/admin/activity', requireAdmin, adminController.getActivityLogs);
 router.get('/admin/questions', requireAdmin, adminController.getQuestions);
 router.post('/admin/questions', requireAdmin, upload.single('csv_file'), adminController.postQuestions);
 router.post('/admin/questions/clear', requireAdmin, adminController.postClearQuestions);
