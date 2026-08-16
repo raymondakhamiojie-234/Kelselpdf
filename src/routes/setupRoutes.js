@@ -71,8 +71,7 @@ router.get('/setup-db', async (req, res) => {
                 user_id INT UNSIGNED NOT NULL,
                 material_id INT NOT NULL,
                 downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (material_id) REFERENCES past_questions(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
