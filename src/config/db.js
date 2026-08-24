@@ -12,47 +12,4 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-(async () => {
-    try {
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS notifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT UNSIGNED NOT NULL,
-                message TEXT NOT NULL,
-                link VARCHAR(255) DEFAULT NULL,
-                is_read BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        `);
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS user_materials (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT UNSIGNED NOT NULL,
-                original_name VARCHAR(255) NOT NULL,
-                filename VARCHAR(255) NOT NULL,
-                content MEDIUMTEXT,
-                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            )
-        `);
-    } catch (e) {
-        console.error('Failed to create notifications table:', e);
-    }
-
-    try {
-        await pool.query('ALTER TABLE courses MODIFY department_id TEXT');
-        // Migrate existing string department IDs to JSON array strings if not already JSON
-        await pool.query(`
-            UPDATE courses 
-            SET department_id = CONCAT('["', department_id, '"]') 
-            WHERE department_id IS NOT NULL 
-            AND department_id != '' 
-            AND department_id NOT LIKE '[%'
-        `);
-    } catch (e) {
-        console.error('Failed to migrate courses table:', e);
-    }
-})();
-
 module.exports = pool;

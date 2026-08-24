@@ -43,9 +43,16 @@ exports.uploadMaterial = async (req, res) => {
         const filename = req.file.filename;
 
         // Parse PDF immediately instead of storing it
-        const dataBuffer = fs.readFileSync(req.file.path);
-        const pdfData = await pdfParse(dataBuffer);
-        const content = pdfData.text;
+        let content = '';
+        try {
+            const dataBuffer = fs.readFileSync(req.file.path);
+            const pdfData = await pdfParse(dataBuffer);
+            content = pdfData.text;
+        } catch (parseErr) {
+            console.error("PDF Parse Error:", parseErr);
+            fs.unlinkSync(req.file.path);
+            return res.status(400).send("Failed to parse PDF. Please ensure it is a valid text-based PDF document.");
+        }
 
         await pool.query(
             'INSERT INTO user_materials (user_id, original_name, filename, content) VALUES (?, ?, ?, ?)',
@@ -53,11 +60,16 @@ exports.uploadMaterial = async (req, res) => {
         );
 
         // Delete the temp file now that we have the text
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
 
         res.redirect('/my_materials');
     } catch (err) {
         console.error(err);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
         res.status(500).send("Server Error");
     }
 };
@@ -148,7 +160,8 @@ exports.generateExam = async (req, res) => {
             return res.json({ 
                 success: true, 
                 exam_data: { 
-                    questions: [{ id: 1, type: 'mcq', question: "Mock question?", options: ["A","B","C","D"], answer: "A", explanation: "Add API Key" }],
+                    mcqs: [{ question: "Mock question from your material?", options: ["A. True","B. False","C. Maybe","D. None"], answer_index: 0 }],
+                    theory: "Explain a concept from this material.",
                     title: `Exam on ${material.original_name}`, 
                     course: "Custom" 
                 } 
