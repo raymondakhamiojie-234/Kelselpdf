@@ -4,6 +4,10 @@ exports.getIndex = (req, res) => {
     res.render('index');
 };
 
+exports.getVision = (req, res) => {
+    res.render('vision');
+};
+
 exports.getPrivacy = (req, res) => {
     res.render('privacy');
 };
