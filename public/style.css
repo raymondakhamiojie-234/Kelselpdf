@@ -459,6 +459,7 @@ a:hover { color: var(--cta-color-hover); }
     border-top: 1px solid var(--cbg-color-2);
     justify-content: space-around;
     padding: 10px 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 1000;
 }
 .bottom-tab-nav a {
@@ -478,13 +479,13 @@ a:hover { color: var(--cta-color-hover); }
 @media (max-width: 768px) {
     /* Modify main content to account for bottom nav and no sidebar */
     .dashboard-body .main-content {
-        padding: 0 1.25rem 6rem 1.25rem !important; 
+        padding: env(safe-area-inset-top) 1.25rem calc(6rem + env(safe-area-inset-bottom)) 1.25rem !important; 
         margin-left: 0;
     }
     .app-header-curved {
         margin-left: -1.25rem;
         margin-right: -1.25rem;
-        padding: 2.5rem 1.5rem 3.5rem 1.5rem;
+        padding: calc(2.5rem + env(safe-area-inset-top)) 1.5rem 3.5rem 1.5rem;
         border-radius: 0 0 25px 25px;
     }
     .quick-access-grid {
