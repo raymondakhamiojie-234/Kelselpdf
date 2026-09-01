@@ -103,7 +103,7 @@ exports.explainMaterial = async (req, res) => {
 
         let completionText;
         try {
-            const prompt = `You are a helpful AI tutor. Summarize and explain the core concepts of the following document. Make it easy to understand for a student.\n\nDocument Text:\n${text}`;
+            const prompt = `You are a helpful AI tutor. Provide a detailed, comprehensive, and lengthy explanation of the core concepts of the following document. Break down complex ideas into easy-to-understand sections for a student. Aim for a thorough summary that covers all key points in depth.\n\nDocument Text:\n${text}`;
             completionText = await withTimeout(
                 generateNvidiaCompletion(prompt, "You are an AI tutor."),
                 30000,
@@ -172,7 +172,7 @@ exports.generateExam = async (req, res) => {
         let prompt = '';
         
         if (examType === 'cbe') {
-            prompt = `Based strictly on the following document text, generate exactly 5 multiple-choice questions.
+            prompt = `Based strictly on the following document text, generate exactly 15 multiple-choice questions.
 Return ONLY a raw JSON object with this exact structure (no markdown tags):
 {
   "mcqs": [
@@ -183,22 +183,22 @@ Return ONLY a raw JSON object with this exact structure (no markdown tags):
 Document Text:
 ${text}`;
         } else if (examType === 'theory') {
-            prompt = `Based strictly on the following document text, generate exactly 2 open-ended theory questions.
+            prompt = `Based strictly on the following document text, generate exactly 4 open-ended theory questions.
 Return ONLY a raw JSON object with this exact structure (no markdown tags):
 {
-  "theory": "1. ...\\n2. ..."
+  "theory": "1. ...\\n2. ...\\n3. ...\\n4. ..."
 }
 
 Document Text:
 ${text}`;
         } else {
-            prompt = `Based strictly on the following document text, generate exactly 5 multiple-choice questions and 1 open-ended theory question.
+            prompt = `Based strictly on the following document text, generate exactly 10 multiple-choice questions and 3 open-ended theory questions.
 Return ONLY a raw JSON object with this exact structure (no markdown tags):
 {
   "mcqs": [
     { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer_index": 0 }
   ],
-  "theory": "..."
+  "theory": "1. ...\\n2. ...\\n3. ..."
 }
 
 Document Text:
