@@ -113,10 +113,10 @@
                             <h4 style="color: var(--ntxt-color); margin: 0 0 5px 0;"><%= m.original_name %></h4>
                             <small style="color: var(--tran-color);">Uploaded: <%= new Date(m.uploaded_at).toLocaleDateString() %></small>
                         </div>
-                        <div class="material-actions">
-                            <button onclick="explainMaterial(<%= m.id %>)" class="btn-ai-alt"> AI Explain</button>
-                            <button onclick="generateExam(<%= m.id %>)" class="btn-ai"> Generate Mock Exam</button>
-                        </div>
+                          <div class="material-actions">
+                              <button onclick="explainMaterial(<%= m.id %>)" class="btn-ai-alt"> AI Explain</button>
+                              <button onclick="promptExamType(<%= m.id %>)" class="btn-ai"> Generate Mock Exam</button>
+                          </div>
                     </div>
                 <% }) %>
             <% } else { %>
@@ -165,7 +165,25 @@
             });
         }
 
-        function generateExam(id) {
+        function promptExamType(id) {
+            const modal = document.getElementById('ai-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            modal.style.display = 'flex';
+            title.textContent = 'Select Exam Type';
+            body.innerHTML = `
+                <div style="text-align: center;">
+                    <p style="color: var(--ntxt-color); margin-bottom: 20px;">What type of exam would you like to generate from this material?</p>
+                    <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                        <button onclick="generateExam(${id}, 'cbe')" class="btn" style="background: var(--cta-color); color: white; width: 100%; max-width: 250px;">CBE (Multiple Choice)</button>
+                        <button onclick="generateExam(${id}, 'theory')" class="btn" style="background: var(--sec-color); color: white; width: 100%; max-width: 250px;">Theory (Open Ended)</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateExam(id, type) {
             const modal = document.getElementById('ai-modal');
             const title = document.getElementById('modal-title');
             const body = document.getElementById('modal-body');
@@ -177,13 +195,13 @@
             fetch('/api/ai/material_exam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ material_id: id })
+                body: JSON.stringify({ material_id: id, exam_type: type })
             })
             .then(res => res.json())
             .then(data => {
                 if(data.success === false || data.error) {
                     body.innerHTML = `<span style="color:red;">Error: ${data.error || 'Failed to generate exam'}</span>
-                                      <br><br><button onclick="generateExam(${id})" class="btn-ai">Try Again</button>`;
+                                      <br><br><button onclick="promptExamType(${id})" class="btn-ai">Try Again</button>`;
                 } else {
                     // Save to localStorage so ai_exam page can read it
                     localStorage.setItem('generated_mock_exam', JSON.stringify(data.exam_data || data));
@@ -195,7 +213,7 @@
             })
             .catch(err => {
                 body.innerHTML = `<span style="color:red;">Network timeout: AI service busy. Please try again.</span>
-                                  <br><br><button onclick="generateExam(${id})" class="btn-ai">Try Again</button>`;
+                                  <br><br><button onclick="promptExamType(${id})" class="btn-ai">Try Again</button>`;
             });
         }
     </script>

@@ -160,37 +160,44 @@
             document.getElementById('examContainer').style.display = 'block';
 
             const mcqContainer = document.getElementById('mcqContainer');
-            examData.mcqs.forEach((mcq, index) => {
-                // Restore MCQ from local storage if exists
-                const savedValue = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_q${index}`);
-                
-                let html = `
-                    <div class="question-card" id="qcard-${index}">
-                        <h4>Question ${index + 1}</h4>
-                        <p>${mcq.question}</p>
-                        <ul class="options-list">
-                `;
-                mcq.options.forEach((opt, oIndex) => {
-                    const checked = savedValue == oIndex ? "checked" : "";
-                    html += `
-                        <li>
-                            <label>
-                                <input type="radio" name="q${index}" value="${oIndex}" ${checked} required onchange="saveAIProgress('q${index}', '${oIndex}')">
-                                ${opt}
-                            </label>
-                        </li>
+            if (examData.mcqs && examData.mcqs.length > 0) {
+                examData.mcqs.forEach((mcq, index) => {
+                    // Restore MCQ from local storage if exists
+                    const savedValue = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_q${index}`);
+                    
+                    let html = `
+                        <div class="question-card" id="qcard-${index}">
+                            <h4>Question ${index + 1}</h4>
+                            <p>${mcq.question}</p>
+                            <ul class="options-list">
                     `;
+                    mcq.options.forEach((opt, oIndex) => {
+                        const checked = savedValue == oIndex ? "checked" : "";
+                        html += `
+                            <li>
+                                <label>
+                                    <input type="radio" name="q${index}" value="${oIndex}" ${checked} required onchange="saveAIProgress('q${index}', '${oIndex}')">
+                                    ${opt}
+                                </label>
+                            </li>
+                        `;
+                    });
+                    html += `</ul></div>`;
+                    mcqContainer.innerHTML += html;
                 });
-                html += `</ul></div>`;
-                mcqContainer.innerHTML += html;
-            });
+            } else {
+                mcqContainer.innerHTML = '<p style="color: var(--tran-color); text-align: center;">No Multiple Choice Questions generated.</p>';
+            }
 
-            document.getElementById('theoryQuestionText').innerText = examData.theory;
-            
-            // Restore theory
-            const savedTheory = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
-            if (savedTheory) {
-                document.getElementById('theoryAnswer').value = savedTheory;
+            if (examData.theory) {
+                document.getElementById('theoryQuestionText').innerText = examData.theory;
+                // Restore theory
+                const savedTheory = localStorage.getItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
+                if (savedTheory) {
+                    document.getElementById('theoryAnswer').value = savedTheory;
+                }
+            } else {
+                document.getElementById('theorySection').style.display = 'none';
             }
         }
 
@@ -205,62 +212,78 @@
             submitBtn.innerText = "Submitting...";
 
             // Grade MCQs instantly
-            examData.mcqs.forEach((mcq, index) => {
-                const selected = document.querySelector(`input[name="q${index}"]:checked`);
-                const card = document.getElementById(`qcard-${index}`);
-                if (selected) {
-                    if (parseInt(selected.value) === mcq.answer_index) {
-                        score++;
-                        card.style.borderLeft = "4px solid var(--success)";
-                    } else {
-                        card.style.borderLeft = "4px solid var(--error)";
+            if (examData.mcqs && examData.mcqs.length > 0) {
+                examData.mcqs.forEach((mcq, index) => {
+                    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                    const card = document.getElementById(`qcard-${index}`);
+                    if (selected) {
+                        if (parseInt(selected.value) === mcq.answer_index) {
+                            score++;
+                            card.style.borderLeft = "4px solid var(--success)";
+                        } else {
+                            card.style.borderLeft = "4px solid var(--error)";
+                        }
                     }
-                }
-            });
-
-            document.getElementById('scoreDisplay').innerText = `${score} / ${examData.mcqs.length}`;
+                });
+                document.getElementById('scoreDisplay').innerText = `${score} / ${examData.mcqs.length}`;
+            } else {
+                document.getElementById('scoreDisplay').style.display = 'none';
+            }
+            
             document.getElementById('resultsContainer').style.display = 'block';
 
             // Submit Theory for AI grading
-            const answer = document.getElementById('theoryAnswer').value;
-            const feedbackBox = document.getElementById('theoryFeedback');
-            feedbackBox.style.display = 'block';
-            feedbackBox.className = 'alert';
-            feedbackBox.innerText = 'Grading theory answer...';
+            if (examData.theory) {
+                const answer = document.getElementById('theoryAnswer').value;
+                const feedbackBox = document.getElementById('theoryFeedback');
+                feedbackBox.style.display = 'block';
+                feedbackBox.className = 'alert';
+                feedbackBox.innerText = 'Grading theory answer...';
 
-            fetch('/api/ai/grade', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    question: examData.theory,
-                    answer: answer
+                fetch('/api/ai/grade', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question: examData.theory,
+                        answer: answer
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success === false || data.error) {
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success === false || data.error) {
+                        feedbackBox.className = 'alert alert-error';
+                        feedbackBox.innerHTML = `Error: ${data.error || "Unknown Error"}<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit Answers for Grading";
+                    } else {
+                        // Clear local storage ONLY on success
+                        if (examData.mcqs) {
+                            for (let i = 0; i < examData.mcqs.length; i++) {
+                                localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_q${i}`);
+                            }
+                        }
+                        localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
+                        
+                        feedbackBox.className = 'alert alert-success';
+                        feedbackBox.innerHTML = `<strong>AI Feedback:</strong><br>${data.feedback}<br><br><strong>Score:</strong> ${data.score}/10`;
+                        submitBtn.style.display = 'none'; // fully completed
+                    }
+                })
+                .catch(err => {
                     feedbackBox.className = 'alert alert-error';
-                    feedbackBox.innerHTML = `Error: ${data.error || "Unknown Error"}<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
+                    feedbackBox.innerHTML = `Network timeout: AI service busy. Please try again.<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Submit Answers for Grading";
-                } else {
-                    // Clear local storage ONLY on success
+                });
+            } else {
+                // No theory, finish immediately
+                if (examData.mcqs) {
                     for (let i = 0; i < examData.mcqs.length; i++) {
                         localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_q${i}`);
                     }
-                    localStorage.removeItem(`ai_exam_<%= encodeURIComponent(course) %>_theory`);
-
-                    feedbackBox.className = 'alert alert-success';
-                    feedbackBox.innerHTML = `<strong>Score: ${data.score}/10</strong><br>${data.feedback}`;
-                    submitBtn.style.display = 'none'; // hide submit button on full success
                 }
-            })
-            .catch(err => {
-                feedbackBox.className = 'alert alert-error';
-                feedbackBox.innerHTML = `Network timeout: Failed to grade theory.<br><br><button type="button" class="btn btn-ai-alt" onclick="submitExam()" style="padding: 5px 15px;">Retry Grading</button>`;
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Submit Answers for Grading";
-            });
+                submitBtn.style.display = 'none'; // fully completed
+            }
         }
     </script>
 </body>

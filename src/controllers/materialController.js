@@ -168,7 +168,31 @@ exports.generateExam = async (req, res) => {
             });
         }
 
-        const prompt = `Based strictly on the following document text, generate exactly 5 multiple-choice questions and 1 open-ended theory question.
+        const examType = req.body.exam_type || 'both';
+        let prompt = '';
+        
+        if (examType === 'cbe') {
+            prompt = `Based strictly on the following document text, generate exactly 5 multiple-choice questions.
+Return ONLY a raw JSON object with this exact structure (no markdown tags):
+{
+  "mcqs": [
+    { "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer_index": 0 }
+  ]
+}
+
+Document Text:
+${text}`;
+        } else if (examType === 'theory') {
+            prompt = `Based strictly on the following document text, generate exactly 2 open-ended theory questions.
+Return ONLY a raw JSON object with this exact structure (no markdown tags):
+{
+  "theory": "1. ...\\n2. ..."
+}
+
+Document Text:
+${text}`;
+        } else {
+            prompt = `Based strictly on the following document text, generate exactly 5 multiple-choice questions and 1 open-ended theory question.
 Return ONLY a raw JSON object with this exact structure (no markdown tags):
 {
   "mcqs": [
@@ -179,6 +203,7 @@ Return ONLY a raw JSON object with this exact structure (no markdown tags):
 
 Document Text:
 ${text}`;
+        }
 
         let completionText;
         try {
