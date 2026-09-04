@@ -81,7 +81,13 @@ router.get('/setup-db', async (req, res) => {
             // ignore if column already exists
         }
 
-        res.send("Tables checked/setup. AI usage, whitelist, referrals, and material downloads tables are ready!");
+        try {
+            await pool.query('ALTER TABLE users MODIFY COLUMN password VARCHAR(255)');
+        } catch (err) {
+            // ignore
+        }
+
+        res.send("Tables checked/setup. AI usage, whitelist, referrals, and material downloads tables are ready! Password column size ensured.");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);

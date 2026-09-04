@@ -32,7 +32,7 @@
                 </div>
             <% } %>
 
-            <form method="POST" action="/register">
+            <form method="POST" action="/register" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerText = 'Creating Account...';">
                 <input type="hidden" name="referral_code" value="<%= locals.ref || '' %>">
                 <div style="display: flex; gap: 1rem;">
                     <div class="form-group" style="flex: 1;">
