@@ -137,6 +137,24 @@ router.get('/debug-users', async (req, res) => {
     }
 });
 
+// Check a specific user's status by email
+router.get('/debug-user', async (req, res) => {
+    try {
+        const email = req.query.email;
+        if (!email) return res.send("Please provide an email. Example: /debug-user?email=test@gmail.com");
+        
+        const [rows] = await pool.query("SELECT id, full_name, email, has_paid, subscription_plan, account_locked, expiry_date FROM users WHERE email = ?", [email]);
+        
+        if (rows.length === 0) {
+            return res.send(`No account found for email: ${email}`);
+        }
+        
+        res.json(rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/upgrade-admin', checkAuth, async (req, res) => {
     try {
         await pool.query("UPDATE users SET role = 'admin', has_paid = 1 WHERE id = ?", [req.session.user_id]);
