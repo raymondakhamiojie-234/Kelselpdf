@@ -89,17 +89,29 @@ router.get('/setup-db', async (req, res) => {
 
         try {
             await pool.query('ALTER TABLE users ADD COLUMN referred_by_code VARCHAR(50) DEFAULT NULL');
-        } catch (err) {
-            // ignore if column already exists
-        }
+        } catch (err) { }
+
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN expiry_date DATE DEFAULT NULL');
+        } catch (err) { }
+
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN subscription_plan VARCHAR(50) DEFAULT "none"');
+        } catch (err) { }
+
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN can_change_level BOOLEAN DEFAULT 1');
+        } catch (err) { }
+
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN account_locked BOOLEAN DEFAULT 0');
+        } catch (err) { }
 
         try {
             await pool.query('ALTER TABLE users MODIFY COLUMN password VARCHAR(255)');
-        } catch (err) {
-            // ignore
-        }
+        } catch (err) { }
 
-        res.send("Tables checked/setup. AI usage, whitelist, referrals, and material downloads tables are ready! Password column size ensured.");
+        res.send("Tables checked/setup. All columns and tables are ready!");
     } catch (err) {
         console.error(err);
         res.status(500).send("Setup Failed: " + err.message);
