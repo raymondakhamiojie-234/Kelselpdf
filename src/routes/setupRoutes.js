@@ -155,6 +155,34 @@ router.get('/debug-user', async (req, res) => {
     }
 });
 
+// Force fix a broken user (resets password to 12345678 and upgrades them)
+router.get('/fix-user', async (req, res) => {
+    try {
+        const email = req.query.email;
+        if (!email) return res.send("Please provide an email. Example: /fix-user?email=test@gmail.com");
+        
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = await bcrypt.hash('12345678', 10);
+        
+        const date = new Date();
+        date.setMonth(date.getMonth() + 6);
+        const expiry_date = date.toISOString().split('T')[0];
+
+        const [result] = await pool.query(
+            "UPDATE users SET password = ?, has_paid = 1, subscription_plan = 'Full Premium', expiry_date = ?, can_change_level = 1, account_locked = 0 WHERE email = ?", 
+            [hashedPassword, expiry_date, email]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.send(`No account found for email: ${email}`);
+        }
+        
+        res.send(`Successfully fixed account for ${email}. They can now login with password: 12345678`);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/upgrade-admin', checkAuth, async (req, res) => {
     try {
         await pool.query("UPDATE users SET role = 'admin', has_paid = 1 WHERE id = ?", [req.session.user_id]);
