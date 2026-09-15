@@ -75,6 +75,18 @@ router.get('/setup-db', async (req, res) => {
             )
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                reference VARCHAR(255) NOT NULL,
+                plan VARCHAR(50),
+                amount DECIMAL(10, 2),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
         try {
             await pool.query('ALTER TABLE users ADD COLUMN referred_by_code VARCHAR(50) DEFAULT NULL');
         } catch (err) {

@@ -55,16 +55,24 @@ exports.verifyPayment = async (req, res) => {
         );
 
         const amount_paid = tranx.data.amount ? (tranx.data.amount / 100) : 0;
-        await pool.query(
-            'INSERT INTO transactions (user_id, reference, plan, amount) VALUES (?, ?, ?, ?)',
-            [user_id, reference, plan_name, amount_paid]
-        );
+        try {
+            await pool.query(
+                'INSERT INTO transactions (user_id, reference, plan, amount) VALUES (?, ?, ?, ?)',
+                [user_id, reference, plan_name, amount_paid]
+            );
+        } catch (trxErr) {
+            console.error("Failed to insert transaction record:", trxErr);
+            // We don't want to fail the whole payment just because the log failed
+        }
 
-        // Update session
-        req.session.user.has_paid = 1;
-        req.session.user.expiry_date = expiry_date;
-        req.session.user.subscription_plan = plan_name;
-        req.session.user.account_locked = 0;
+        // Update session cleanly
+        req.session.user = {
+            ...req.session.user,
+            has_paid: 1,
+            expiry_date: expiry_date,
+            subscription_plan: plan_name,
+            account_locked: 0
+        };
 
         res.json({ status: 'success' });
     } catch (err) {
