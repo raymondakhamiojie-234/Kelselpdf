@@ -58,11 +58,11 @@ exports.postRegister = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        let query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan) VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none')`;
+        let query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan) VALUES (?, ?, ?, ?, ?, ?, 'student', false, 'none')`;
         let params = [full_name, lastname, email, hashedPassword, department_id, parseInt(level)];
 
         if (referral_code && referral_code.trim() !== '') {
-            query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan, referred_by_code) VALUES (?, ?, ?, ?, ?, ?, 'student', 0, 'none', ?)`;
+            query = `INSERT INTO users (full_name, lastname, email, password, department_id, level, role, has_paid, subscription_plan, referred_by_code) VALUES (?, ?, ?, ?, ?, ?, 'student', false, 'none', ?)`;
             params.push(referral_code.trim().toUpperCase());
         }
 
@@ -101,7 +101,7 @@ exports.postProfile = async (req, res) => {
         
         if (can_change && level) {
             final_level = level;
-            final_can_change = 0;
+            final_can_change = false;
         }
 
         await pool.query(

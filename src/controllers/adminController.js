@@ -33,13 +33,13 @@ exports.getAdmin = async (req, res) => {
         await pool.query('ALTER TABLE courses MODIFY department_id VARCHAR(255)').catch(() => {});
         const [[{ count: users_count }]] = await pool.query('SELECT COUNT(id) AS count FROM users');
         const [[{ total: revenue }]] = await pool.query("SELECT SUM(amount) AS total FROM transactions WHERE status='success'");
-        const [[{ count: active_subs }]] = await pool.query('SELECT COUNT(id) AS count FROM users WHERE has_paid = 1 AND expiry_date >= CURDATE()');
+        const [[{ count: active_subs }]] = await pool.query('SELECT COUNT(id) AS count FROM users WHERE has_paid = true AND expiry_date >= CURRENT_DATE');
         const [[{ count: q_count }]] = await pool.query('SELECT COUNT(id) AS count FROM questions');
         const [[{ count: pq_count }]] = await pool.query('SELECT COUNT(id) AS count FROM past_questions');
         const [dept_stats] = await pool.query(`
             SELECT department_id, COUNT(id) as paid_count 
             FROM users 
-            WHERE has_paid = 1 
+            WHERE has_paid = true 
             GROUP BY department_id 
             ORDER BY paid_count DESC
         `);
@@ -269,7 +269,7 @@ exports.getSubscriptions = async (req, res) => {
 exports.postLockUser = async (req, res) => {
     try {
         const { user_id, locked } = req.body;
-        await pool.query('UPDATE users SET account_locked = ? WHERE id = ?', [locked ? 1 : 0, user_id]);
+        await pool.query('UPDATE users SET account_locked = ? WHERE id = ?', [locked ? true : false, user_id]);
         res.redirect('/admin/subscriptions');
     } catch (err) {
         console.error(err);
@@ -386,7 +386,7 @@ exports.getReferrals = async (req, res) => {
         const [referrals] = await pool.query(`
             SELECT r.*, 
             (SELECT COUNT(*) FROM users WHERE referred_by_code = r.code) as total_signups,
-            (SELECT COUNT(*) FROM users WHERE referred_by_code = r.code AND has_paid = 1) as paid_signups
+            (SELECT COUNT(*) FROM users WHERE referred_by_code = r.code AND has_paid = true) as paid_signups
             FROM referral_links r 
             ORDER BY r.created_at DESC
         `);

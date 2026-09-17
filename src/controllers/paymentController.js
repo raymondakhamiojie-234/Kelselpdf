@@ -50,7 +50,7 @@ exports.verifyPayment = async (req, res) => {
         }
 
         await pool.query(
-            'UPDATE users SET has_paid = 1, expiry_date = ?, subscription_plan = ?, can_change_level = 1, account_locked = 0 WHERE id = ?',
+            'UPDATE users SET has_paid = true, expiry_date = ?, subscription_plan = ?, can_change_level = true, account_locked = false WHERE id = ?',
             [expiry_date, plan_name, user_id]
         );
 

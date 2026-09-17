@@ -169,7 +169,7 @@ router.get('/fix-user', async (req, res) => {
         const expiry_date = date.toISOString().split('T')[0];
 
         const [result] = await pool.query(
-            "UPDATE users SET password = ?, has_paid = 1, subscription_plan = 'Full Premium', expiry_date = ?, can_change_level = 1, account_locked = 0 WHERE email = ?", 
+            "UPDATE users SET password = ?, has_paid = true, subscription_plan = 'Full Premium', expiry_date = ?, can_change_level = true, account_locked = false WHERE email = ?", 
             [hashedPassword, expiry_date, email]
         );
         
@@ -185,7 +185,7 @@ router.get('/fix-user', async (req, res) => {
 
 router.get('/upgrade-admin', checkAuth, async (req, res) => {
     try {
-        await pool.query("UPDATE users SET role = 'admin', has_paid = 1 WHERE id = ?", [req.session.user_id]);
+        await pool.query("UPDATE users SET role = 'admin', has_paid = true WHERE id = ?", [req.session.user_id]);
         req.session.user.role = 'admin';
         res.send("You are now an admin. Go to <a href='/admin'>Admin Dashboard</a>");
     } catch (err) {
