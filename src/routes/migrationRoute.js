@@ -62,16 +62,22 @@ router.get('/run', async (req, res) => {
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
     
     let inserted = 0;
-    for (const row of rows) {
-      const values = keys.map(k => {
-         if (table === 'users' && (k === 'has_paid' || k === 'can_change_level' || k === 'account_locked')) return row[k] === 1;
-         if (table === 'academy_progress' && k === 'completed') return row[k] === 1;
-         if (table === 'academy_courses' && k === 'is_premium') return row[k] === 1;
-         if (table === 'notifications' && k === 'is_read') return row[k] === 1;
-         return row[k];
+    const batchSize = 100;
+    
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const batch = rows.slice(i, i + batchSize);
+      const promises = batch.map(row => {
+        const values = keys.map(k => {
+           if (table === 'users' && (k === 'has_paid' || k === 'can_change_level' || k === 'account_locked')) return row[k] === 1;
+           if (table === 'academy_progress' && k === 'completed') return row[k] === 1;
+           if (table === 'academy_courses' && k === 'is_premium') return row[k] === 1;
+           if (table === 'notifications' && k === 'is_read') return row[k] === 1;
+           return row[k];
+        });
+        return pClient.query(`INSERT INTO "${table}" (${columns}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`, values);
       });
-      await pClient.query(`INSERT INTO "${table}" (${columns}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`, values);
-      inserted++;
+      await Promise.all(promises);
+      inserted += batch.length;
     }
 
     res.json({ message: `Successfully migrated ${inserted} rows into ${table}.` });
