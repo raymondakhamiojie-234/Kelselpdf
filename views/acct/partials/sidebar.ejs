@@ -28,6 +28,7 @@
         <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 0;">Academic</p>
         <ul>
             <li><a href="/dashboard" class="<%= locals.active_page === 'dashboard' ? 'active' : '' %>"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/ai-chat" class="<%= locals.active_page === 'ai_chat' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AI Tutor</a></li>
             <li><a href="/exam_materials" class="<%= locals.active_page === 'exam_materials' ? 'active' : '' %>"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Study Materials</a></li>
             <li><a href="/my_materials" class="<%= locals.active_page === 'my_materials' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> My Materials</a></li>
             <li><a href="/exam/analytics" class="<%= locals.active_page === 'exam_analytics' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Analytics</a></li>
@@ -114,6 +115,10 @@
         <a href="/dashboard" class="<%= locals.active_page === 'dashboard' ? 'active' : '' %>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             Home
+        </a>
+        <a href="/ai-chat" class="<%= locals.active_page === 'ai_chat' ? 'active' : '' %>">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            AI Tutor
         </a>
         <a href="/my_materials" class="<%= locals.active_page === 'my_materials' ? 'active' : '' %>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
