@@ -5,23 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Tutor - KelselPDF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/acct/css/dashboard.css">
+    <link rel="stylesheet" href="/style.css?v=3">
+    <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .chat-container {
             display: flex;
             height: calc(100vh - 140px);
-            background: var(--card-bg);
+            background: var(--neu-color);
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             margin-top: 1rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--cbg-color-2);
         }
 
         .chat-sidebar {
             width: 300px;
-            border-right: 1px solid var(--border-color);
+            border-right: 1px solid var(--cbg-color-2);
             display: flex;
             flex-direction: column;
             background: #fafafa;
@@ -29,13 +31,13 @@
 
         .chat-sidebar-header {
             padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--cbg-color-2);
         }
 
         .new-chat-btn {
             width: 100%;
             padding: 0.75rem;
-            background: var(--primary-color);
+            background: var(--cta-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -49,7 +51,7 @@
         }
 
         .new-chat-btn:hover {
-            background: var(--secondary-color);
+            background: var(--cta-color-hover);
         }
 
         .chat-sessions {
@@ -84,7 +86,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--card-bg);
+            background: var(--neu-color);
         }
 
         .chat-messages {
@@ -111,7 +113,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--cta-color);
             color: white;
             display: flex;
             align-items: center;
@@ -132,14 +134,14 @@
         }
 
         .message.user .message-content {
-            background: var(--primary-color);
+            background: var(--cta-color);
             color: white;
             border-top-right-radius: 4px;
         }
 
         .message.assistant .message-content {
             border-top-left-radius: 4px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--cbg-color-2);
             width: 100%;
         }
 
@@ -154,22 +156,22 @@
 
         .chat-input-area {
             padding: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            background: var(--card-bg);
+            border-top: 1px solid var(--cbg-color-2);
+            background: var(--neu-color);
         }
 
         .input-wrapper {
             display: flex;
             gap: 1rem;
             background: var(--bg-color);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--cbg-color-2);
             border-radius: 12px;
             padding: 0.5rem 1rem;
             align-items: flex-end;
         }
 
         .input-wrapper:focus-within {
-            border-color: var(--primary-color);
+            border-color: var(--cta-color);
             box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.1);
         }
 
@@ -186,7 +188,7 @@
         }
 
         #sendBtn {
-            background: var(--primary-color);
+            background: var(--cta-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -201,7 +203,7 @@
         }
 
         #sendBtn:hover:not(:disabled) {
-            background: var(--secondary-color);
+            background: var(--cta-color-hover);
         }
 
         #sendBtn:disabled {
@@ -254,7 +256,7 @@
                 width: 100%;
                 height: 150px;
                 border-right: none;
-                border-bottom: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--cbg-color-2);
             }
             .chat-messages {
                 padding: 1rem;
