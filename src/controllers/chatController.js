@@ -10,7 +10,7 @@ async function generateNvidiaCompletion(messages) {
             "Accept": "application/json"
         },
         body: JSON.stringify({
-            model: "meta/llama-3.1-70b-instruct",
+            model: "meta/llama-3.3-70b-instruct",
             messages: messages,
             temperature: 0.2,
             top_p: 0.7,
