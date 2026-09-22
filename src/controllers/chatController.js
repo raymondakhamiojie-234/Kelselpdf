@@ -109,11 +109,13 @@ exports.postMessage = async (req, res) => {
         ];
 
         // Ensure title is generated if it's the first message
+        let newTitle = null;
         if (history.length <= 2) {
             try {
                 const titlePrompt = [{ role: 'user', content: `Generate a short 3-word title for this chat based on this first message: "${message}". Reply ONLY with the title.` }];
                 const title = await generateNvidiaCompletion(titlePrompt);
-                await pool.query('UPDATE ai_chat_sessions SET title = ?, updated_at = NOW() WHERE id = ?', [title.replace(/["']/g, '').trim(), session_id]);
+                newTitle = title.replace(/["']/g, '').trim();
+                await pool.query('UPDATE ai_chat_sessions SET title = ?, updated_at = NOW() WHERE id = ?', [newTitle, session_id]);
             } catch (e) { }
         } else {
             await pool.query('UPDATE ai_chat_sessions SET updated_at = NOW() WHERE id = ?', [session_id]);
@@ -125,7 +127,7 @@ exports.postMessage = async (req, res) => {
         // Save AI Message
         await pool.query('INSERT INTO ai_chat_messages (session_id, role, content) VALUES (?, ?, ?)', [session_id, 'assistant', aiResponse]);
 
-        res.json({ success: true, reply: aiResponse });
+        res.json({ success: true, reply: aiResponse, newTitle });
     } catch (err) {
         console.error(err);
         res.json({ success: false, error: err.message });
