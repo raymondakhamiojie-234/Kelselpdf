@@ -102,16 +102,15 @@
         .message {
             display: flex;
             gap: 1rem;
-            max-width: 85%;
-            align-items: flex-start;
+            width: 100%;
         }
 
         .message.assistant {
-            align-self: flex-start;
+            justify-content: flex-start;
         }
 
         .message.user {
-            align-self: flex-end;
+            justify-content: flex-end;
             flex-direction: row-reverse;
         }
 
@@ -139,8 +138,8 @@
             background: var(--bg-color);
             line-height: 1.6;
             color: var(--ntxt-color);
-            min-width: 0;
-            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 75%;
         }
 
         .message.user .message-content {
