@@ -26,7 +26,7 @@
             border-right: 1px solid var(--cbg-color-2);
             display: flex;
             flex-direction: column;
-            background: #fafafa;
+            background: var(--cbg-color);
         }
 
         .chat-sidebar-header {
@@ -72,7 +72,7 @@
         }
 
         .session-item:hover, .session-item.active {
-            background: var(--bg-color);
+            background: var(--cbg-color-2);
         }
 
         .session-title {
@@ -87,6 +87,7 @@
             display: flex;
             flex-direction: column;
             background: var(--neu-color);
+            min-width: 0;
         }
 
         .chat-messages {
@@ -96,12 +97,15 @@
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+            align-items: flex-start;
         }
 
         .message {
             display: flex;
             gap: 1rem;
             max-width: 85%;
+            align-items: flex-start;
+            width: fit-content;
         }
 
         .message.user {
@@ -120,6 +124,7 @@
             justify-content: center;
             font-weight: 600;
             flex-shrink: 0;
+            margin-top: 0.25rem;
         }
 
         .message.assistant .message-avatar {
@@ -132,6 +137,8 @@
             background: var(--bg-color);
             line-height: 1.6;
             color: var(--ntxt-color);
+            min-width: 0;
+            word-wrap: break-word;
         }
 
         .message.user .message-content {
