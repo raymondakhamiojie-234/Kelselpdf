@@ -267,15 +267,18 @@
         }
     </style>
 </head>
-<body class="light-mode">
-    <%- include('partials/sidebar') %>
-    <%- include('partials/app_header') %>
+<body class="dashboard-body">
+    <%- include('partials/sidebar', { active_page: 'ai_chat' }) %>
 
-    <div class="main-content">
-        <h2 style="margin: 0; font-size: 1.5rem;">AI Tutor</h2>
-        <p style="color: var(--text-color); opacity: 0.7; margin-top: 0.5rem;">Your personalized AI assistant knows your exam progress and study materials.</p>
+    <main class="main-content">
+        <%- include('partials/app_header') %>
 
-        <div class="chat-container">
+        <div style="padding: 0 1.5rem;">
+            <h2 style="margin: 0; font-size: 1.5rem; color: var(--ntxt-color);">AI Tutor</h2>
+            <p style="color: var(--text-color); opacity: 0.7; margin-top: 0.5rem;">Your personalized AI assistant knows your exam progress and study materials.</p>
+        </div>
+
+        <div class="chat-container" style="margin: 1rem 1.5rem;">
             <!-- Sidebar -->
             <div class="chat-sidebar">
                 <div class="chat-sidebar-header">
@@ -318,7 +321,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
         let currentSessionId = null;
