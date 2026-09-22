@@ -10,7 +10,7 @@ async function generateNvidiaCompletion(messages) {
             "Accept": "application/json"
         },
         body: JSON.stringify({
-            model: "nvidia/llama-3.1-nemotron-70b-instruct",
+            model: process.env.NVIDIA_MODEL_ID || "meta/llama3-70b-instruct",
             messages: messages,
             temperature: 0.2,
             top_p: 0.7,
