@@ -103,6 +103,7 @@
             display: flex;
             gap: 1rem;
             width: 100%;
+            align-items: flex-start;
         }
 
         .message.assistant {
@@ -110,7 +111,7 @@
         }
 
         .message.user {
-            justify-content: flex-end;
+            justify-content: flex-start;
             flex-direction: row-reverse;
         }
 
@@ -390,7 +391,7 @@
                         appendMessage('assistant', "Hello! I'm your AI Tutor. How can I help you study today?");
                     } else {
                         data.messages.forEach(msg => {
-                            appendMessage(msg.role, msg.content, false);
+                            appendMessage(msg.role, msg.content);
                         });
                     }
                     scrollToBottom();
