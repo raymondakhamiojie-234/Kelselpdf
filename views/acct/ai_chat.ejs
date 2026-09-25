@@ -19,6 +19,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             margin-top: 1rem;
             border: 1px solid var(--cbg-color-2);
+            position: relative;
         }
 
         .chat-sidebar {
@@ -27,15 +28,45 @@
             display: flex;
             flex-direction: column;
             background: var(--cbg-color);
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .chat-sidebar.open {
+            transform: translateX(0);
         }
 
         .chat-sidebar-header {
             padding: 1rem;
             border-bottom: 1px solid var(--cbg-color-2);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .close-sidebar-btn {
+            background: transparent;
+            border: none;
+            color: var(--ntxt-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-sidebar-btn:hover {
+            background: var(--cbg-color-2);
         }
 
         .new-chat-btn {
-            width: 100%;
+            flex: 1;
             padding: 0.75rem;
             background: var(--cta-color);
             color: white;
@@ -99,23 +130,23 @@
             gap: 1.5rem;
         }
 
-        .message {
+        .ai-msg {
             display: flex;
             gap: 1rem;
             width: 100%;
             align-items: flex-start;
         }
 
-        .message.assistant {
+        .ai-msg.assistant {
             justify-content: flex-start;
         }
 
-        .message.user {
+        .ai-msg.user {
             justify-content: flex-start;
             flex-direction: row-reverse;
         }
 
-        .message-avatar {
+        .ai-msg-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -129,11 +160,11 @@
             margin-top: 0.25rem;
         }
 
-        .message.assistant .message-avatar {
+        .ai-msg.assistant .ai-msg-avatar {
             background: #20b2aa;
         }
 
-        .message-content {
+        .ai-msg-content {
             padding: 1rem 1.25rem;
             border-radius: 12px;
             background: var(--bg-color);
@@ -145,25 +176,25 @@
             min-width: 0;
         }
 
-        .message.user .message-content {
+        .ai-msg.user .ai-msg-content {
             background: var(--cta-color);
             color: white;
             border-top-right-radius: 4px;
         }
 
-        .message.assistant .message-content {
+        .ai-msg.assistant .ai-msg-content {
             border-top-left-radius: 4px;
             border: 1px solid var(--cbg-color-2);
         }
 
         /* Markdown Styles for AI */
-        .message-content p { margin-top: 0; margin-bottom: 0.75rem; }
-        .message-content p:last-child { margin-bottom: 0; }
-        .message-content pre { background: #1e1e1e; color: #fff; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
-        .message-content code { font-family: monospace; background: rgba(0,0,0,0.05); padding: 0.2rem 0.4rem; border-radius: 4px; }
-        .message-content pre code { background: none; padding: 0; }
-        .message-content ul, .message-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
-        .message.user .message-content code { background: rgba(255,255,255,0.2); }
+        .ai-msg-content p { margin-top: 0; margin-bottom: 0.75rem; }
+        .ai-msg-content p:last-child { margin-bottom: 0; }
+        .ai-msg-content pre { background: #1e1e1e; color: #fff; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+        .ai-msg-content code { font-family: monospace; background: rgba(0,0,0,0.05); padding: 0.2rem 0.4rem; border-radius: 4px; }
+        .ai-msg-content pre code { background: none; padding: 0; }
+        .ai-msg-content ul, .ai-msg-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .ai-msg.user .ai-msg-content code { background: rgba(255,255,255,0.2); }
 
         .chat-input-area {
             padding: 1.5rem;
@@ -272,7 +303,7 @@
             .chat-messages {
                 padding: 1rem;
             }
-            .message {
+            .ai-msg {
                 max-width: 95%;
             }
         }
@@ -291,11 +322,14 @@
 
         <div class="chat-container" style="margin: 1rem 1.5rem;">
             <!-- Sidebar -->
-            <div class="chat-sidebar">
+            <div class="chat-sidebar" id="chatSidebar">
                 <div class="chat-sidebar-header">
                     <button class="new-chat-btn" onclick="startNewSession()">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         New Chat
+                    </button>
+                    <button class="close-sidebar-btn" onclick="toggleSidebar()" title="Close History">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
                 <div class="chat-sessions" id="sessionList">
@@ -310,6 +344,16 @@
 
             <!-- Main Chat Area -->
             <div class="chat-main">
+                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--cbg-color-2); display: flex; align-items: center; background: var(--cbg-color);">
+                    <button class="close-sidebar-btn" onclick="toggleSidebar()" title="Chat History" style="margin-left: -0.5rem;">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <span style="font-weight: 600; margin-left: 0.5rem;">AI Chat</span>
+                </div>
                 <div class="chat-messages" id="chatBox">
                     <div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12L2.1 14.9"></path><path d="M12 12L14.9 21.9"></path></svg>
@@ -345,6 +389,9 @@
 
         async function startNewSession() {
             try {
+                // Close sidebar if open
+                document.getElementById('chatSidebar').classList.remove('open');
+                
                 const res = await fetch('/api/ai-chat/session', { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
@@ -379,6 +426,9 @@
             document.querySelectorAll('.session-item').forEach(e => e.classList.remove('active'));
             if(el) el.classList.add('active');
 
+            // Close sidebar if open
+            document.getElementById('chatSidebar').classList.remove('open');
+
             document.getElementById('chatBox').innerHTML = '<div class="empty-state"><div class="loading-dots">Loading</div></div>';
             document.getElementById('inputArea').style.display = 'block';
 
@@ -404,7 +454,7 @@
         function appendMessage(role, content, renderMarkdown = true) {
             const chatBox = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${role}`;
+            msgDiv.className = `ai-msg ${role}`;
             
             let avatar = role === 'assistant' ? 'AI' : userInitials;
             let displayContent = role === 'assistant' && renderMarkdown ? marked.parse(content) : content;
@@ -481,6 +531,11 @@
                 sendMessage();
             }
         });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('chatSidebar');
+            sidebar.classList.toggle('open');
+        }
     </script>
 </body>
 </html>
