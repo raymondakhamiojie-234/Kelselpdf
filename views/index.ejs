@@ -264,15 +264,25 @@
         </div>
     </nav>
 
-    <section class="hero">
-        <h1>Master Your Exams with AI Intelligence</h1>
-        <p>The ultimate platform for modern students. Practice with real exam questions, track your progress with deep analytics, and let our sophisticated AI tutor guide you to perfect scores.</p>
-        <div class="hero-btns">
+        <section class="hero" style="min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: 4rem;">
+        <div class="hero-badge" style="background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.3); padding: 0.5rem 1rem; border-radius: 20px; color: var(--cta-color); font-weight: 600; font-size: 0.95rem; margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            Next-Gen Learning Platform
+        </div>
+        <h1 style="font-size: clamp(3.5rem, 8vw, 6.5rem); letter-spacing: -0.03em; margin-bottom: 0;">Master Your Exams with <br/><span style="background: linear-gradient(135deg, var(--cta-color), #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI Intelligence</span></h1>
+        <p style="font-size: clamp(1.1rem, 2vw, 1.3rem); max-width: 700px; margin: 1.5rem auto 3rem; color: var(--ntxt-color); line-height: 1.6;">The ultimate platform for modern students. Practice with real exam questions, track your progress with deep analytics, and let our sophisticated AI tutor guide you to perfect scores.</p>
+        <div class="hero-btns" style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
             <% if(locals.user_id) { %>
-                <a href="/dashboard" class="btn btn-ai" style="font-size: 1.2rem; padding: 15px 40px; border-radius: 30px;">Go to Dashboard</a>
+                <a href="/dashboard" class="btn btn-ai" style="font-size: 1.15rem; padding: 16px 48px; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 15px 30px rgba(33, 150, 243, 0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 20px 40px rgba(33, 150, 243, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 30px rgba(33, 150, 243, 0.3)';">
+                    Go to Dashboard
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
             <% } else { %>
-                <a href="/register" class="btn btn-ai" style="font-size: 1.2rem; padding: 15px 40px; border-radius: 30px;">Start Learning Free</a>
-                <a href="/login" class="btn" style="font-size: 1.2rem; padding: 15px 40px; border-radius: 30px;">Access Account</a>
+                <a href="/register" class="btn btn-ai" style="font-size: 1.15rem; padding: 16px 48px; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 15px 30px rgba(33, 150, 243, 0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 20px 40px rgba(33, 150, 243, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 30px rgba(33, 150, 243, 0.3)';">
+                    Start Learning Free
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="/login" class="btn" style="font-size: 1.15rem; padding: 16px 48px; border-radius: 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--cbg-color-2); color: var(--text-color); transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">Access Account</a>
             <% } %>
         </div>
     </section>
@@ -520,12 +530,13 @@
                 gsap.to(".orb-2", { y: 50, x: -50, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
                 gsap.to(".orb-3", { scale: 1.2, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
-                // Hero Reveal
-                gsap.set(".hero h1, .hero p, .hero-btns", { y: 30 });
+                                // Hero Reveal
+                gsap.set(".hero-badge, .hero h1, .hero p, .hero-btns", { y: 30, opacity: 0 });
                 const tl = gsap.timeline();
-                tl.to(".hero h1", { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 0.2 })
-                  .to(".hero p", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.6")
-                  .to(".hero-btns", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.6");
+                tl.to(".hero-badge", { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 0.2 })
+                  .to(".hero h1", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.8")
+                  .to(".hero p", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.8")
+                  .to(".hero-btns", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.8");
 
                 // Dashboard 3D Parallax Reveal
                 gsap.to(".dashboard-mockup", {
@@ -590,6 +601,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
