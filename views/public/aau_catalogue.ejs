@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AAU 2026/2027 Programme Catalogue - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .content { max-width: 1000px; margin: 4rem auto; padding: 0 2rem; flex: 1; width: 100%; box-sizing: border-box; }
+        h1, h2, h3 { color: var(--cta-color); margin-bottom: 1rem; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #fff;
+            margin-left: 10px;
+        }
+        .badge-green { background-color: #27c93f; }
+        .badge-yellow { background-color: #ffb822; color: #333; }
+        .badge-orange { background-color: #fd7e14; }
+        .badge-red { background-color: #ff5e5e; }
+
+        .faculty-section {
+            margin-bottom: 2rem;
+            background: var(--nav-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .programme-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .programme-item:last-child {
+            border-bottom: none;
+        }
+        .programme-name {
+            font-weight: 500;
+            color: var(--sec-color);
+        }
+        #loading { text-align: center; color: var(--ntxt-color); margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>AAU 2026/2027 Programme Catalogue</h1>
+        <p style="color: var(--ntxt-color); margin-bottom: 2rem;">
+            Browse the official Ambrose Alli University undergraduate programmes for the 2026/2027 academic session.
+        </p>
+
+        <div id="loading">Loading catalogue...</div>
+        <div id="catalogue-container"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/curriculum/programmes');
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderCatalogue(result.data);
+                } else {
+                    document.getElementById('loading').innerText = 'Failed to load catalogue.';
+                }
+            } catch (err) {
+                document.getElementById('loading').innerText = 'An error occurred while loading.';
+            }
+        });
+
+        function getBadge(status) {
+            if (status === 'current_official_verified') {
+                return '<span class="badge badge-green">Official AAU curriculum — verified</span>';
+            } else if (status === 'official_historical') {
+                return '<span class="badge badge-yellow">Official AAU historical curriculum — current session not independently verified</span>';
+            } else if (status === 'conflicting_official_sources') {
+                return '<span class="badge badge-red">AAU sources conflict — confirmation required</span>';
+            }
+            // default pending
+            return '<span class="badge badge-orange">Programme confirmed for 2026/2027 — current curriculum pending verification</span>';
+        }
+
+        function renderCatalogue(programmes) {
+            const container = document.getElementById('catalogue-container');
+            document.getElementById('loading').style.display = 'none';
+
+            // Group by faculty
+            const grouped = {};
+            programmes.forEach(p => {
+                const fac = p.faculty_name || 'Unknown Faculty';
+                if (!grouped[fac]) grouped[fac] = [];
+                grouped[fac].push(p);
+            });
+
+            for (const [faculty, progs] of Object.entries(grouped)) {
+                let html = `<div class="faculty-section">`;
+                html += `<h3>${faculty}</h3>`;
+                progs.forEach(p => {
+                    html += `
+                        <div class="programme-item">
+                            <span class="programme-name">${p.name}</span>
+                            ${getBadge(p.curriculum_status)}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                container.innerHTML += html;
+            }
+        }
+    </script>
+</body>
+</html>

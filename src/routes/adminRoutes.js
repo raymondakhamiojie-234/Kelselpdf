@@ -33,4 +33,6 @@ router.get('/admin/users', requireAdmin, adminController.getUsers);
 router.post('/admin/users/role', requireAdmin, adminController.postUpdateUserRole);
 router.post('/admin/users/delete', requireAdmin, adminController.postDeleteUser);
 
+router.get('/admin/curriculum-verification', requireAdmin, (req, res) => res.render('admin/curriculum_verification'));
 module.exports = router;
+

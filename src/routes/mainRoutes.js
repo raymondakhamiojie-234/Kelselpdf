@@ -9,4 +9,6 @@ router.get('/privacy', mainController.getPrivacy);
 router.get('/terms', mainController.getTerms);
 router.get('/dashboard', checkAuth, mainController.getDashboard);
 
+router.get('/aau-catalogue', (req, res) => res.render('public/aau_catalogue'));
 module.exports = router;
+
