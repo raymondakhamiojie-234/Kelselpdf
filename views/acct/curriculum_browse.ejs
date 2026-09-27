@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AAU Curriculum - KelselPDF</title>
-    <link rel="stylesheet" href="/style.css?v=4">
+    <link rel="stylesheet" href="/style.css?v=5">
     <script src="/theme.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
@@ -49,7 +49,7 @@
         .badge-orange { background: linear-gradient(135deg, #ff9800, #e65100); }
         .badge-red { background: linear-gradient(135deg, #f44336, #c62828); }
         
-        .course-detail { 
+        .course-detail, .curriculum-view { 
             display: none; 
             background: rgba(255, 255, 255, 0.03); 
             backdrop-filter: blur(16px);
@@ -58,7 +58,7 @@
             padding: 2.5rem; 
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
-        .dark-mode .course-detail { background: rgba(0, 0, 0, 0.2); }
+        .dark-mode .course-detail, .dark-mode .curriculum-view { background: rgba(0, 0, 0, 0.2); }
         
         .course-stats {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; 
@@ -76,6 +76,23 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+
+        .curriculum-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .curriculum-table th, .curriculum-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .curriculum-table th { color: var(--ntxt-color); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+        .curriculum-table td { color: var(--txt-color); font-size: 0.95rem; }
+        .curriculum-table tr:hover { background: rgba(255,255,255,0.02); cursor: pointer; }
+        .level-header { background: rgba(33, 150, 243, 0.1); padding: 1rem; margin-top: 2rem; border-radius: 8px 8px 0 0; color: var(--sec-color); font-weight: bold; border-left: 4px solid var(--cta-color); }
+        .semester-header { background: rgba(255, 255, 255, 0.02); padding: 0.8rem 1rem; color: var(--cta-color); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--txt-color);
+        }
     </style>
 </head>
 <body class="dashboard-body">
@@ -102,7 +119,17 @@
 
             <div class="grid-view" id="grid-view"></div>
 
+            <div class="curriculum-view" id="curriculum-view">
+                <h1 id="cv-title" style="margin-bottom: 5px; color: var(--sec-color); font-size: 2.2rem;"></h1>
+                <div id="cv-verification" style="margin-bottom: 2rem;"></div>
+                <div id="cv-warning" class="warning-box" style="display: none;"></div>
+                <div id="cv-content"></div>
+            </div>
+
             <div class="course-detail" id="course-detail">
+                <div style="margin-bottom: 1rem;">
+                    <a href="#" onclick="renderState('programme')" style="color: var(--cta-color); text-decoration: none;">&larr; Back to Curriculum</a>
+                </div>
                 <h1 id="cd-title" style="margin-bottom: 5px; color: var(--sec-color); font-size: 2.2rem;"></h1>
                 <p style="color: var(--cta-color); font-weight: 600; font-size: 1.2rem; margin-top: 0;" id="cd-code"></p>
                 <div id="cd-verification" style="margin-bottom: 2rem;"></div>
@@ -132,10 +159,10 @@
     <script>
         let allProgrammes = [];
         let facultyGroups = {};
-        let currentProgramme = null;
         let currentCurriculum = [];
+        let currentProgrammeObj = null;
         
-        let state = { step: 'faculty', faculty: null, department: null, programmeId: null, level: null, semester: null, courseCode: null };
+        let state = { step: 'faculty', faculty: null, department: null, programmeId: null, courseCode: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             gsap.to("#main-container", { opacity: 1, y: 0, duration: 1, ease: "power3.out" });
@@ -184,21 +211,19 @@
 
         function getBadge(status) {
             if (status === 'current_official_verified') return '<span class="badge badge-green">AAU 2026/2027 curriculum - officially verified.</span>';
-            if (status === 'official_historical') return '<span class="badge badge-yellow">Official AAU historical curriculum - unverified.</span>';
+            if (status === 'official_historical') return '<span class="badge badge-yellow">Official AAU historical curriculum - current session not independently verified.</span>';
             if (status === 'conflicting_official_sources') return '<span class="badge badge-red">AAU sources conflict - confirmation required.</span>';
-            return '<span class="badge badge-orange">Programme confirmed - curriculum pending verification.</span>';
+            return '<span class="badge badge-orange">Programme confirmed for 2026/2027 - curriculum pending verification.</span>';
         }
 
         function updateBreadcrumb() {
             let html = `<span onclick="renderState('faculty')">AAU Catalogue</span>`;
             if (state.faculty) html += ` &rsaquo; <span onclick="renderState('department', '${state.faculty}')">${state.faculty}</span>`;
-            if (state.department) html += ` &rsaquo; <span onclick="renderState('programme', '${state.department}')">${state.department}</span>`;
+            if (state.department) html += ` &rsaquo; <span onclick="renderState('programme_list', '${state.department}')">${state.department}</span>`;
             if (state.programmeId) {
                 const pName = allProgrammes.find(p => p.id === state.programmeId)?.name;
-                html += ` &rsaquo; <span onclick="renderState('level', '${state.programmeId}')">${pName}</span>`;
+                html += ` &rsaquo; <span onclick="renderState('programme', '${state.programmeId}')">${pName}</span>`;
             }
-            if (state.level) html += ` &rsaquo; <span onclick="renderState('semester', ${state.level})">${state.level} Level</span>`;
-            if (state.semester) html += ` &rsaquo; <span onclick="renderState('courses', '${state.semester}')">${state.semester}</span>`;
             if (state.courseCode) html += ` &rsaquo; <span>${state.courseCode}</span>`;
             document.getElementById('breadcrumb').innerHTML = html;
         }
@@ -207,10 +232,13 @@
             state.step = step;
             const grid = document.getElementById('grid-view');
             const detail = document.getElementById('course-detail');
-            grid.style.display = 'grid'; detail.style.display = 'none'; grid.innerHTML = '';
+            const currView = document.getElementById('curriculum-view');
+            
+            grid.style.display = 'none'; detail.style.display = 'none'; currView.style.display = 'none';
 
             if (step === 'faculty') {
-                state.faculty = null; state.department = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                state.faculty = null; state.department = null; state.programmeId = null; state.courseCode = null;
+                grid.style.display = 'grid'; grid.innerHTML = '';
                 Object.keys(facultyGroups).forEach(fac => {
                     grid.innerHTML += `
                         <div class="glass-card" onclick="renderState('department', '${fac}')">
@@ -218,97 +246,127 @@
                             <p style="color: var(--ntxt-color); font-size: 0.95rem; margin-top: 10px;">${facultyGroups[fac].length} Departments</p>
                         </div>`;
                 });
+                reinitGrid();
             } 
             else if (step === 'department') {
                 if (param) state.faculty = param;
-                state.department = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
-                
+                state.department = null; state.programmeId = null; state.courseCode = null;
+                grid.style.display = 'grid'; grid.innerHTML = '';
                 facultyGroups[state.faculty].forEach(p => {
                     const deptName = p.name.includes('Department') ? p.name : `Department of ${p.name}`;
                     grid.innerHTML += `
-                        <div class="glass-card" onclick="renderState('programme', '${p.name}')">
+                        <div class="glass-card" onclick="renderState('programme_list', '${p.name}')">
                             <h3 style="color: var(--sec-color); margin:0 0 10px 0; font-size: 1.2rem;">${deptName}</h3>
                             <p style="color: var(--cta-color); font-size: 0.95rem; font-weight: 500; margin:0;">View Programmes &rsaquo;</p>
                         </div>`;
                 });
+                reinitGrid();
             }
-            else if (step === 'programme') {
+            else if (step === 'programme_list') {
                 if (param) state.department = param;
-                state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
-                
+                state.programmeId = null; state.courseCode = null;
+                grid.style.display = 'grid'; grid.innerHTML = '';
                 const progs = facultyGroups[state.faculty].filter(p => p.name === state.department);
                 progs.forEach(p => {
                     grid.innerHTML += `
-                        <div class="glass-card" onclick="renderState('level', '${p.id}')">
+                        <div class="glass-card" onclick="renderState('programme', '${p.id}')">
                             <h3 style="color: var(--sec-color); margin:0 0 10px 0;">B.Sc. ${p.name}</h3>
                             ${getBadge(p.curriculum_status)}
                         </div>`;
                 });
+                reinitGrid();
             }
-            else if (step === 'level') {
-                if(param) state.programmeId = param;
-                state.level = null; state.semester = null; state.courseCode = null;
+            else if (step === 'programme') {
+                if(param) {
+                    state.programmeId = param;
+                    currentProgrammeObj = allProgrammes.find(p => p.id === state.programmeId);
+                }
+                state.courseCode = null;
                 
-                document.getElementById('loading').style.display = 'block'; grid.style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                
                 try {
                     const res = await fetch(`/api/curriculum/programme/${state.programmeId}`);
                     const result = await res.json();
                     currentCurriculum = result.data || [];
                 } catch(e) {}
-                document.getElementById('loading').style.display = 'none'; grid.style.display = 'grid';
+                
+                document.getElementById('loading').style.display = 'none'; 
+                currView.style.display = 'block';
+
+                document.getElementById('cv-title').innerText = `B.Sc. ${currentProgrammeObj.name}`;
+                document.getElementById('cv-verification').innerHTML = getBadge(currentProgrammeObj.curriculum_status);
+                
+                const warningBox = document.getElementById('cv-warning');
+                const cvContent = document.getElementById('cv-content');
+                cvContent.innerHTML = '';
+
+                if (currentProgrammeObj.curriculum_status === 'official_historical' || currentProgrammeObj.curriculum_status === 'conflicting_official_sources') {
+                    warningBox.style.display = 'block';
+                    warningBox.innerHTML = `<strong>Notice:</strong> Official historical curriculum available. The current 2026/2027 curriculum has not yet been independently verified.`;
+                } else if (currentProgrammeObj.curriculum_status === 'current_official_verified') {
+                    warningBox.style.display = 'block';
+                    warningBox.style.background = 'rgba(76, 175, 80, 0.1)';
+                    warningBox.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+                    warningBox.innerHTML = `<strong>Verified:</strong> This curriculum has been independently verified against official AAU sources for the 2026/2027 session.`;
+                } else {
+                    warningBox.style.display = 'none';
+                }
 
                 if (currentCurriculum.length === 0) {
-                    grid.innerHTML = `<div style="grid-column: 1/-1; color: var(--ntxt-color); text-align:center; padding:3rem; background:rgba(255,255,255,0.02); border-radius:16px;">No verified curriculum data available for this programme yet.</div>`;
+                    cvContent.innerHTML = `<div style="color: var(--ntxt-color); text-align:center; padding:3rem; background:rgba(255,255,255,0.02); border-radius:16px;">No verified curriculum data available for this programme yet.</div>`;
                 } else {
-                    const levels = [...new Set(currentCurriculum.map(c => c.level))].sort();
+                    // Group by Level and Semester
+                    const levels = [...new Set(currentCurriculum.map(c => c.level))].sort((a,b)=>a-b);
+                    
+                    let html = '';
                     levels.forEach(lvl => {
-                        grid.innerHTML += `
-                            <div class="glass-card" onclick="renderState('semester', ${lvl})" style="align-items:center; justify-content:center; padding: 2.5rem;">
-                                <h2 style="color: var(--sec-color); margin:0; font-size:1.8rem;">${lvl} Level</h2>
-                            </div>`;
+                        html += `<div class="level-header">${lvl} Level</div>`;
+                        
+                        const sems = [...new Set(currentCurriculum.filter(c => c.level == lvl).map(c => c.semester))].sort();
+                        sems.forEach(sem => {
+                            html += `<div class="semester-header">${sem}</div>`;
+                            html += `<table class="curriculum-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:15%;">Course Code</th>
+                                        <th style="width:50%;">Course Title</th>
+                                        <th style="width:15%;">Units</th>
+                                        <th style="width:20%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                            
+                            const courses = currentCurriculum.filter(c => c.level == lvl && c.semester === sem);
+                            courses.forEach(c => {
+                                html += `
+                                    <tr onclick="renderCourse('${c.course_code}')">
+                                        <td style="color: var(--cta-color); font-weight:600;">${c.course_code}</td>
+                                        <td>${c.course_title || 'Untitled Course'}</td>
+                                        <td>${c.credit_units || '-'}</td>
+                                        <td>${c.course_status || 'Core'}</td>
+                                    </tr>
+                                `;
+                            });
+                            html += `</tbody></table>`;
+                        });
                     });
+                    cvContent.innerHTML = html;
                 }
-            }
-            else if (step === 'semester') {
-                if(param) state.level = param;
-                state.semester = null; state.courseCode = null;
-                
-                const sems = [...new Set(currentCurriculum.filter(c => c.level == state.level).map(c => c.semester))];
-                sems.forEach(sem => {
-                    grid.innerHTML += `
-                        <div class="glass-card" onclick="renderState('courses', '${sem}')" style="align-items:center; justify-content:center; padding: 2.5rem;">
-                            <h3 style="color: var(--cta-color); margin:0; font-size:1.5rem;">${sem}</h3>
-                        </div>`;
-                });
-            }
-            else if (step === 'courses') {
-                if(param) state.semester = param;
-                state.courseCode = null;
-                
-                const courses = currentCurriculum.filter(c => c.level == state.level && c.semester === state.semester);
-                courses.forEach(c => {
-                    grid.innerHTML += `
-                        <div class="glass-card" onclick="renderCourse('${c.course_code}')">
-                            <h3 style="color: var(--cta-color); margin:0 0 8px 0; font-size:1.4rem;">${c.course_code}</h3>
-                            <p style="color: var(--sec-color); font-weight: 500; font-size:1.1rem; margin:0 0 15px 0;">${c.course_title || 'Untitled Course'}</p>
-                            <div style="margin-top:auto;">
-                                <span style="font-size:0.85rem; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius:6px; color: var(--txt-color); font-weight:600;">${c.credit_units || '?'} Units</span>
-                                <span style="font-size:0.85rem; color: var(--ntxt-color); margin-left:10px;">${c.course_status}</span>
-                            </div>
-                        </div>`;
-                });
+                gsap.fromTo("#curriculum-view", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
             }
 
             updateBreadcrumb();
-            
-            // Re-init Tilt and animate
+        }
+
+        function reinitGrid() {
             VanillaTilt.init(document.querySelectorAll(".glass-card"), { max: 4, speed: 400, glare: true, "max-glare": 0.1 });
             gsap.fromTo(".glass-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "back.out(1.2)" });
         }
 
         function renderCourse(code) {
             state.step = 'course'; state.courseCode = code;
-            document.getElementById('grid-view').style.display = 'none';
+            document.getElementById('curriculum-view').style.display = 'none';
             const course = currentCurriculum.find(c => c.course_code === code);
             
             document.getElementById('cd-title').innerText = course.course_title || 'Untitled Course';
