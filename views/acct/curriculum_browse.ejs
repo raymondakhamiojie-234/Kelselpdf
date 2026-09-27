@@ -91,15 +91,47 @@
         let state = {
             step: 'faculty',
             faculty: null,
+            department: null,
             programmeId: null,
             level: null,
             semester: null,
             courseCode: null
         };
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', fetchCatalogue);
+
+        async function fetchCatalogue() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerHTML = 'Loading catalogue...';
+            document.getElementById('grid-view').innerHTML = '';
+            
             try {
                 const res = await fetch('/api/curriculum/programmes');
+                const result = await res.json();
+                if(result.success) {
+                    allProgrammes = result.data;
+                    allProgrammes.forEach(p => {
+                        const fac = p.faculty_name || 'General';
+                        if(!facultyGroups[fac]) facultyGroups[fac] = [];
+                        facultyGroups[fac].push(p);
+                    });
+                    document.getElementById('loading').style.display = 'none';
+                    renderState('faculty');
+                } else {
+                    showErrorState('Database connection failed or table missing. Please ensure the backend schema is deployed.');
+                }
+            } catch(e) {
+                showErrorState('Network error. Failed to load catalogue.');
+            }
+        }
+
+        function showErrorState(msg) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerHTML = 
+                <div style="color: var(--error); margin-bottom: 1rem;"></div>
+                <button class="action-btn" onclick="fetchCatalogue()" style="padding: 8px 16px; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--txt-color);">Retry Connection</button>
+            ;
+        }
                 const result = await res.json();
                 if(result.success) {
                     allProgrammes = result.data;
@@ -128,15 +160,16 @@
         }
 
         function updateBreadcrumb() {
-            let html = `<span onclick="renderState('faculty')">AAU Catalogue</span>`;
-            if (state.faculty) html += ` &rsaquo; <span onclick="renderState('programme', '${state.faculty}')">${state.faculty}</span>`;
+            let html = <span onclick="renderState('faculty')">AAU Catalogue</span>;
+            if (state.faculty) html +=  &rsaquo; <span onclick="renderState('department', '')"></span>;
+            if (state.department) html +=  &rsaquo; <span onclick="renderState('programme', '')"></span>;
             if (state.programmeId) {
                 const pName = allProgrammes.find(p => p.id === state.programmeId)?.name;
-                html += ` &rsaquo; <span onclick="renderState('level', '${state.programmeId}')">${pName}</span>`;
+                html +=  &rsaquo; <span onclick="renderState('level', '')"></span>;
             }
-            if (state.level) html += ` &rsaquo; <span onclick="renderState('semester', ${state.level})">${state.level} Level</span>`;
-            if (state.semester) html += ` &rsaquo; <span onclick="renderState('courses', '${state.semester}')">${state.semester}</span>`;
-            if (state.courseCode) html += ` &rsaquo; <span>${state.courseCode}</span>`;
+            if (state.level) html +=  &rsaquo; <span onclick="renderState('semester', )"> Level</span>;
+            if (state.semester) html +=  &rsaquo; <span onclick="renderState('courses', '')"></span>;
+            if (state.courseCode) html +=  &rsaquo; <span></span>;
             
             document.getElementById('breadcrumb').innerHTML = html;
         }
@@ -150,28 +183,46 @@
             grid.innerHTML = '';
 
             if (step === 'faculty') {
-                state.faculty = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                state.faculty = null; state.department = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
                 Object.keys(facultyGroups).forEach(fac => {
-                    grid.innerHTML += `
-                        <div class="card-item" onclick="renderState('programme', '${fac}')">
-                            <h3 style="color: var(--sec-color); margin:0;">${fac}</h3>
-                            <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-top: 10px;">${facultyGroups[fac].length} Programmes</p>
+                    grid.innerHTML += 
+                        <div class="card-item" onclick="renderState('department', '')">
+                            <h3 style="color: var(--sec-color); margin:0;"></h3>
+                            <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-top: 10px;"> Departments</p>
                         </div>
-                    `;
+                    ;
                 });
             } 
-            else if (step === 'programme') {
-                state.faculty = param; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+            else if (step === 'department') {
+                if (param) state.faculty = param;
+                state.department = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                
+                // Using programme name as Department name since AAU often equates them
                 facultyGroups[state.faculty].forEach(p => {
-                    grid.innerHTML += `
-                        <div class="card-item" onclick="renderState('level', '${p.id}')">
-                            <h3 style="color: var(--sec-color); margin:0 0 10px 0;">${p.name}</h3>
-                            ${getBadge(p.curriculum_status)}
+                    const deptName = p.name.includes('Department') ? p.name : Department of ;
+                    grid.innerHTML += 
+                        <div class="card-item" onclick="renderState('programme', '')">
+                            <h3 style="color: var(--sec-color); margin:0 0 10px 0;"></h3>
+                            <p style="color: var(--ntxt-color); font-size: 0.9rem;">View Programmes</p>
                         </div>
-                    `;
+                    ;
                 });
             }
-            else if (step === 'level') {
+            else if (step === 'programme') {
+                if (param) state.department = param;
+                state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                
+                // Show the specific programme for the selected "department"
+                const progs = facultyGroups[state.faculty].filter(p => p.name === state.department);
+                progs.forEach(p => {
+                    grid.innerHTML += 
+                        <div class="card-item" onclick="renderState('level', '')">
+                            <h3 style="color: var(--sec-color); margin:0 0 10px 0;">B.Sc. </h3>
+                            
+                        </div>
+                    ;
+                });
+            }            else if (step === 'level') {
                 if(param) state.programmeId = param;
                 state.level = null; state.semester = null; state.courseCode = null;
                 
@@ -256,3 +307,6 @@
     </script>
 </body>
 </html>
+
+
+

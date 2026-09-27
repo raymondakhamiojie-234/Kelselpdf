@@ -68,9 +68,8 @@
                 if (result.success) {
                     renderCatalogue(result.data);
                 } else {
-                    document.getElementById('loading').innerText = 'Failed to load catalogue.';
-                }
-            } catch (err) {
+                    document.getElementById('loading').innerHTML = '<span style="color:#ff5e5e">Database connection failed. Please ensure the backend is connected.</span>';
+                }            } catch (err) {
                 document.getElementById('loading').innerText = 'An error occurred while loading.';
             }
         });
@@ -117,3 +116,4 @@
     </script>
 </body>
 </html>
+
