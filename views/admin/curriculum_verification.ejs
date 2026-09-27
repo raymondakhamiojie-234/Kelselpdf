@@ -10,18 +10,27 @@
         body { display: flex; min-height: 100vh; background: var(--bg-color); color: var(--txt-color); margin:0; font-family: system-ui, -apple-system, sans-serif;}
         .sidebar { width: 250px; background: var(--nav-bg); padding: 20px; border-right: 1px solid var(--border-color); }
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background: var(--nav-bg); color: var(--sec-color); }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #fff; font-weight: bold;}
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .summary-card { background: var(--nav-bg); border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; text-align: center; }
+        .summary-val { font-size: 1.5rem; font-weight: bold; color: var(--cta-color); margin-top: 5px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: var(--nav-bg); color: var(--sec-color); position: sticky; top: 0; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #fff; font-weight: bold; display: inline-block; margin-bottom: 4px;}
         .bg-green { background: #27c93f; }
         .bg-yellow { background: #ffb822; color: #000; }
         .bg-orange { background: #fd7e14; }
         .bg-red { background: #ff5e5e; }
-        .btn { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem; margin-right: 5px; color: white;}
-        .btn-approve { background: #27c93f; }
-        .btn-flag { background: #ff5e5e; }
-        .btn-source { background: #007bff; text-decoration: none; display: inline-block;}
+        
+        .btn { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.75rem; margin: 2px; color: white;}
+        .btn-green { background: #27c93f; }
+        .btn-yellow { background: #ffb822; color: #000; }
+        .btn-red { background: #ff5e5e; }
+        .btn-blue { background: #007bff; text-decoration: none; display: inline-block;}
+        .btn-gray { background: #6c757d; }
     </style>
 </head>
 <body>
@@ -34,13 +43,21 @@
 
     <div class="main-content">
         <h1>Curriculum Verification Console</h1>
-        <p>Review and verify AAU curriculum sources.</p>
+        
+        <div class="summary-grid" id="summaryGrid">
+            <div class="summary-card">Total Programmes<div class="summary-val" id="sum-prog">0</div></div>
+            <div class="summary-card">Total Courses<div class="summary-val" id="sum-course">0</div></div>
+            <div class="summary-card">Current Verified<div class="summary-val" id="sum-verified" style="color:#27c93f">0</div></div>
+            <div class="summary-card">Historical<div class="summary-val" id="sum-hist" style="color:#ffb822">0</div></div>
+            <div class="summary-card">Pending<div class="summary-val" id="sum-pend" style="color:#fd7e14">0</div></div>
+            <div class="summary-card">Conflicting<div class="summary-val" id="sum-conf" style="color:#ff5e5e">0</div></div>
+        </div>
 
-        <div style="margin: 20px 0;">
+        <div style="margin: 20px 0; display:flex; gap: 10px;">
             <select id="statusFilter" onchange="filterTable()" style="padding: 8px; border-radius: 4px; background: var(--nav-bg); color: var(--txt-color); border: 1px solid var(--border-color);">
                 <option value="all">All Statuses</option>
                 <option value="current_official_verified">Current Verified</option>
-                <option value="official_historical">Historical</option>
+                <option value="official_historical">Official Historical</option>
                 <option value="pending_verification">Pending Verification</option>
                 <option value="conflicting_official_sources">Conflicting</option>
                 <option value="department_confirmation_required">Department Confirmation Required</option>
@@ -50,17 +67,16 @@
         <table id="curriculumTable">
             <thead>
                 <tr>
-                    <th>Programme</th>
-                    <th>Level</th>
-                    <th>Course Code</th>
-                    <th>Title</th>
-                    <th>Source Type</th>
-                    <th>Status</th>
+                    <th>Programme & Faculty</th>
+                    <th>Level & Sem.</th>
+                    <th>Course Code & Title</th>
+                    <th>Status & Units</th>
+                    <th>Source & Verification</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="7">Loading...</td></tr>
+                <tr><td colspan="6">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -74,12 +90,22 @@
                 const result = await res.json();
                 if(result.success) {
                     allData = result.data;
+                    updateSummary();
                     renderTable(allData);
                 }
             } catch(e) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="7">Error loading data.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
             }
         });
+
+        function updateSummary() {
+            document.getElementById('sum-prog').innerText = new Set(allData.map(d => d.programme)).size;
+            document.getElementById('sum-course').innerText = allData.length;
+            document.getElementById('sum-verified').innerText = allData.filter(d => d.verification_status === 'current_official_verified').length;
+            document.getElementById('sum-hist').innerText = allData.filter(d => d.verification_status === 'official_historical').length;
+            document.getElementById('sum-pend').innerText = allData.filter(d => d.verification_status === 'pending_verification').length;
+            document.getElementById('sum-conf').innerText = allData.filter(d => d.verification_status === 'conflicting_official_sources').length;
+        }
 
         function getStatusBadge(status) {
             if(status === 'current_official_verified') return `<span class="badge bg-green">Verified</span>`;
@@ -94,23 +120,28 @@
             tbody.innerHTML = '';
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">No curriculum mappings found. Database is structurally ready.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6">No curriculum mappings found.</td></tr>';
                 return;
             }
 
             data.forEach(row => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${row.programme} <br><small style="color:var(--ntxt-color)">${row.faculty}</small></td>
+                    <td><strong>${row.programme}</strong><br><small style="color:var(--ntxt-color)">${row.faculty}</small></td>
                     <td>${row.level}L<br><small>${row.semester}</small></td>
-                    <td><strong>${row.course_code}</strong></td>
-                    <td>${row.course_title || 'N/A'}<br><small>${row.credit_units ? row.credit_units + ' Units' : ''}</small></td>
-                    <td>${row.source_type || 'Unknown'}<br><small>${row.source_year || ''}</small></td>
-                    <td>${getStatusBadge(row.verification_status)}</td>
+                    <td><strong>${row.course_code}</strong><br><small>${row.course_title || 'N/A'}</small></td>
+                    <td><small>${row.credit_units || '?'} Units</small></td>
                     <td>
-                        <button class="btn btn-approve" onclick="updateStatus('${row.course_code}', 'current_official_verified')">Approve</button>
-                        <button class="btn btn-flag" onclick="updateStatus('${row.course_code}', 'conflicting_official_sources')">Flag</button>
-                        ${row.source_url ? `<a href="${row.source_url}" target="_blank" class="btn btn-source">Source</a>` : ''}
+                        ${getStatusBadge(row.verification_status)}<br>
+                        <small style="color:var(--ntxt-color)">${row.source_type || 'No source'} (${row.source_year || ''})</small>
+                    </td>
+                    <td>
+                        <button class="btn btn-green" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'current_official_verified')">Verify</button>
+                        <button class="btn btn-yellow" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'official_historical')">Mark Historical</button>
+                        <button class="btn btn-red" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'conflicting_official_sources')">Flag</button>
+                        <button class="btn btn-gray" onclick="addNote('${row.course_code}', ${row.programme_id})">Note</button>
+                        <button class="btn btn-gray" onclick="editCourse('${row.course_code}')">Edit</button>
+                        ${row.source_url ? `<a href="${row.source_url}" target="_blank" class="btn btn-blue">Src</a>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -126,9 +157,44 @@
             }
         }
 
-        function updateStatus(course_code, new_status) {
-            alert(`API Hook: Updating ${course_code} to ${new_status}`);
-            // In a real implementation, this would POST to /admin/api/curriculum/update-status
+        async function updateStatus(course_code, programme_id, new_status) {
+            let note = prompt("Optional: Enter a reason for this status change (stored in audit log):");
+            if (note === null) return; // Cancelled
+            
+            try {
+                const res = await fetch('/api/curriculum/admin/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_code, programme_id, new_status, notes: note })
+                });
+                const result = await res.json();
+                if(result.success) {
+                    // Update local data
+                    const item = allData.find(d => d.course_code === course_code && d.programme_id === programme_id);
+                    if(item) item.verification_status = new_status;
+                    updateSummary();
+                    filterTable();
+                } else {
+                    alert("Error: " + result.error);
+                }
+            } catch(e) {
+                alert("Network error.");
+            }
+        }
+
+        function editCourse(course_code) { alert(Edit interface for  + course_code +  would open here.); }
+        function addNote(course_code, programme_id) {
+            let note = prompt("Enter verification note/context:");
+            if (note) {
+                // In a full implementation, this would save to a notes column or audit log directly
+                alert("Note attached (simulated).");
+            }
+        }
+    </script>
+</body>
+</html>
+        function editCourse(course_code) {
+            alert(`Edit interface for ${course_code} would open here. This allows modifying Units, Title, or attaching a new Source URL.`);
         }
     </script>
 </body>
