@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AAU Curriculum - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css?v=3">
+    <script src="/theme.js"></script>
+    <style>
+        .curriculum-container { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .breadcrumb { margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--ntxt-color); display: flex; gap: 8px; flex-wrap: wrap; }
+        .breadcrumb span { cursor: pointer; color: var(--cta-color); }
+        .breadcrumb span:hover { text-decoration: underline; }
+        
+        .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        
+        .card-item {
+            background: var(--nav-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: #fff; margin-top: 10px; display: inline-block; }
+        .badge-green { background-color: #27c93f; }
+        .badge-yellow { background-color: #ffb822; color: #333; }
+        .badge-orange { background-color: #fd7e14; }
+        .badge-red { background-color: #ff5e5e; }
+        
+        .course-detail { display: none; background: var(--nav-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .action-btn { padding: 1rem; text-align: center; border-radius: 8px; background: var(--bg-color); color: var(--sec-color); text-decoration: none; border: 1px solid var(--border-color); transition: all 0.2s; }
+        .action-btn:hover { background: var(--cta-color); color: white; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('partials/sidebar', { active_page: 'aau_curriculum' }) %>
+
+    <main class="main-content">
+        <%- include('partials/app_header') %>
+
+        <div class="curriculum-container">
+            <h2 style="color: var(--sec-color); margin-bottom: 5px;">AAU Academic Catalogue</h2>
+            
+            <div class="breadcrumb" id="breadcrumb">
+                <span onclick="renderState('faculty')">AAU Catalogue</span>
+            </div>
+
+            <div id="content-area">
+                <div id="loading" style="color: var(--ntxt-color);">Loading catalogue...</div>
+                <div class="grid-view" id="grid-view"></div>
+                
+                <div class="course-detail" id="course-detail">
+                    <h1 id="cd-title" style="color: var(--sec-color); margin-bottom: 0.5rem;"></h1>
+                    <p id="cd-code" style="font-size: 1.2rem; font-weight: bold; color: var(--cta-color); margin-bottom: 1.5rem;"></p>
+                    
+                    <div id="cd-verification" style="margin-bottom: 2rem;"></div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: var(--bg-color); padding: 1.5rem; border-radius: 8px;">
+                        <div><strong style="color: var(--ntxt-color);">Credit Units:</strong> <span id="cd-units"></span></div>
+                        <div><strong style="color: var(--ntxt-color);">Status:</strong> <span id="cd-status"></span></div>
+                        <div><strong style="color: var(--ntxt-color);">Semester:</strong> <span id="cd-semester"></span></div>
+                        <div><strong style="color: var(--ntxt-color);">Prerequisites:</strong> <span id="cd-prereq">None</span></div>
+                    </div>
+
+                    <h3 style="color: var(--sec-color);">Description & Objectives</h3>
+                    <p id="cd-desc" style="color: var(--ntxt-color); line-height: 1.6;"></p>
+
+                    <h3 style="color: var(--sec-color); margin-top: 2rem;">Course Actions</h3>
+                    <div class="action-grid">
+                        <a href="/exam_materials" class="action-btn">Study Materials</a>
+                        <a href="/exam/setup" class="action-btn">CBT Mock Exam</a>
+                        <a href="/my_materials" class="action-btn">Past Questions</a>
+                        <a href="#" class="action-btn" onclick="alert('Added to Bookmarks!')">Bookmark Course</a>
+                        <a href="/exam/analytics" class="action-btn">My Progress</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let allProgrammes = [];
+        let facultyGroups = {};
+        let currentProgramme = null;
+        let currentCurriculum = [];
+        
+        let state = {
+            step: 'faculty',
+            faculty: null,
+            programmeId: null,
+            level: null,
+            semester: null,
+            courseCode: null
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/curriculum/programmes');
+                const result = await res.json();
+                if(result.success) {
+                    allProgrammes = result.data;
+                    allProgrammes.forEach(p => {
+                        const fac = p.faculty_name || 'General';
+                        if(!facultyGroups[fac]) facultyGroups[fac] = [];
+                        facultyGroups[fac].push(p);
+                    });
+                    document.getElementById('loading').style.display = 'none';
+                    renderState('faculty');
+                }
+            } catch(e) {
+                document.getElementById('loading').innerText = 'Failed to load catalogue.';
+            }
+        });
+
+        function getBadge(status) {
+            if (status === 'current_official_verified') {
+                return '<span class="badge badge-green">AAU 2026/2027 curriculum — officially verified.</span>';
+            } else if (status === 'official_historical') {
+                return '<span class="badge badge-yellow">Official AAU historical curriculum — current session not independently verified.</span>';
+            } else if (status === 'conflicting_official_sources') {
+                return '<span class="badge badge-red">AAU sources conflict — confirmation required.</span>';
+            }
+            return '<span class="badge badge-orange">Programme confirmed for 2026/2027 — curriculum pending verification.</span>';
+        }
+
+        function updateBreadcrumb() {
+            let html = `<span onclick="renderState('faculty')">AAU Catalogue</span>`;
+            if (state.faculty) html += ` &rsaquo; <span onclick="renderState('programme', '${state.faculty}')">${state.faculty}</span>`;
+            if (state.programmeId) {
+                const pName = allProgrammes.find(p => p.id === state.programmeId)?.name;
+                html += ` &rsaquo; <span onclick="renderState('level', '${state.programmeId}')">${pName}</span>`;
+            }
+            if (state.level) html += ` &rsaquo; <span onclick="renderState('semester', ${state.level})">${state.level} Level</span>`;
+            if (state.semester) html += ` &rsaquo; <span onclick="renderState('courses', '${state.semester}')">${state.semester}</span>`;
+            if (state.courseCode) html += ` &rsaquo; <span>${state.courseCode}</span>`;
+            
+            document.getElementById('breadcrumb').innerHTML = html;
+        }
+
+        async function renderState(step, param = null) {
+            state.step = step;
+            const grid = document.getElementById('grid-view');
+            const detail = document.getElementById('course-detail');
+            grid.style.display = 'grid';
+            detail.style.display = 'none';
+            grid.innerHTML = '';
+
+            if (step === 'faculty') {
+                state.faculty = null; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                Object.keys(facultyGroups).forEach(fac => {
+                    grid.innerHTML += `
+                        <div class="card-item" onclick="renderState('programme', '${fac}')">
+                            <h3 style="color: var(--sec-color); margin:0;">${fac}</h3>
+                            <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-top: 10px;">${facultyGroups[fac].length} Programmes</p>
+                        </div>
+                    `;
+                });
+            } 
+            else if (step === 'programme') {
+                state.faculty = param; state.programmeId = null; state.level = null; state.semester = null; state.courseCode = null;
+                facultyGroups[state.faculty].forEach(p => {
+                    grid.innerHTML += `
+                        <div class="card-item" onclick="renderState('level', '${p.id}')">
+                            <h3 style="color: var(--sec-color); margin:0 0 10px 0;">${p.name}</h3>
+                            ${getBadge(p.curriculum_status)}
+                        </div>
+                    `;
+                });
+            }
+            else if (step === 'level') {
+                if(param) state.programmeId = param;
+                state.level = null; state.semester = null; state.courseCode = null;
+                
+                // Fetch curriculum if not loaded
+                document.getElementById('loading').style.display = 'block';
+                grid.style.display = 'none';
+                
+                try {
+                    const res = await fetch(`/api/curriculum/programme/${state.programmeId}`);
+                    const result = await res.json();
+                    currentCurriculum = result.data || [];
+                } catch(e) {}
+                
+                document.getElementById('loading').style.display = 'none';
+                grid.style.display = 'grid';
+
+                if (currentCurriculum.length === 0) {
+                    grid.innerHTML = `<div style="grid-column: 1/-1; color: var(--ntxt-color);">No verified curriculum data available for this programme yet.</div>`;
+                } else {
+                    const levels = [...new Set(currentCurriculum.map(c => c.level))].sort();
+                    levels.forEach(lvl => {
+                        grid.innerHTML += `
+                            <div class="card-item" onclick="renderState('semester', ${lvl})">
+                                <h2 style="color: var(--sec-color); margin:0; text-align:center;">${lvl} Level</h2>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            else if (step === 'semester') {
+                if(param) state.level = param;
+                state.semester = null; state.courseCode = null;
+                
+                const sems = [...new Set(currentCurriculum.filter(c => c.level == state.level).map(c => c.semester))];
+                sems.forEach(sem => {
+                    grid.innerHTML += `
+                        <div class="card-item" onclick="renderState('courses', '${sem}')">
+                            <h3 style="color: var(--sec-color); margin:0; text-align:center;">${sem}</h3>
+                        </div>
+                    `;
+                });
+            }
+            else if (step === 'courses') {
+                if(param) state.semester = param;
+                state.courseCode = null;
+                
+                const courses = currentCurriculum.filter(c => c.level == state.level && c.semester === state.semester);
+                courses.forEach(c => {
+                    grid.innerHTML += `
+                        <div class="card-item" onclick="renderCourse('${c.course_code}')">
+                            <h3 style="color: var(--cta-color); margin:0 0 5px 0;">${c.course_code}</h3>
+                            <p style="color: var(--sec-color); font-weight: 500; margin:0 0 10px 0;">${c.course_title || 'Untitled Course'}</p>
+                            <span style="font-size:0.8rem; background: var(--bg-color); padding: 4px 8px; border-radius:4px; color: var(--ntxt-color);">${c.credit_units || '?'} Units &bull; ${c.course_status}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            updateBreadcrumb();
+        }
+
+        function renderCourse(code) {
+            state.step = 'course';
+            state.courseCode = code;
+            
+            document.getElementById('grid-view').style.display = 'none';
+            
+            const course = currentCurriculum.find(c => c.course_code === code);
+            
+            document.getElementById('cd-title').innerText = course.course_title || 'Untitled Course';
+            document.getElementById('cd-code').innerText = course.course_code;
+            document.getElementById('cd-verification').innerHTML = getBadge(course.verification_status);
+            document.getElementById('cd-units').innerText = course.credit_units || 'N/A';
+            document.getElementById('cd-status').innerText = course.course_status || 'Unknown';
+            document.getElementById('cd-semester').innerText = course.semester;
+            document.getElementById('cd-prereq').innerText = course.prerequisites || 'None specified';
+            document.getElementById('cd-desc').innerText = course.course_description || 'No official description available in the selected curriculum source.';
+            
+            document.getElementById('course-detail').style.display = 'block';
+            updateBreadcrumb();
+        }
+    </script>
+</body>
+</html>

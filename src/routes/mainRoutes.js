@@ -10,5 +10,7 @@ router.get('/terms', mainController.getTerms);
 router.get('/dashboard', checkAuth, mainController.getDashboard);
 
 router.get('/aau-catalogue', (req, res) => res.render('public/aau_catalogue'));
+router.get('/aau-curriculum', checkAuth, (req, res) => { res.render('acct/curriculum_browse', { user: req.user, active_page: 'aau_curriculum' }); });
 module.exports = router;
+
 
