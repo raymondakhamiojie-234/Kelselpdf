@@ -21,7 +21,7 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "mysql2": "^3.24.4",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "^1.1.4",
     "pg": "^8.23.0"
   },
   "devDependencies": {
