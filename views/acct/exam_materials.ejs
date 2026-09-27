@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <link rel="manifest" href="/manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -14,58 +16,167 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .dashboard-body {
+            position: relative;
+            background: transparent; 
+        }
+        
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel-3d {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            color: var(--txt-color);
+            position: relative;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            max-width: 900px; 
+            margin: 0 auto 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .dark-mode .glass-panel-3d {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dashboard-header {
+            padding: 2rem 1.5rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            opacity: 0;
+        }
+        .dashboard-header h2 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--cta-color), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dashboard-header p {
+            color: var(--ntxt-color);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .material-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            transition: transform 0.2s, background 0.3s;
+        }
+        .material-card:hover {
+            transform: scale(1.01);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .dark-mode .material-card {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .dark-mode .material-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .mat-info h4 { margin: 0 0 0.25rem 0; color: var(--cta-color); font-size: 1.2rem; }
+        .mat-info p { margin: 0; color: var(--ntxt-color); font-size: 0.9rem; }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+        .btn-3d:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+            color: white;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('partials/sidebar', { active_page: 'exam_materials' }) %>
 
     <main class="main-content">
-        <!-- Curved Header -->
-        <%- include('partials/app_header', { page_title: 'Study Materials', page_desc: 'Access your resources' }) %>
+        <%- include('partials/app_header') %>
 
-        <h2>Exam Materials</h2>
-        <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Download past questions and materials curated for your department and level.</p>
+        <div class="dashboard-header" id="mat-header">
+            <h2>Study Materials</h2>
+            <p>Download past questions and materials curated for your department and level.</p>
+        </div>
         
-        <div class="glass-panel" style="max-width: 900px;">
+        <div class="glass-panel-3d" id="mat-panel" data-tilt data-tilt-max="1" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.05">
             <% if (materials.length === 0) { %>
                 <div style="text-align: center; padding: 2rem;">
                     <h3 style="color: var(--ntxt-color);">No materials available yet.</h3>
                     <p style="color: var(--ntxt-color);">Check back later or contact your admin.</p>
                 </div>
             <% } else { %>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid var(--cbg-color-2); text-align: left;">
-                            <th style="padding: 1rem;">Course Code</th>
-                            <th style="padding: 1rem;">Year</th>
-                            <th style="padding: 1rem;">Exam Type</th>
-                            <th style="padding: 1rem; text-align: center;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% materials.forEach(mat => { %>
-                            <tr style="border-bottom: 1px solid var(--cbg-color-2);">
-                                <td style="padding: 1rem; font-weight: bold; color: var(--cta-color);"><%= mat.course_code %></td>
-                                <td style="padding: 1rem;"><%= mat.year %></td>
-                                <td style="padding: 1rem;"><%= mat.type %></td>
-                                <td style="padding: 1rem; text-align: center;">
-                                      <% 
-                                          const filePath = (mat.file_link.startsWith('http') || mat.file_link.startsWith('data:')) ? mat.file_link : '/' + mat.file_link;  
-                                      %>
-                                      <a href="/exam/download/<%= mat.id %>" target="_blank" class="btn btn-ai" style="padding: 5px 15px; font-size: 0.9rem; border-radius: 20px;">Download</a>
-                                  </td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
+                <div class="material-list">
+                    <% materials.forEach(mat => { %>
+                        <div class="material-card">
+                            <div class="mat-info">
+                                <h4><%= mat.course_code %></h4>
+                                <p><%= mat.year %> • <%= mat.type %></p>
+                            </div>
+                            <div>
+                                <% const filePath = (mat.file_link.startsWith('http') || mat.file_link.startsWith('data:')) ? mat.file_link : '/' + mat.file_link; %>
+                                <a href="/exam/download/<%= mat.id %>" target="_blank" class="btn-3d">Download</a>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
             <% } %>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            gsap.to("#mat-header", { opacity: 1, y: 0, duration: 1, ease: "power3.out" });
+            gsap.to("#mat-panel", { opacity: 1, y: 0, duration: 1, ease: "back.out(1.5)", delay: 0.2 });
+
+            gsap.to(".orb-1", {
+                x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+            gsap.to(".orb-2", {
+                x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

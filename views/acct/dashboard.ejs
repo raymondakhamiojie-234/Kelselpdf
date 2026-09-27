@@ -1,12 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Student Portal - KelselPDF</title>
-    <link rel="stylesheet" href="/style.css?v=3">
+    <link rel="stylesheet" href="/style.css?v=4">
     <script src="/theme.js"></script>
     <link rel="manifest" href="/manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -14,101 +16,237 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .dashboard-body {
+            position: relative;
+            background: transparent; /* Override to let ambient bg show */
+        }
+        
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(76, 175, 80, 0.3); bottom: -10%; right: -10%; }
+        .orb-3 { width: 30vw; height: 30vw; background: rgba(156, 39, 176, 0.3); top: 40%; left: 40%; }
+
+        .dashboard-glass-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 1.5rem 3rem;
+            max-width: 1200px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            text-decoration: none;
+            color: var(--txt-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s ease;
+            opacity: 0; /* GSAP reveals */
+            transform: translateY(30px);
+        }
+        .dark-mode .glass-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.5s ease;
+        }
+        .glass-card:hover::before {
+            left: 150%;
+        }
+
+        .glass-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .glass-card h4 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--sec-color);
+        }
+        .glass-card p {
+            font-size: 0.9rem;
+            color: var(--ntxt-color);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .ic-purple { background: linear-gradient(135deg, #9c27b0, #673ab7); }
+        .ic-green { background: linear-gradient(135deg, #4caf50, #8bc34a); }
+        .ic-blue { background: linear-gradient(135deg, #2196f3, #00bcd4); }
+        .ic-yellow { background: linear-gradient(135deg, #ff9800, #ffc107); }
+        .ic-orange { background: linear-gradient(135deg, #ff5722, #ff9800); }
+        .ic-pink { background: linear-gradient(135deg, #e91e63, #f44336); }
+
+        .dashboard-header {
+            padding: 2rem 1.5rem 1rem;
+            max-width: 1200px;
+            opacity: 0;
+        }
+        .dashboard-header h2 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--cta-color), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dashboard-header p {
+            color: var(--ntxt-color);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
     <%- include('partials/sidebar', { active_page: 'dashboard' }) %>
 
     <main class="main-content">
-        <!-- Curved Header -->
         <%- include('partials/app_header') %>
 
-        <div style="display: flex; justify-content: space-between; padding: 0 1.5rem; margin-bottom: 1rem; align-items: center;">
-            <h3 style="margin: 0; color: var(--ntxt-color);">Quick Access</h3>
-            <a href="#" style="font-size: 0.8rem; color: var(--cta-color); font-weight: 500;">View All</a>
+        <div class="dashboard-header" id="dash-header">
+            <h2>Welcome back, <%= user.full_name.split(' ')[0] %></h2>
+            <p>Access your study materials, exams, and academy modules below.</p>
         </div>
 
-        <!-- Grid -->
-        <div class="quick-access-grid">
-            <a href="/profile" class="pastel-card bg-purple">
-                <div class="icon-circle ic-purple">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <!-- Glassmorphic Grid -->
+        <div class="dashboard-glass-grid">
+            
+            <a href="/aau-curriculum" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-blue">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 </div>
-                <h4>Profile</h4>
-                <p>View & edit profile</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <h4>AAU Curriculum</h4>
+                <p>Browse 2026/2027 catalogue</p>
             </a>
 
-            <a href="/exam/setup" class="pastel-card bg-green">
-                <div class="icon-circle ic-green">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <a href="/exam_materials" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-purple">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 </div>
-                <h4>Exams</h4>
-                <p>Start a CBT exam</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <h4>Study Materials</h4>
+                <p>Access PDF resources & notes</p>
             </a>
 
-            <a href="/exam_materials" class="pastel-card bg-blue">
-                <div class="icon-circle ic-blue">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <a href="/exam/setup" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-green">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 </div>
-                <h4>Materials</h4>
-                <p>Study resources</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <h4>CBT Mock Exams</h4>
+                <p>Simulate real exam pressure</p>
             </a>
 
-            <a href="/exam/analytics" class="pastel-card bg-yellow">
-                <div class="icon-circle ic-yellow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <a href="/exam/analytics" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-yellow">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 </div>
-                <h4>Analytics</h4>
-                <p>View your grades</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <h4>My Analytics</h4>
+                <p>Track your grades & progress</p>
             </a>
 
-            <a href="/skills" class="pastel-card bg-orange">
-                <div class="icon-circle ic-orange">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            <a href="/skills" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-orange">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
                 </div>
                 <h4>Academy</h4>
-                <p>Learn new skills</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <p>Learn high-income skills</p>
             </a>
 
-            <a href="/career" class="pastel-card bg-pink">
-                <div class="icon-circle ic-pink">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <a href="/career" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-pink">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                 </div>
                 <h4>Career Hub</h4>
-                <p>Jobs & Mentors</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <p>Find jobs and mentors</p>
             </a>
 
-            <a href="/community" class="pastel-card bg-purple">
-                <div class="icon-circle ic-purple">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <a href="/community" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-purple">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 </div>
                 <h4>Community</h4>
-                <p>Message & support</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <p>Discuss with other students</p>
             </a>
 
-            <a href="/certificates" class="pastel-card bg-blue">
-                <div class="icon-circle ic-blue">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            <a href="/profile" class="glass-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <div class="glass-icon ic-blue">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
-                <h4>Certificates</h4>
-                <p>Credentials</p>
-                <span class="card-arrow">&rsaquo;</span>
+                <h4>My Profile</h4>
+                <p>Manage your account</p>
             </a>
         </div>
-        
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Animate Header
+            gsap.to("#dash-header", { opacity: 1, y: 0, duration: 1, ease: "power3.out" });
+            
+            // Stagger Cards
+            gsap.to(".glass-card", {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "back.out(1.7)",
+                delay: 0.2
+            });
+
+            // Ambient Orbs Animation
+            gsap.to(".orb-1", {
+                x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+            gsap.to(".orb-2", {
+                x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+            gsap.to(".orb-3", {
+                x: "5vw", y: "-5vh", scale: 1.2, duration: 18, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
