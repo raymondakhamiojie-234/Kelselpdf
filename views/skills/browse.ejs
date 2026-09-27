@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -6,210 +6,205 @@
     <title>Skills Academy - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        }
+        
         .course-card {
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; overflow: hidden;
+            display: flex; flex-direction: column; opacity: 0; transform: translateY(20px);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
-        .course-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px var(--shadow);
-        }
+        .course-card:hover { border-color: rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
         .course-thumbnail {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            background: var(--accent);
-            opacity: 0.8;
+            width: 100%; height: 160px; object-fit: cover;
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(156, 39, 176, 0.2));
+            display: flex; align-items: center; justify-content: center;
         }
-        .course-info {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .course-category {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-        .course-title {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-            font-weight: 700;
-        }
-        .course-desc {
-            font-size: 0.9rem;
-            color: var(--ntxt-color);
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-            flex-grow: 1;
-        }
+        
+        .course-info { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        
+        .course-category { font-size: 0.85rem; color: var(--cta-color); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .course-title { font-size: 1.3rem; font-weight: 700; color: var(--sec-color); margin: 0.5rem 0; line-height: 1.4; }
+        .course-desc { font-size: 0.95rem; color: var(--txt-color); margin-bottom: 1.5rem; line-height: 1.5; flex: 1; }
+        
         .course-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-color);
-            opacity: 0.8;
-            margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;
+            font-size: 0.85rem; color: var(--ntxt-color); font-weight: 500;
         }
-        .course-meta span {
-            display: flex;
-            align-items: center;
-        }
-        .course-meta img {
-            width: 16px;
-            margin-right: 5px;
-            filter: var(--icon-filter);
-        }
+        .course-meta span { display: flex; align-items: center; gap: 5px; }
+        .course-meta img { width: 14px; filter: invert(1) opacity(0.7); }
+        
         .premium-badge {
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-left: 10px;
+            background: linear-gradient(135deg, #ffc107, #ff9800); color: #000;
+            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800;
+            box-shadow: 0 2px 10px rgba(255,193,7,0.3);
         }
+        .free-badge {
+            background: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);
+            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800;
+        }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center; display: block; width: 100%; box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .filter-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; transition: background 0.3s;
+        }
+        .filter-btn:hover { background: rgba(255,255,255,0.1); }
+        .filter-btn.active { background: rgba(33, 150, 243, 0.2); border-color: var(--cta-color); color: var(--cta-color); }
     </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('../acct/partials/sidebar', { active_page: 'academy_browse' }) %>
 
     <main class="main-content">
-        <!-- Curved Header -->
         <%- include('../acct/partials/app_header', { page_title: 'Skills Academy', page_desc: 'Browse available courses' }) %>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h2>Skills Academy</h2>
-                <p style="color: var(--ntxt-color);">Master high-income skills and accelerate your career.</p>
+                <h2 style="color: var(--sec-color); font-size: 2rem; margin: 0 0 5px 0;">Skills Academy</h2>
+                <p style="color: var(--ntxt-color); margin: 0; font-size: 1.1rem;">Master high-income skills and accelerate your career.</p>
             </div>
             <% if(locals.user && locals.user.has_paid) { %>
-                <span class="premium-badge" style="padding: 6px 12px; font-size: 0.9rem;">Premium Member</span>
+                <span class="premium-badge" style="padding: 8px 16px; font-size: 1rem;">Premium Member</span>
             <% } else { %>
-                <a href="/payment" class="btn btn-primary" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border: none;">Unlock Premium</a>
+                <a href="/payment" class="btn-3d" style="width: auto; background: linear-gradient(135deg, #ffc107, #ff9800); box-shadow: 0 4px 15px rgba(255,193,7,0.3); color: #000;">Unlock Premium</a>
             <% } %>
         </div>
 
         <!-- Category Filters -->
-        <div class="category-filters mb-2" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-            <a href="/academy" class="btn <%= !locals.current_category ? 'btn-primary' : 'btn-outline' %>" style="border-radius: 20px;">All</a>
+        <div class="category-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 1rem;">
+            <a href="/skills" class="filter-btn <%= !locals.current_category ? 'active' : '' %>">All</a>
             <% categories.forEach(function(cat) { %>
-                <a href="/academy?category=<%= cat.slug %>" class="btn <%= locals.current_category === cat.slug ? 'btn-primary' : 'btn-outline' %>" style="border-radius: 20px;"><%= cat.name %></a>
+                <a href="/skills?category=<%= cat.slug %>" class="filter-btn <%= locals.current_category === cat.slug ? 'active' : '' %>"><%= cat.name %></a>
             <% }); %>
         </div>
         
         <% if(courses.length === 0) { %>
-            <div class="glass-panel text-center" style="padding: 4rem 2rem;">
-                <img src="/acct/img/report-svgrepo-com.svg" style="width: 64px; opacity: 0.5; margin-bottom: 1rem;">
-                <h3>No courses found</h3>
-                <p>Check back later or try a different category.</p>
+            <div class="glass-panel" style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">📚</div>
+                <h3 style="color: var(--sec-color); font-size: 1.8rem; margin-bottom: 10px;">No courses found</h3>
+                <p style="color: var(--ntxt-color); font-size: 1.1rem;">Check back later or try a different category.</p>
             </div>
         <% } else { %>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;">
                 <% courses.forEach(function(course) { %>
                     <div class="course-card">
                         <% if(course.thumbnail) { %>
                             <img src="<%= course.thumbnail %>" alt="<%= course.title %>" class="course-thumbnail">
                         <% } else { %>
-                            <div class="course-thumbnail" style="display:flex; align-items:center; justify-content:center;">
-                                <span style="font-size:3rem; color:rgba(255,255,255,0.5)"></span>
+                            <div class="course-thumbnail">
+                                <span style="font-size:4rem; opacity: 0.5;">🎓</span>
                             </div>
                         <% } %>
                         <div class="course-info">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                 <div class="course-category"><%= course.category_name %></div>
                                 <% if(course.is_premium) { %>
                                     <span class="premium-badge">PRO</span>
                                 <% } else { %>
-                                    <span class="premium-badge" style="background: var(--success);">FREE</span>
+                                    <span class="free-badge">FREE</span>
                                 <% } %>
                             </div>
                             <h3 class="course-title"><%= course.title %></h3>
-                            <p class="course-desc"><%= course.description.substring(0, 100) %>...</p>
+                            <p class="course-desc"><%= course.description.substring(0, 120) %><%= course.description.length > 120 ? '...' : '' %></p>
                             
                             <div class="course-meta">
-                                <span><img src="/acct/img/user-profile-icon.svg"> <%= course.instructor || 'Kelsel Team' %></span>
-                                <span><img src="/acct/img/report-svgrepo-com.svg"> <%= course.duration_hours %>h</span>
+                                <span>👨‍🏫 <%= course.instructor || 'Kelsel Team' %></span>
+                                <span>⏱️ <%= course.duration_hours %>h</span>
                             </div>
                             
-                            <a href="/academy/course/<%= course.slug %>" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">View Course</a>
+                            <a href="/skills/course/<%= course.slug %>" class="btn-3d">View Course</a>
                         </div>
                     </div>
                 <% }); %>
             </div>
         <% } %>
 
-        <div style="margin-top: 4rem; opacity: 0.4;">
-            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.5rem;"></span> Coming Soon
-                <div style="flex-grow: 1; height: 1px; background: var(--cbg-color-2); margin-left: 10px;"></div>
+        <div style="margin-top: 5rem; opacity: 0.5;">
+            <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; color: var(--sec-color);">
+                Coming Soon
+                <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
             </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; pointer-events: none; filter: grayscale(50%);">
-                <!-- Placeholder 1 -->
-                <div class="course-card">
-                    <div class="course-thumbnail" style="display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
-                        <span style="font-size:3rem;"></span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; pointer-events: none; filter: grayscale(80%);">
+                <div class="course-card" style="opacity: 1; transform: none;">
+                    <div class="course-thumbnail" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
+                        <span style="font-size:4rem;">📱</span>
                     </div>
                     <div class="course-info">
                         <div class="course-category">Mobile Development</div>
                         <h3 class="course-title">Flutter Masterclass</h3>
                         <p class="course-desc">Build cross-platform mobile apps for iOS and Android using Dart and Flutter.</p>
-                        <a href="#" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">Coming Soon</a>
+                        <div class="btn-3d" style="background: rgba(255,255,255,0.1); box-shadow: none;">Coming Soon</div>
                     </div>
                 </div>
-                <!-- Placeholder 2 -->
-                <div class="course-card">
-                    <div class="course-thumbnail" style="display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);">
-                        <span style="font-size:3rem;"></span>
+                <div class="course-card" style="opacity: 1; transform: none;">
+                    <div class="course-thumbnail" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                        <span style="font-size:4rem;">🎨</span>
                     </div>
                     <div class="course-info">
                         <div class="course-category">Design</div>
                         <h3 class="course-title">Advanced UI/UX Principles</h3>
                         <p class="course-desc">Learn how to craft stunning user interfaces and seamless user experiences.</p>
-                        <a href="#" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">Coming Soon</a>
+                        <div class="btn-3d" style="background: rgba(255,255,255,0.1); box-shadow: none;">Coming Soon</div>
                     </div>
                 </div>
-                <!-- Placeholder 3 -->
-                <div class="course-card">
-                    <div class="course-thumbnail" style="display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
-                        <span style="font-size:3rem;"></span>
+                <div class="course-card" style="opacity: 1; transform: none;">
+                    <div class="course-thumbnail" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
+                        <span style="font-size:4rem;">🤖</span>
                     </div>
                     <div class="course-info">
                         <div class="course-category">Data Science</div>
                         <h3 class="course-title">Applied Machine Learning</h3>
                         <p class="course-desc">Train and deploy predictive models using Python, Pandas, and Scikit-Learn.</p>
-                        <a href="#" class="btn btn-outline" style="width: 100%; text-align: center; border-radius: 8px;">Coming Soon</a>
+                        <div class="btn-3d" style="background: rgba(255,255,255,0.1); box-shadow: none;">Coming Soon</div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+            gsap.to(".course-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            VanillaTilt.init(document.querySelectorAll(".course-card"), { max: 3, speed: 400, glare: true, "max-glare": 0.1 });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

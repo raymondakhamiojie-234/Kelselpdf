@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,89 +6,84 @@
     <title>My Learning - KelselPDF Academy</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        }
+        
         .learning-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; margin-top: 1.5rem;
         }
+        
         .learning-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1.8rem;
+            position: relative; opacity: 0; transform: translateY(20px);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            display: flex; flex-direction: column;
         }
-        .learning-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-        }
-        .course-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 1rem;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #eee;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-color);
-        }
-        .progress-text {
-            font-size: 0.8rem;
-            color: #777;
-            text-align: right;
-            margin-bottom: 1rem;
-        }
+        .learning-card:hover { border-color: rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .course-title { font-size: 1.3rem; font-weight: 700; color: var(--sec-color); margin-bottom: 1.5rem; margin-top: 0.5rem; line-height: 1.4; flex: 1; }
+        
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cta-color), #2196f3); }
+        
+        .progress-text { font-size: 0.85rem; color: var(--ntxt-color); text-align: right; margin-bottom: 1.5rem; font-weight: 600; }
+        
         .status-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: bold;
+            position: absolute; top: 1.5rem; right: 1.5rem; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: 800; text-transform: uppercase;
         }
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
+        .status-completed { background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3); }
+        .status-active { background: rgba(33, 150, 243, 0.15); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.3); }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center; display: block;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
         }
-        .status-active {
-            background: #cce5ff;
-            color: #004085;
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .btn-ghost {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: background 0.3s;
         }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
     </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('../acct/partials/sidebar', { active_page: 'academy_learning' }) %>
 
     <div class="main-content">
-        <!-- Curved Header -->
         <%- include('../acct/partials/app_header', { page_title: 'My Learning', page_desc: 'Continue where you left off' }) %>
 
-        <header class="dashboard-header glass-panel mb-2">
-            <h1>My Learning</h1>
-            <p>Track your progress and resume your enrolled courses.</p>
-        </header>
+        <div style="margin-bottom: 2rem;">
+            <h1 style="color: var(--sec-color); font-size: 2.2rem; margin: 0 0 5px 0;">My Learning</h1>
+            <p style="color: var(--ntxt-color); margin: 0; font-size: 1.1rem;">Track your progress and resume your enrolled courses.</p>
+        </div>
 
         <div class="learning-grid">
             <% if (progress && progress.length > 0) { %>
@@ -111,63 +106,67 @@
                             <div class="progress-text">In Progress</div>
                         <% } else { %>
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: 100%; background: #28a745;"></div>
+                                <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a);"></div>
                             </div>
-                            <div class="progress-text" style="color: #28a745;">100% Completed</div>
+                            <div class="progress-text" style="color: #4caf50;">100% Completed</div>
                         <% } %>
 
-                        <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                            <a href="/skills/player/<%= p.course_id %>" class="btn btn-primary" style="flex: 1;">
+                        <div style="display: flex; gap: 10px; margin-top: auto;">
+                            <a href="/skills/player/<%= p.course_id %>" class="btn-3d" style="flex: 1;">
                                 <%= isCompleted ? 'Review Course' : 'Resume Course' %>
                             </a>
                             <% if (isCompleted) { %>
-                                <a href="/skills/certificate/<%= p.course_id %>" class="btn btn-secondary" style="flex: 1; text-align: center;">Certificate</a>
+                                <a href="/skills/certificate/<%= p.course_id %>" class="btn-ghost" style="flex: 1;">Certificate</a>
                             <% } %>
                         </div>
                     </div>
                 <% }) %>
             <% } else { %>
-                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                    <h3>You haven't enrolled in any courses yet!</h3>
-                    <p>Visit the Skills Academy to browse available courses and start learning.</p>
-                    <a href="/skills" class="btn btn-primary mt-1">Browse Courses</a>
+                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">📈</div>
+                    <h3 style="color: var(--sec-color); font-size: 1.8rem; margin-bottom: 10px;">You haven't enrolled in any courses yet!</h3>
+                    <p style="color: var(--ntxt-color); font-size: 1.1rem; margin-bottom: 25px;">Visit the Skills Academy to browse available courses and start learning.</p>
+                    <a href="/skills" class="btn-3d" style="display: inline-block; width: auto;">Browse Courses</a>
                 </div>
             <% } %>
         </div>
 
-        <div style="margin-top: 4rem; opacity: 0.4;">
-            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.5rem;"></span> Coming Soon
-                <div style="flex-grow: 1; height: 1px; background: var(--border-color); margin-left: 10px;"></div>
+        <div style="margin-top: 5rem; opacity: 0.5;">
+            <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 15px; color: var(--sec-color);">
+                Coming Soon
+                <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
             </h3>
-            <div class="learning-grid" style="pointer-events: none; filter: grayscale(50%); margin-top: 0;">
-                <!-- Placeholder 1 -->
-                <div class="learning-card" style="padding-top: 2rem;">
-                    <div style="position: absolute; top: 1rem; right: 1rem; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; background: #e2e3e5; color: #383d41;">Upcoming</div>
+            <div class="learning-grid" style="pointer-events: none; filter: grayscale(80%); margin-top: 0;">
+                <div class="learning-card" style="opacity: 1; transform: none;">
+                    <div class="status-badge" style="background: rgba(255,255,255,0.1); color: var(--ntxt-color);">Upcoming</div>
                     <div class="course-title">Blockchain & Web3</div>
                     <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-                    <div class="progress-text">Not Started</div>
-                    <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                        <button class="btn btn-secondary" style="flex: 1;" disabled>Coming Soon</button>
+                    <div class="progress-text" style="color: var(--ntxt-color);">Not Started</div>
+                    <div style="display: flex; gap: 10px; margin-top: auto;">
+                        <button class="btn-ghost" style="flex: 1; opacity: 0.7;">Coming Soon</button>
                     </div>
                 </div>
-                <!-- Placeholder 2 -->
-                <div class="learning-card" style="padding-top: 2rem;">
-                    <div style="position: absolute; top: 1rem; right: 1rem; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; background: #e2e3e5; color: #383d41;">Upcoming</div>
+                <div class="learning-card" style="opacity: 1; transform: none;">
+                    <div class="status-badge" style="background: rgba(255,255,255,0.1); color: var(--ntxt-color);">Upcoming</div>
                     <div class="course-title">Cloud Computing (AWS)</div>
                     <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-                    <div class="progress-text">Not Started</div>
-                    <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                        <button class="btn btn-secondary" style="flex: 1;" disabled>Coming Soon</button>
+                    <div class="progress-text" style="color: var(--ntxt-color);">Not Started</div>
+                    <div style="display: flex; gap: 10px; margin-top: auto;">
+                        <button class="btn-ghost" style="flex: 1; opacity: 0.7;">Coming Soon</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+            gsap.to(".learning-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            VanillaTilt.init(document.querySelectorAll(".learning-card"), { max: 3, speed: 400, glare: true, "max-glare": 0.1 });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
