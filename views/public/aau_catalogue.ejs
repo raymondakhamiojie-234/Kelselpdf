@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,21 +69,22 @@
                     renderCatalogue(result.data);
                 } else {
                     document.getElementById('loading').innerHTML = '<span style="color:#ff5e5e">Database connection failed. Please ensure the backend is connected.</span>';
-                }            } catch (err) {
+                }
+            } catch (err) {
                 document.getElementById('loading').innerText = 'An error occurred while loading.';
             }
         });
 
         function getBadge(status) {
             if (status === 'current_official_verified') {
-                return '<span class="badge badge-green">Official AAU curriculum — verified</span>';
+                return '<span class="badge badge-green">Official AAU curriculum - verified</span>';
             } else if (status === 'official_historical') {
-                return '<span class="badge badge-yellow">Official AAU historical curriculum — current session not independently verified</span>';
+                return '<span class="badge badge-yellow">Official AAU historical curriculum - current session not independently verified</span>';
             } else if (status === 'conflicting_official_sources') {
-                return '<span class="badge badge-red">AAU sources conflict — confirmation required</span>';
+                return '<span class="badge badge-red">AAU sources conflict - confirmation required</span>';
             }
             // default pending
-            return '<span class="badge badge-orange">Programme confirmed for 2026/2027 — current curriculum pending verification</span>';
+            return '<span class="badge badge-orange">Programme confirmed for 2026/2027 - current curriculum pending verification</span>';
         }
 
         function renderCatalogue(programmes) {
@@ -116,4 +117,3 @@
     </script>
 </body>
 </html>
-
