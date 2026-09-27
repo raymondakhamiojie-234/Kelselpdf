@@ -107,7 +107,15 @@
             
             try {
                 const res = await fetch('/api/curriculum/programmes');
-                const result = await res.json();
+                const contentType = res.headers.get("content-type");
+                let result;
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    result = await res.json();
+                } else {
+                    const text = await res.text();
+                    console.error("Non-JSON response received:", text.substring(0, 200));
+                    throw new Error("Server returned an invalid response (not JSON).");
+                }
                 if(result.success) {
                     allProgrammes = result.data;
                     allProgrammes.forEach(p => {
@@ -293,3 +301,4 @@
     </script>
 </body>
 </html>
+

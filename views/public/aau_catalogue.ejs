@@ -63,7 +63,15 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const response = await fetch('/api/curriculum/programmes');
-                const result = await response.json();
+                const contentType = response.headers.get("content-type");
+                let result;
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error("Non-JSON response received:", text.substring(0, 200));
+                    throw new Error("Server returned an invalid response (not JSON).");
+                }
                 
                 if (result.success) {
                     renderCatalogue(result.data);
@@ -117,3 +125,4 @@
     </script>
 </body>
 </html>
+
