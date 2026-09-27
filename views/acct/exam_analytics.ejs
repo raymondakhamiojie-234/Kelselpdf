@@ -1,12 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>Records & Analytics - KelselPDF</title>
+    <title>Analytics - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <link rel="manifest" href="/manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -15,23 +17,78 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    
+    <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            opacity: 0; transform: translateY(20px);
+        }
+        .dark-mode .glass-panel { background: rgba(0, 0, 0, 0.2); }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px; padding: 1.5rem; text-align: center;
+            opacity: 0; transform: translateY(20px);
+        }
+        
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.2rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s; display: inline-block;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); }
+        
+        .btn-ai-3d {
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+            border: none; color: white; padding: 0.8rem 1.2rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s; display: inline-block; margin-left: 0.5rem;
+        }
+        .btn-ai-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4); }
+
+        table.styled-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        table.styled-table th, table.styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        table.styled-table th { color: var(--ntxt-color); font-weight: 600; }
+        table.styled-table td { color: var(--txt-color); }
+        table.styled-table tr:hover { background: rgba(255,255,255,0.02); }
+    </style>
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('partials/sidebar', { active_page: 'exam_analytics' }) %>
 
     <main class="main-content">
-        <!-- Curved Header -->
-        <%- include('partials/app_header', { page_title: 'Analytics', page_desc: 'Track your performance' }) %>
+        <%- include('partials/app_header', { page_title: 'Analytics', page_desc: 'Track your performance over time' }) %>
 
-        <!-- AI Insights Card -->
-        <div id="aiInsightCard" class="glass-panel mb-2" style="border-left: 4px solid var(--accent); display: none;">
-            <h3> AI Tutor Insights</h3>
-            <p id="aiInsightText">Analyzing your performance...</p>
-        </div>
-
-        <!-- Analytics Metrics & Content -->
         <% 
             let totalExams = attempts.length;
             let totalScore = 0;
@@ -44,38 +101,34 @@
         %>
 
         <% if (totalExams === 0) { %>
-            <div class="glass-panel text-center" style="padding: 40px 20px;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
-                <h2 style="margin-bottom: 10px;">No exams completed yet.</h2>
-                <p style="color: var(--text-muted); margin-bottom: 20px;">Take a mock exam to see your analytics and track your progress!</p>
-                <a href="/dashboard" class="btn btn-ai">Take a Mock Exam</a>
+            <div class="glass-panel text-center" id="empty-state">
+                <h2 style="color: var(--sec-color); margin-bottom: 10px; font-size: 2rem;">No exams completed yet.</h2>
+                <p style="color: var(--ntxt-color); margin-bottom: 20px; font-size: 1.1rem;">Take a mock exam to see your analytics and track your progress!</p>
+                <a href="/exam_setup" class="btn-3d">Take a Mock Exam</a>
             </div>
         <% } else { %>
-            <!-- Metric Cards -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                <div class="glass-panel text-center">
-                    <h3 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Total Exams Taken</h3>
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--accent);"><%= totalExams %></div>
+                <div class="metric-card">
+                    <h3 style="color: var(--ntxt-color); font-size: 1rem; margin-bottom: 5px;">Total Exams Taken</h3>
+                    <div style="font-size: 2.2rem; font-weight: bold; color: var(--cta-color);"><%= totalExams %></div>
                 </div>
-                <div class="glass-panel text-center">
-                    <h3 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">Average Pass Rate</h3>
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--success);"><%= avgPassRate %>%</div>
+                <div class="metric-card">
+                    <h3 style="color: var(--ntxt-color); font-size: 1rem; margin-bottom: 5px;">Average Pass Rate</h3>
+                    <div style="font-size: 2.2rem; font-weight: bold; color: #4caf50;"><%= avgPassRate %>%</div>
                 </div>
             </div>
 
-            <div class="glass-panel mb-2">
-                <h2>Performance Overview</h2>
+            <div class="glass-panel">
+                <h2 style="color: var(--sec-color); margin-bottom: 1rem;">Performance Overview</h2>
                 <div style="position: relative; height: 300px; width: 100%; max-width: 100%; overflow: hidden;">
-                    <!-- Skeleton Loader -->
-                    <div id="chartSkeleton" style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 400% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 8px;"></div>
                     <canvas id="scoreChart"></canvas>
                 </div>
             </div>
         <% } %>
 
-        <div class="glass-panel mb-2">
-            <h2>Recent Attempts</h2>
-            <div class="table-responsive">
+        <div class="glass-panel table-panel">
+            <h2 style="color: var(--sec-color); margin-bottom: 1rem;">Recent Attempts</h2>
+            <div style="overflow-x: auto;">
                 <table class="styled-table">
                     <thead>
                         <tr>
@@ -88,15 +141,19 @@
                     </thead>
                     <tbody>
                         <% if (attempts.length === 0) { %>
-                            <tr><td colspan="5" class="text-center" style="padding: 20px;">No attempts recorded yet.</td></tr>
+                            <tr><td colspan="5" class="text-center" style="padding: 20px; color: var(--ntxt-color);">No attempts recorded yet.</td></tr>
                         <% } else { %>
                             <% attempts.forEach(a => { %>
                             <tr>
                                 <td><%= new Date(a.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) %></td>
-                                <td><%= a.course_code %></td>
+                                <td style="color: var(--cta-color); font-weight: bold;"><%= a.course_code %></td>
                                 <td><%= a.score %></td>
                                 <td><%= a.total_questions %></td>
-                                <td><%= a.total_questions > 0 ? (Math.round((a.score / a.total_questions) * 100 * 10) / 10) + '%' : '--' %></td>
+                                <td>
+                                    <span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-weight: 600; color: <%= (a.score/a.total_questions) >= 0.5 ? '#4caf50' : '#ff9800' %>;">
+                                        <%= a.total_questions > 0 ? (Math.round((a.score / a.total_questions) * 100 * 10) / 10) + '%' : '--' %>
+                                    </span>
+                                </td>
                             </tr>
                             <% }); %>
                         <% } %>
@@ -104,93 +161,47 @@
                 </table>
             </div>
         </div>
-
-        <div class="glass-panel">
-            <h2>Study Materials</h2>
-            <ul style="list-style: none;">
-                <% if (past_questions.length === 0) { %>
-                    <li style="color: var(--text-muted);">No materials available at the moment.</li>
-                    <!-- Mock material for demo -->
-                    <li style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong>GST101</strong> - 2023 Past Question
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <a href="#" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download</a>
-                            <a href="/exam/ai/pdf?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;"> Chat with PDF</a>
-                        </div>
-                    </li>
-                <% } else { %>
-                    <% past_questions.forEach(pq => { %>
-                    <li style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong><%= pq.course_code %></strong> - <%= pq.year %> (<%= pq.type %>)
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <a href="<%= (pq.file_link.startsWith('http') || pq.file_link.startsWith('data:')) ? pq.file_link : '/' + pq.file_link %>" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.85rem;">Download File</a>
-                            <a href="/exam/ai/pdf?url=<%= encodeURIComponent(pq.file_link) %>" class="btn btn-ai" style="padding: 5px 10px; font-size: 0.85rem;"> Chat with PDF</a>
-                        </div>
-                    </li>
-                    <% }); %>
-                <% } %>
-            </ul>
-        </div>
     </main>
 
-    <style>
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-    </style>
-
     <script>
-        // Chart.js Setup
-        const ctx = document.getElementById('scoreChart')?.getContext('2d');
-        const labels = <%- labels || '[]' %>;
-        const data = <%- data || '[]' %>;
-
-        if (ctx && labels.length > 0) {
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Average Score (%)',
-                        data: data,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } }
-                    },
-                    plugins: { legend: { labels: { color: '#f8fafc' } } }
-                }
-            });
-            // Hide skeleton after render
-            const skeleton = document.getElementById('chartSkeleton');
-            if (skeleton) skeleton.style.display = 'none';
-        }
-
-        // Fetch AI Insights (Optional, to be implemented later in AI endpoints)
         document.addEventListener('DOMContentLoaded', () => {
-            if (labels.length > 0) {
-                // For now, mock AI insight or uncomment when /api/ai/insights is ready
-                // document.getElementById('aiInsightCard').style.display = 'block';
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power2.out" });
+            gsap.to(".metric-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            VanillaTilt.init(document.querySelectorAll(".metric-card"), { max: 5, speed: 400, glare: true, "max-glare": 0.1 });
+            
+            const ctx = document.getElementById('scoreChart')?.getContext('2d');
+            const labels = <%- labels || '[]' %>;
+            const data = <%- data || '[]' %>;
+
+            if (ctx && labels.length > 0) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Average Score (%)',
+                            data: data,
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            borderColor: 'rgba(33, 150, 243, 1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--ntxt-color)' } },
+                            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--ntxt-color)' } }
+                        },
+                        plugins: { legend: { labels: { color: 'var(--txt-color)' } } }
+                    }
+                });
             }
         });
     </script>
 </body>
 </html>
-
-
-
-
-

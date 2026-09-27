@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -6,6 +6,8 @@
     <title>Exam Results - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <link rel="manifest" href="/manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -14,36 +16,111 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    
+    <style>
+        .dashboard-body { position: relative; background: transparent; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            opacity: 0; transform: scale(0.9);
+        }
+        .dark-mode .glass-panel { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); }
+
+        .score-circle {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 2rem auto;
+            background: rgba(255,255,255,0.02);
+            border: 8px solid <%= percentage >= 50 ? '#4caf50' : '#ff5e5e' %>;
+            box-shadow: 0 0 30px <%= percentage >= 50 ? 'rgba(76,175,80,0.3)' : 'rgba(255,94,94,0.3)' %>, inset 0 0 20px <%= percentage >= 50 ? 'rgba(76,175,80,0.2)' : 'rgba(255,94,94,0.2)' %>;
+        }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 1rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block; width: 100%; margin-bottom: 1rem; box-sizing: border-box;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .btn-ghost {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); color: var(--txt-color); padding: 1rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem;
+            cursor: pointer; text-decoration: none; text-align: center;
+            transition: background 0.3s, border-color 0.3s;
+            display: block; width: 100%; box-sizing: border-box;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+    </style>
 </head>
 <body class="dashboard-body">
-    <div class="auth-wrapper" style="padding-top: 4rem; align-items: flex-start;">
-        <div class="glass-panel text-center" style="max-width: 500px; width: 100%;">
-            <h2 class="mb-2">Exam Results</h2>
-            <h4 style="color: var(--tran-color);"><%= course %> Mock Exam</h4>
-            
-            <div style="margin: 2rem 0;">
-                <div style="font-size: 4rem; font-weight: bold; color: <%= percentage >= 50 ? 'var(--success)' : 'var(--error)' %>;">
-                    <%= percentage %>%
-                </div>
-                <p style="font-size: 1.2rem;">You scored <strong><%= score %></strong> out of <strong><%= total_questions %></strong></p>
-            </div>
-            
-            <div style="background: var(--cbg-color-2); padding: 15px; border-radius: 8px; margin-bottom: 2rem;">
-                <p style="margin: 0;"><em>"<%= feedback %>"</em></p>
-            </div>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
 
-            <div class="flex-col">
-                <a href="/exam/analytics" class="btn btn-ai">View Analytics</a>
-                <a href="/dashboard" class="btn">Return to Dashboard</a>
+    <div class="glass-panel" id="result-card">
+        <h2 style="color: var(--sec-color); font-size: 2.2rem; margin-top: 0; margin-bottom: 0.5rem;">Exam Results</h2>
+        <h4 style="color: var(--cta-color); font-size: 1.2rem; margin-top: 0;"><%= course %> Mock Exam</h4>
+        
+        <div class="score-circle">
+            <div style="font-size: 4rem; font-weight: bold; color: <%= percentage >= 50 ? '#4caf50' : '#ff5e5e' %>; text-shadow: 0 0 20px <%= percentage >= 50 ? 'rgba(76,175,80,0.5)' : 'rgba(255,94,94,0.5)' %>;">
+                <%= percentage %>%
             </div>
         </div>
+        <p style="font-size: 1.2rem; color: var(--txt-color); margin-bottom: 2rem;">You scored <strong><%= score %></strong> out of <strong><%= total_questions %></strong></p>
+        
+        <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-bottom: 2.5rem;">
+            <p style="margin: 0; font-size: 1.1rem; color: var(--ntxt-color); font-style: italic;">"<%= feedback %>"</p>
+        </div>
+
+        <div>
+            <a href="/exam/analytics" class="btn-3d">View Detailed Analytics</a>
+            <a href="/dashboard" class="btn-ghost">Return to Dashboard</a>
+        </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to("#result-card", { opacity: 1, scale: 1, duration: 0.8, ease: "elastic.out(1, 0.8)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            
+            <% if (percentage >= 50) { %>
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#2196f3', '#4caf50', '#ffeb3b']
+                    });
+                }, 500);
+            <% } %>
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

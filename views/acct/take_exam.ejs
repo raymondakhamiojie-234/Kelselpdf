@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -6,76 +6,109 @@
     <title>Exam: <%= course %> - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        .timer-bar {
-            position: sticky;
-            top: 0;
-            background: var(--neu-color);
-            padding: 15px 20px;
-            border-bottom: 2px solid var(--cbg-color-2);
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px var(--shd-color);
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
         }
-        .timer-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--error);
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
         }
-        .exam-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-    </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
-</head>
-<body class="dashboard-body">
-    <style>
-        body { padding-left: 280px; padding-top: 2rem; }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        body { padding-left: 280px; padding-top: 2rem; margin: 0; }
         @media (max-width: 768px) {
             body { padding-left: 0; padding-top: 250px; }
-            .exam-nav { width: 100% !important; height: auto !important; max-height: 250px; border-right: none !important; border-bottom: 2px solid var(--cbg-color-2); flex-direction: row !important; flex-wrap: wrap; }
+            .exam-nav { width: 100% !important; height: auto !important; max-height: 250px; border-right: none !important; border-bottom: 2px solid rgba(255,255,255,0.05); flex-direction: row !important; flex-wrap: wrap; }
             .exam-nav-top { width: 100%; display: flex !important; flex-direction: row !important; justify-content: space-between; align-items: center; border-bottom: none !important; padding-bottom: 0 !important; }
-            .timer-text { font-size: 1.5rem !important; }
             .exam-nav-bottom { width: 100%; overflow-y: auto; max-height: 120px; }
         }
-    </style>
-    <nav class="exam-nav" style="position: fixed; top: 0; left: 0; width: 280px; height: 100vh; box-sizing: border-box; z-index: 1000; background: var(--neu-color); padding: 20px; box-shadow: 2px 0 6px var(--shd-color); display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--cbg-color-2); overflow-y: auto;">
+
+        .exam-nav {
+            position: fixed; top: 0; left: 0; width: 280px; height: 100vh; box-sizing: border-box; z-index: 1000; 
+            background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; 
+            border-right: 1px solid rgba(255,255,255,0.05); overflow-y: auto;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            opacity: 0; transform: translateY(20px);
+        }
+        .dark-mode .glass-panel { background: rgba(0, 0, 0, 0.2); }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 1rem 3rem; border-radius: 12px; font-weight: 600; font-size: 1.2rem;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+
+        .exam-container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         
-        <!-- Top section: Course, Username, Timer -->
-        <div class="exam-nav-top" style="display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid var(--cbg-color-2); padding-bottom: 15px;">
-            <div style="font-weight: bold; font-size: 1.2rem; text-align: center; color: var(--cta-color);"><%= course %> Exam</div>
+        .timer-text { font-size: 2.5rem; font-weight: bold; color: var(--error); transition: color 0.3s; }
+        
+        .options-list { list-style: none; padding: 0; }
+        .options-list li { margin-bottom: 15px; }
+        .options-list label {
+            display: flex; align-items: center; cursor: pointer; padding: 15px;
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .options-list label:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+        .options-list input[type="radio"] { margin-right: 15px; transform: scale(1.2); accent-color: var(--cta-color); }
+        .options-list span { color: var(--txt-color); font-size: 1.05rem; line-height: 1.5; }
+        
+        .q-nav-link {
+            padding: 10px 5px; background: rgba(255,255,255,0.05); border-radius: 6px; 
+            text-decoration: none; color: var(--txt-color); text-align: center; font-weight: bold; 
+            border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; font-size: 0.95rem;
+        }
+        .q-nav-link:hover { background: rgba(255,255,255,0.1); }
+        .q-nav-link.answered { background: rgba(76, 175, 80, 0.2); border-color: #4caf50; color: #fff; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="exam-nav">
+        <!-- Top section -->
+        <div class="exam-nav-top" style="display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+            <div style="font-weight: bold; font-size: 1.5rem; text-align: center; color: var(--sec-color);"><%= course %> Exam</div>
             
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--cbg-color); padding: 10px; border-radius: 8px;">
-                <img src="/acct/img/account-user-avatar-svgrepo-com.svg" style="width: 24px; filter: var(--icon-filter, none);" alt="User Icon">
-                <span style="font-weight: 500; color: var(--text-color);"><%= user.full_name %> <%= user.lastname %></span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                <span style="font-weight: 500; color: var(--txt-color);"><%= user.full_name %> <%= user.lastname %></span>
             </div>
 
-            <div style="text-align: center;">
-                <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; text-transform: uppercase; letter-spacing: 1px;">Time Remaining</div>
-                <div class="timer-text" id="timer" style="font-size: 2.5rem; font-weight: bold; color: var(--error);">00:00</div>
+            <div style="text-align: center; margin-top: 10px;">
+                <div style="font-size: 0.85rem; color: var(--ntxt-color); text-transform: uppercase; letter-spacing: 1px;">Time Remaining</div>
+                <div class="timer-text" id="timer">00:00</div>
             </div>
         </div>
 
-        <!-- Bottom section: Question Navigation Links -->
+        <!-- Bottom section -->
         <% if (questions && questions.length > 0) { %>
         <div class="exam-nav-bottom" style="flex: 1;">
-            <div style="font-size: 0.9rem; font-weight: bold; color: var(--text-color); margin-bottom: 10px;">Questions Matrix</div>
-            <div class="question-nav" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-bottom: 20px;">
+            <div style="font-size: 0.9rem; font-weight: bold; color: var(--sec-color); margin-bottom: 15px; text-transform: uppercase;">Questions Matrix</div>
+            <div class="question-nav" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px;">
                 <% questions.forEach((q, index) => { %>
-                    <a href="#question_<%= index + 1 %>" style="padding: 10px 5px; background: var(--cbg-color); border-radius: 6px; text-decoration: none; color: var(--text-color); text-align: center; font-weight: bold; border: 1px solid var(--cbg-color-2); transition: background 0.3s; font-size: 0.95rem;"><%= index + 1 %></a>
+                    <a href="#question_<%= index + 1 %>" id="nav_q_<%= q.id %>" class="q-nav-link"><%= index + 1 %></a>
                 <% }); %>
             </div>
         </div>
@@ -85,9 +118,9 @@
     <div class="exam-container">
         <% if (!questions || questions.length === 0) { %>
             <div class="glass-panel text-center">
-                <h3>No questions available.</h3>
-                <p>There are currently no mock questions uploaded for this course.</p>
-                <a href="/dashboard" class="btn mt-1">Return to Dashboard</a>
+                <h3 style="color: var(--sec-color); font-size: 1.8rem; margin-bottom: 15px;">No questions available.</h3>
+                <p style="color: var(--ntxt-color); margin-bottom: 25px;">There are currently no mock questions uploaded for this course.</p>
+                <a href="/exam_setup" class="btn-3d">Return to Setup</a>
             </div>
         <% } else { %>
             <form id="examForm" method="POST" action="/exam/submit">
@@ -96,50 +129,43 @@
                 
                 <% questions.forEach((q, index) => { %>
                     <div id="question_<%= index + 1 %>" class="glass-panel question-card" style="scroll-margin-top: 140px;">
-                        <h3 style="margin-bottom: 1rem;">Question <%= index + 1 %>:</h3>
-                        <p style="font-size: 1.1rem; color: var(--ntxt-color);"><%= q.question_text %></p>
+                        <h3 style="color: var(--cta-color); margin-bottom: 1rem; font-size: 1.3rem;">Question <%= index + 1 %>:</h3>
+                        <p style="font-size: 1.15rem; color: var(--txt-color); line-height: 1.6; margin-bottom: 1.5rem;"><%= q.question_text %></p>
                         
                         <ul class="options-list">
-                            <li>
-                                <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="A" required onchange="saveExamProgress(this.name, this.value)">
-                                    <span><%= q.option_a %></span>
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="B" onchange="saveExamProgress(this.name, this.value)">
-                                    <span><%= q.option_b %></span>
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="C" onchange="saveExamProgress(this.name, this.value)">
-                                    <span><%= q.option_c %></span>
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="q_<%= q.id %>" value="D" onchange="saveExamProgress(this.name, this.value)">
-                                    <span><%= q.option_d %></span>
-                                </label>
-                            </li>
+                            <li><label><input type="radio" name="q_<%= q.id %>" value="A" required onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_a %></span></label></li>
+                            <li><label><input type="radio" name="q_<%= q.id %>" value="B" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_b %></span></label></li>
+                            <li><label><input type="radio" name="q_<%= q.id %>" value="C" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_c %></span></label></li>
+                            <li><label><input type="radio" name="q_<%= q.id %>" value="D" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_d %></span></label></li>
                         </ul>
                     </div>
                 <% }); %>
 
-                <div class="text-center" style="margin-top: 2rem; margin-bottom: 4rem;">
-                    <button type="submit" id="submitBtn" class="btn btn-ai" style="padding: 15px 40px; font-size: 1.2rem;">Submit Exam</button>
+                <div class="text-center" style="margin-top: 3rem; margin-bottom: 5rem;">
+                    <button type="submit" id="submitBtn" class="btn-3d">Submit Exam</button>
                 </div>
             </form>
         <% } %>
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        });
+
         const course = '<%= encodeURIComponent(course) %>';
         
         function saveExamProgress(key, value) {
             localStorage.setItem(`exam_${course}_${key}`, value);
+            updateNavMatrix(key);
+        }
+
+        function updateNavMatrix(key) {
+            const id = key.replace('q_', '');
+            const navLink = document.getElementById(`nav_q_${id}`);
+            if(navLink) navLink.classList.add('answered');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -148,6 +174,7 @@
                 const savedValue = localStorage.getItem(`exam_${course}_${radio.name}`);
                 if (savedValue && savedValue === radio.value) {
                     radio.checked = true;
+                    updateNavMatrix(radio.name);
                 }
             });
         });
@@ -161,7 +188,7 @@
                 });
             });
 
-            let timeLimit = <%= time_limit %> * 60; // Convert to seconds
+            let timeLimit = <%= time_limit %> * 60;
             const timerEl = document.getElementById('timer');
 
             function updateTimer() {
@@ -173,22 +200,18 @@
                 if (timeLimit <= 0) {
                     clearInterval(timerInterval);
                     alert("Time is up! Submitting exam automatically.");
-                    
-                    // Remove 'required' attributes so form submits even if incomplete
                     const radios = document.querySelectorAll('input[type="radio"]');
                     radios.forEach(r => r.removeAttribute('required'));
-                    
                     form.submit();
                 }
                 
-                // Color warnings
                 if (timeLimit <= 60) {
-                    timerEl.style.color = 'var(--error)';
-                    timerEl.style.animation = 'pulse 1s infinite';
+                    timerEl.style.color = '#ff5e5e';
+                    timerEl.style.textShadow = '0 0 10px rgba(255,94,94,0.5)';
                 } else if (timeLimit <= 300) {
-                    timerEl.style.color = 'orange';
+                    timerEl.style.color = '#ffb822';
                 } else {
-                    timerEl.style.color = 'var(--success)';
+                    timerEl.style.color = '#27c93f';
                 }
 
                 timeLimit--;
@@ -200,8 +223,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-

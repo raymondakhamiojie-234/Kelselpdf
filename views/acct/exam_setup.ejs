@@ -1,32 +1,77 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>Dashboard - KelselPDF</title>
+    <title>Exam Setup - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
         }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        .dark-mode .glass-panel { background: rgba(0, 0, 0, 0.2); }
+        
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 1rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s; width: 100%; display: block; margin-top: 1rem;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .btn-ai-3d {
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+            border: none; color: white; padding: 1rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s; width: 100%; display: block; margin-top: 1rem;
+        }
+        .btn-ai-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4); color: white; }
+        
+        .form-group label { color: var(--sec-color); font-weight: 600; }
+        .form-group select, .form-group input { 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            color: var(--txt-color); border-radius: 8px; padding: 12px;
+        }
+        .form-group select option { background: var(--nav-bg); color: var(--txt-color); }
+    </style>
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('partials/sidebar', { active_page: 'dashboard' }) %>
 
     <main class="main-content">
-        <!-- Curved Header -->
         <%- include('partials/app_header', { page_title: 'Mock Exams', page_desc: 'Configure your practice test' }) %>
 
-        <div class="glass-panel" style="max-width: 600px; margin: 0 auto;">
-            <h1 class="text-center">Set your Exam</h1>
-            <p class="text-center">Choose your parameters to begin.</p>
+        <div class="glass-panel" id="exam-card" style="max-width: 600px; margin: 2rem auto; opacity: 0; transform: translateY(20px);">
+            <h1 class="text-center" style="color: var(--sec-color); font-size: 2.2rem; margin-bottom: 0.5rem;">Exam Setup</h1>
+            <p class="text-center" style="color: var(--ntxt-color); margin-bottom: 2rem;">Choose your parameters to begin.</p>
             
             <form id="examForm" method="GET" action="/exam/start">
                 <div class="form-group">
@@ -51,15 +96,22 @@
                     <input type="number" name="questions" value="20" min="5" required>
                 </div>
                 
-                <div class="flex-col mt-1">
-                    <button type="submit" class="btn" style="width: 100%;">Start Exam</button>
-                    <button type="button" onclick="startAIExam()" class="btn btn-ai" style="width: 100%;"> Generate AI Practice</button>
+                <div style="margin-top: 2.5rem;">
+                    <button type="submit" class="btn-3d">Start CBT Exam</button>
+                    <button type="button" onclick="startAIExam()" class="btn-ai-3d">Generate AI Practice</button>
                 </div>
             </form>
         </div>
     </main>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to("#exam-card", { opacity: 1, y: 0, duration: 0.8, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            VanillaTilt.init(document.querySelector("#exam-card"), { max: 3, speed: 400, glare: true, "max-glare": 0.05 });
+        });
+
         function startAIExam() {
             const course = document.getElementById('courseSelect').value;
             if (!course) {
@@ -71,8 +123,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
