@@ -1,0 +1,74 @@
+programme_id,faculty,programme_name,academic_session,programme_status,curriculum_status
+aau-2026-001,"Agriculture, Natural Resources and Food Sciences",Agricultural Economics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-002,"Agriculture, Natural Resources and Food Sciences",Animal Science and Food Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-003,"Agriculture, Natural Resources and Food Sciences",Soil and Environmental Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-004,"Agriculture, Natural Resources and Food Sciences",Crop Science and Agricultural Biotechnology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-005,"Agriculture, Natural Resources and Food Sciences",Agricultural Extension Management,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-006,Arts,English,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-007,Arts,Modern Languages (French),2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-008,Arts,History & International Studies,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-009,Arts,Philosophy,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-010,Arts,Mass Communication,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-011,Arts,Religious Management & Cultural Studies,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-012,Arts,Theatre & Media Arts,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-013,Basic Medical Sciences,Anatomy,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-014,Basic Medical Sciences,Human Physiology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-015,Basic Medical Sciences,Nursing Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-016,Basic Medical Sciences,Medicine & Surgery (MBBS),2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-017,Education,Accounting Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-018,Education,Secretarial Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-019,Education,English Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-020,Education,Biology Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-021,Education,Early Childhood,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-022,Education,Physics Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-023,Education,Mathematics Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-024,Education,Social Studies,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-025,Education,French Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-026,Education,Computer Science Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-027,Education,Chemistry Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-028,Education,Educational Management,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-029,Education,History Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-030,Education,Religious Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-031,Education,Economic Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-032,Education,Geography Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-033,Education,Guidance & Counselling,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-034,Education,Political Science Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-035,Education,Health Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-036,Education,Human Kinetics Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-037,Education,Agricultural Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-038,Education,Home Economics Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-039,Education,Technology Education,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-040,Engineering & Technology,Civil Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-041,Engineering & Technology,Electrical/Electronics Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-042,Engineering & Technology,Mechanical Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-043,Engineering & Technology,Industrial & Production Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-044,Engineering & Technology,Materials & Metallurgical Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-045,Engineering & Technology,Agricultural & Bio-resources Engineering,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-046,Environmental Studies,Architecture,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-047,Environmental Studies,Building,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-048,Environmental Studies,Fine & Visual Arts,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-049,Environmental Studies,Geography & Environmental Management,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-050,Life Sciences,Biochemistry,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-051,Life Sciences,Human Nutrition & Dietetics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-052,Life Sciences,Microbiology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-053,Life Sciences,Plant Science & Biotechnology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-054,Life Sciences,Zoology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-055,Law,Law,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-056,Management Sciences,Accounting,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-057,Management Sciences,Banking & Finance,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-058,Management Sciences,Business Administration,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-059,Management Sciences,Public Administration,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-060,Medical Laboratory Science,Medical Laboratory Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-061,Physical Sciences,Chemistry [Pure],2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-062,Physical Sciences,Industrial Chemistry,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-063,Physical Sciences,Computer Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-064,Physical Sciences,Physics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-065,Physical Sciences,Geophysics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-066,Physical Sciences,Mathematics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-067,Physical Sciences,Industrial Mathematics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-068,Physical Sciences,Statistics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-069,Social Sciences,Economics,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-070,Social Sciences,Political Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-071,Social Sciences,Library & Information Science,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-072,Social Sciences,Psychology,2026/2027,current_admission_catalogue,pending_current_session_verification
+aau-2026-073,Social Sciences,Sociology,2026/2027,current_admission_catalogue,pending_current_session_verification

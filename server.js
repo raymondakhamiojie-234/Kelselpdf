@@ -9,6 +9,7 @@ const { globalLimiter } = require('./src/middleware/limiters');
 
 const authRoutes = require('./src/routes/authRoutes');
 const mainRoutes = require('./src/routes/mainRoutes');
+const curriculumRoutes = require('./src/routes/curriculumRoutes');
 const aiRoutes = require('./src/routes/aiRoutes');
 const examRoutes = require('./src/routes/examRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
@@ -61,6 +62,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/', mainRoutes);
+app.use('/api/curriculum', curriculumRoutes);
 app.use('/', authRoutes);
 app.use('/', aiRoutes);
 app.use('/', examRoutes);
@@ -92,3 +94,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+

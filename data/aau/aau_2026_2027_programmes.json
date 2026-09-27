@@ -1,0 +1,598 @@
+{
+  "university": "Ambrose Alli University, Ekpoma",
+  "academic_session": "2026/2027",
+  "source_authority": {
+    "type": "official_university_admission_notice",
+    "title": "Sales of 2026/2027 Academic Session Undergraduate Admission Form",
+    "date": "2026-05-25",
+    "url": "https://aauekpoma.edu.ng/sales-of-2026-2027-academic-session-undergraduate-admission-form/",
+    "verification_status": "current_official"
+  },
+  "programme_count": 73,
+  "programmes": [
+    {
+      "id": "aau-2026-001",
+      "faculty": "Agriculture, Natural Resources and Food Sciences",
+      "name": "Agricultural Economics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-002",
+      "faculty": "Agriculture, Natural Resources and Food Sciences",
+      "name": "Animal Science and Food Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-003",
+      "faculty": "Agriculture, Natural Resources and Food Sciences",
+      "name": "Soil and Environmental Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-004",
+      "faculty": "Agriculture, Natural Resources and Food Sciences",
+      "name": "Crop Science and Agricultural Biotechnology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-005",
+      "faculty": "Agriculture, Natural Resources and Food Sciences",
+      "name": "Agricultural Extension Management",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-006",
+      "faculty": "Arts",
+      "name": "English",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-007",
+      "faculty": "Arts",
+      "name": "Modern Languages (French)",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-008",
+      "faculty": "Arts",
+      "name": "History & International Studies",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-009",
+      "faculty": "Arts",
+      "name": "Philosophy",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-010",
+      "faculty": "Arts",
+      "name": "Mass Communication",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-011",
+      "faculty": "Arts",
+      "name": "Religious Management & Cultural Studies",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-012",
+      "faculty": "Arts",
+      "name": "Theatre & Media Arts",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-013",
+      "faculty": "Basic Medical Sciences",
+      "name": "Anatomy",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-014",
+      "faculty": "Basic Medical Sciences",
+      "name": "Human Physiology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-015",
+      "faculty": "Basic Medical Sciences",
+      "name": "Nursing Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-016",
+      "faculty": "Basic Medical Sciences",
+      "name": "Medicine & Surgery (MBBS)",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-017",
+      "faculty": "Education",
+      "name": "Accounting Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-018",
+      "faculty": "Education",
+      "name": "Secretarial Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-019",
+      "faculty": "Education",
+      "name": "English Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-020",
+      "faculty": "Education",
+      "name": "Biology Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-021",
+      "faculty": "Education",
+      "name": "Early Childhood",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-022",
+      "faculty": "Education",
+      "name": "Physics Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-023",
+      "faculty": "Education",
+      "name": "Mathematics Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-024",
+      "faculty": "Education",
+      "name": "Social Studies",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-025",
+      "faculty": "Education",
+      "name": "French Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-026",
+      "faculty": "Education",
+      "name": "Computer Science Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-027",
+      "faculty": "Education",
+      "name": "Chemistry Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-028",
+      "faculty": "Education",
+      "name": "Educational Management",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-029",
+      "faculty": "Education",
+      "name": "History Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-030",
+      "faculty": "Education",
+      "name": "Religious Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-031",
+      "faculty": "Education",
+      "name": "Economic Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-032",
+      "faculty": "Education",
+      "name": "Geography Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-033",
+      "faculty": "Education",
+      "name": "Guidance & Counselling",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-034",
+      "faculty": "Education",
+      "name": "Political Science Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-035",
+      "faculty": "Education",
+      "name": "Health Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-036",
+      "faculty": "Education",
+      "name": "Human Kinetics Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-037",
+      "faculty": "Education",
+      "name": "Agricultural Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-038",
+      "faculty": "Education",
+      "name": "Home Economics Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-039",
+      "faculty": "Education",
+      "name": "Technology Education",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-040",
+      "faculty": "Engineering & Technology",
+      "name": "Civil Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-041",
+      "faculty": "Engineering & Technology",
+      "name": "Electrical/Electronics Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-042",
+      "faculty": "Engineering & Technology",
+      "name": "Mechanical Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-043",
+      "faculty": "Engineering & Technology",
+      "name": "Industrial & Production Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-044",
+      "faculty": "Engineering & Technology",
+      "name": "Materials & Metallurgical Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-045",
+      "faculty": "Engineering & Technology",
+      "name": "Agricultural & Bio-resources Engineering",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-046",
+      "faculty": "Environmental Studies",
+      "name": "Architecture",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-047",
+      "faculty": "Environmental Studies",
+      "name": "Building",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-048",
+      "faculty": "Environmental Studies",
+      "name": "Fine & Visual Arts",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-049",
+      "faculty": "Environmental Studies",
+      "name": "Geography & Environmental Management",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-050",
+      "faculty": "Life Sciences",
+      "name": "Biochemistry",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-051",
+      "faculty": "Life Sciences",
+      "name": "Human Nutrition & Dietetics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-052",
+      "faculty": "Life Sciences",
+      "name": "Microbiology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-053",
+      "faculty": "Life Sciences",
+      "name": "Plant Science & Biotechnology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-054",
+      "faculty": "Life Sciences",
+      "name": "Zoology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-055",
+      "faculty": "Law",
+      "name": "Law",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-056",
+      "faculty": "Management Sciences",
+      "name": "Accounting",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-057",
+      "faculty": "Management Sciences",
+      "name": "Banking & Finance",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-058",
+      "faculty": "Management Sciences",
+      "name": "Business Administration",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-059",
+      "faculty": "Management Sciences",
+      "name": "Public Administration",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-060",
+      "faculty": "Medical Laboratory Science",
+      "name": "Medical Laboratory Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-061",
+      "faculty": "Physical Sciences",
+      "name": "Chemistry [Pure]",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-062",
+      "faculty": "Physical Sciences",
+      "name": "Industrial Chemistry",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-063",
+      "faculty": "Physical Sciences",
+      "name": "Computer Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-064",
+      "faculty": "Physical Sciences",
+      "name": "Physics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-065",
+      "faculty": "Physical Sciences",
+      "name": "Geophysics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-066",
+      "faculty": "Physical Sciences",
+      "name": "Mathematics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-067",
+      "faculty": "Physical Sciences",
+      "name": "Industrial Mathematics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-068",
+      "faculty": "Physical Sciences",
+      "name": "Statistics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-069",
+      "faculty": "Social Sciences",
+      "name": "Economics",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-070",
+      "faculty": "Social Sciences",
+      "name": "Political Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-071",
+      "faculty": "Social Sciences",
+      "name": "Library & Information Science",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-072",
+      "faculty": "Social Sciences",
+      "name": "Psychology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    },
+    {
+      "id": "aau-2026-073",
+      "faculty": "Social Sciences",
+      "name": "Sociology",
+      "academic_session": "2026/2027",
+      "programme_status": "current_admission_catalogue",
+      "curriculum_status": "pending_current_session_verification"
+    }
+  ]
+}
