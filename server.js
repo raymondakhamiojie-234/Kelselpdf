@@ -22,8 +22,10 @@ const trialRoutes = require('./src/routes/trialRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const materialRoutes = require('./src/routes/materialRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
+const cbtAdminRoutes = require('./src/routes/cbtAdminRoutes');
 
 const app = express();
+
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
@@ -76,6 +78,7 @@ app.use('/', trialRoutes);
 app.use('/', notificationRoutes);
 app.use('/', materialRoutes);
 app.use('/', chatRoutes);
+app.use('/', cbtAdminRoutes);
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {

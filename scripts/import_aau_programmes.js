@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const db = require('../src/config/db');
 
@@ -89,3 +90,4 @@ async function importAAU() {
 }
 
 importAAU();
+

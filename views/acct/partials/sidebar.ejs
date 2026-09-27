@@ -8,6 +8,7 @@
         <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 0;">Admin Portal</p>
         <ul>
             <li><a href="/admin" class="<%= locals.active_page === 'admin' ? 'active' : '' %>"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/admin/cbt/exam_bodies" class="<%= locals.active_page === 'cbt_engine' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> CBT Engine</a></li>
             <li><a href="/admin/questions" class="<%= locals.active_page === 'admin_questions' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Mock Questions</a></li>
             <li><a href="/admin/past_questions" class="<%= locals.active_page === 'admin_pq' ? 'active' : '' %>"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Past Questions</a></li>
         </ul>

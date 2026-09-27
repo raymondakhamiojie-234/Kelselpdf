@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CBT Admin - Topics</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .cbt-container { display: flex; height: 100vh; background: var(--bg-color); }
+        .cbt-sidebar { width: 250px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 2rem 1rem; }
+        .cbt-sidebar a { display: block; padding: 10px 15px; color: var(--text-color); text-decoration: none; border-radius: 8px; margin-bottom: 5px; }
+        .cbt-sidebar a:hover, .cbt-sidebar a.active { background: var(--primary-color); color: white; }
+        .cbt-content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
+        .data-table th, .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background: rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
+        .glass-panel { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem; }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="cbt-container">
+        <div class="cbt-sidebar">
+            <h3 style="margin-bottom: 2rem; padding-left: 15px; color: var(--primary-color);">CBT Engine Admin</h3>
+            <a href="/admin/cbt/exam_bodies">Exam Bodies</a>
+            <a href="/admin/cbt/exams">Exams</a>
+            <a href="/admin/cbt/subjects">Subjects</a>
+            <a href="/admin/cbt/topics" class="active">Topics</a>
+            <a href="/admin/cbt/questions">Question Bank</a>
+            <hr style="border-color: var(--border-color); margin: 2rem 0;">
+            <a href="/admin">Back to Main Admin</a>
+        </div>
+        
+        <div class="cbt-content">
+            <h2 style="margin-bottom: 1rem;">Topics</h2>
+            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Manage syllabus topics for specific subjects.</p>
+            
+            <div class="glass-panel">
+                <h3>Add New Topic</h3>
+                <form method="POST" action="/admin/cbt/topics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="subject_id" class="form-control" required>
+                            <option value="">Select Subject</option>
+                            <% subjects.forEach(s => { %>
+                                <option value="<%= s.id %>" <%= selected_subject == s.id ? 'selected' : '' %>><%= s.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Topic Name (e.g., Algebra, Trigonometry)</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <button type="submit" class="btn btn-primary">Create Topic</button>
+                    </div>
+                </form>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <form method="GET" action="/admin/cbt/topics" style="display: flex; gap: 10px;">
+                    <select name="subject_id" class="form-control" style="width: auto;">
+                        <option value="">All Subjects</option>
+                        <% subjects.forEach(s => { %>
+                            <option value="<%= s.id %>" <%= selected_subject == s.id ? 'selected' : '' %>><%= s.name %></option>
+                        <% }) %>
+                    </select>
+                    <button type="submit" class="btn btn-secondary">Filter</button>
+                </form>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Subject</th>
+                        <th>Topic Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (topics && topics.length > 0) { %>
+                        <% topics.forEach(topic => { %>
+                            <tr>
+                                <td><%= topic.id %></td>
+                                <td><%= topic.subject_name %></td>
+                                <td><strong><%= topic.name %></strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline">Edit</button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No topics found.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
