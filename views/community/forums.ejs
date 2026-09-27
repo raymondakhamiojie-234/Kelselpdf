@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,107 +6,101 @@
     <title>Community Forums - KelselPDF Ecosystem</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <style>
-        .forum-list {
-            margin-top: 1rem;
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
         }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        }
+        
         .forum-category {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; margin-bottom: 2rem; overflow: hidden;
+            opacity: 0; transform: translateY(20px);
         }
+        
         .forum-category-header {
-            background: var(--bg-color);
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.05); padding: 1.2rem 1.5rem;
+            font-weight: 700; font-size: 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--cta-color); text-transform: uppercase; letter-spacing: 1px;
         }
+        
         .forum-row {
-            display: flex;
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-color);
-            transition: background 0.2s;
+            display: flex; padding: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center; text-decoration: none; color: var(--txt-color); transition: background 0.3s;
         }
-        .forum-row:last-child {
-            border-bottom: none;
-        }
-        .forum-row:hover {
-            background: var(--bg-color);
-        }
-        .forum-info {
-            flex: 1;
-        }
-        .forum-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-        .forum-desc {
-            font-size: 0.9rem;
-            color: #777;
-        }
-        .forum-stats {
-            text-align: right;
-            font-size: 0.9rem;
-            color: #777;
-            min-width: 100px;
-        }
+        .forum-row:last-child { border-bottom: none; }
+        .forum-row:hover { background: rgba(255, 255, 255, 0.05); }
+        
+        .forum-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--sec-color); }
+        .forum-desc { font-size: 0.95rem; color: var(--ntxt-color); }
+        
         .topic-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            text-decoration: none;
-            color: var(--text-color);
+            display: flex; justify-content: space-between; padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px; margin-bottom: 1rem; text-decoration: none; color: var(--txt-color);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            opacity: 0; transform: translateY(20px);
         }
-        .topic-row:hover {
-            border-color: var(--primary-color);
+        .topic-row:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: rgba(255, 255, 255, 0.3); }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; display: inline-block;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
         }
-        .topic-author {
-            font-size: 0.8rem;
-            color: #777;
-            margin-top: 0.25rem;
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .btn-ghost {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: background 0.3s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        
+        .form-control {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 12px 15px; border-radius: 12px; font-size: 1rem; width: 100%; box-sizing: border-box; margin-bottom: 15px;
         }
     </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body">
-    <%- include('../acct/partials/sidebar') %>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <%- include('../acct/partials/sidebar', { active_page: 'community' }) %>
 
     <div class="main-content">
-        <!-- Curved Header -->
         <%- include('../acct/partials/app_header', { page_title: 'Community', page_desc: 'Join the discussion' }) %>
 
-        <header class="dashboard-header glass-panel mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h1>Community Forums</h1>
-                <p>Discuss courses, ask for help, and connect with peers.</p>
+                <h1 style="color: var(--sec-color); margin: 0 0 5px 0; font-size: 2rem;">Community Forums</h1>
+                <p style="color: var(--ntxt-color); margin: 0; font-size: 1.1rem;">Discuss courses, ask for help, and connect with peers.</p>
             </div>
             <% if (typeof selectedForum !== 'undefined') { %>
-                <a href="/community" class="btn btn-secondary">Back to Forums</a>
+                <a href="/community" class="btn-ghost">Back to Forums</a>
             <% } %>
-        </header>
+        </div>
 
         <% if (typeof selectedForum === 'undefined') { %>
-            <!-- Show all forums grouped by category -->
             <div class="forum-list">
                 <% const categories = [...new Set(forums.map(f => f.category))]; %>
                 <% categories.forEach(cat => { %>
@@ -114,12 +108,12 @@
                         <div class="forum-category-header"><%= cat %></div>
                         <% forums.filter(f => f.category === cat).forEach(forum => { %>
                             <a href="/community/forum/<%= forum.id %>" class="forum-row">
-                                <div class="forum-info">
+                                <div style="flex: 1;">
                                     <div class="forum-title"><%= forum.title %></div>
                                     <div class="forum-desc"><%= forum.description %></div>
                                 </div>
-                                <div class="forum-stats">
-                                    <div><%= forum.topic_count || 0 %> Topics</div>
+                                <div style="text-align: right; font-weight: 600; color: var(--cta-color); min-width: 100px;">
+                                    <%= forum.topic_count || 0 %> Topics
                                 </div>
                             </a>
                         <% }) %>
@@ -127,27 +121,22 @@
                 <% }) %>
             </div>
         <% } else { %>
-            <!-- Show topics for a specific forum -->
-            <div class="glass-panel mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem 2rem;">
                 <div>
-                    <h2 style="margin: 0; color: var(--primary-color);"><%= selectedForum.title %></h2>
-                    <p style="margin: 0.5rem 0 0 0;"><%= selectedForum.description %></p>
+                    <h2 style="margin: 0; color: var(--cta-color);"><%= selectedForum.title %></h2>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--ntxt-color);"><%= selectedForum.description %></p>
                 </div>
-                <button class="btn btn-primary" onclick="document.getElementById('newTopicForm').style.display='block'">New Topic</button>
+                <button class="btn-3d" onclick="document.getElementById('newTopicForm').style.display='block'; gsap.from('#newTopicForm', {opacity: 0, y: -20, duration: 0.3})">New Topic</button>
             </div>
 
-            <div id="newTopicForm" class="glass-panel mb-2" style="display: none;">
-                <h3>Create New Topic</h3>
+            <div id="newTopicForm" class="glass-panel" style="display: none; margin-bottom: 2rem;">
+                <h3 style="color: var(--sec-color); margin-top: 0;">Create New Topic</h3>
                 <form method="POST" action="/community/forum/<%= selectedForum.id %>/new">
-                    <div class="form-group">
-                        <input type="text" name="title" class="form-control" placeholder="Topic Title" required>
-                    </div>
-                    <div class="form-group">
-                        <textarea name="content" class="form-control" rows="5" placeholder="What do you want to discuss?" required></textarea>
-                    </div>
+                    <input type="text" name="title" class="form-control" placeholder="Topic Title" required>
+                    <textarea name="content" class="form-control" rows="5" placeholder="What do you want to discuss?" required></textarea>
                     <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn btn-primary">Post Topic</button>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('newTopicForm').style.display='none'">Cancel</button>
+                        <button type="submit" class="btn-3d">Post Topic</button>
+                        <button type="button" class="btn-ghost" onclick="document.getElementById('newTopicForm').style.display='none'">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -157,26 +146,32 @@
                     <% topics.forEach(topic => { %>
                         <a href="/community/topic/<%= topic.id %>" class="topic-row">
                             <div>
-                                <div style="font-weight: 500; font-size: 1.1rem;"><%= topic.title %></div>
-                                <div class="topic-author">By <%= topic.author %> • <%= new Date(topic.created_at).toLocaleDateString() %></div>
+                                <div style="font-weight: 600; font-size: 1.2rem; color: var(--sec-color); margin-bottom: 5px;"><%= topic.title %></div>
+                                <div style="font-size: 0.9rem; color: var(--ntxt-color);">By <strong style="color: var(--txt-color);"><%= topic.author %></strong> &bull; <%= new Date(topic.created_at).toLocaleDateString() %></div>
                             </div>
-                            <div style="color: #777; font-size: 0.9rem; text-align: right;">
+                            <div style="color: var(--cta-color); font-weight: 600; font-size: 1rem;">
                                 <%= topic.reply_count || 0 %> Replies
                             </div>
                         </a>
                     <% }) %>
                 <% } else { %>
-                    <div style="text-align: center; padding: 2rem; color: #777;">
-                        No topics in this forum yet. Be the first to start a discussion!
+                    <div class="glass-panel" style="text-align: center; padding: 3rem;">
+                        <h3 style="color: var(--sec-color);">No topics yet</h3>
+                        <p style="color: var(--ntxt-color);">Be the first to start a discussion in this forum!</p>
                     </div>
                 <% } %>
             </div>
         <% } %>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+            gsap.to(".forum-category", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" });
+            gsap.to(".topic-row", { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

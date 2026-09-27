@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,90 +6,89 @@
     <title><%= topic.title %> - Community</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        }
+        
         .post-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; margin-bottom: 1.5rem;
+            display: flex; overflow: hidden; opacity: 0; transform: translateY(20px);
         }
+        
         .post-sidebar {
-            width: 150px;
-            background: var(--bg-color);
-            padding: 1.5rem 1rem;
-            text-align: center;
-            border-right: 1px solid var(--border-color);
+            width: 150px; background: rgba(0, 0, 0, 0.2); padding: 1.5rem 1rem;
+            text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
         .post-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 0 auto 0.5rem auto;
+            width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: bold; margin: 0 auto 0.5rem auto; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
         }
-        .post-author {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--primary-color);
-            word-wrap: break-word;
-        }
-        .post-role {
-            font-size: 0.8rem;
-            color: #777;
-            text-transform: capitalize;
-            margin-top: 0.25rem;
-        }
-        .post-content-area {
-            flex: 1;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-        }
+        
+        .post-author { font-weight: 700; font-size: 1rem; color: var(--sec-color); word-wrap: break-word; }
+        .post-role { font-size: 0.85rem; color: var(--cta-color); text-transform: capitalize; margin-top: 0.5rem; font-weight: 600; }
+        
+        .post-content-area { flex: 1; padding: 2rem; display: flex; flex-direction: column; }
         .post-header {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
+            font-size: 0.85rem; color: var(--ntxt-color); margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem;
         }
-        .post-body {
-            flex: 1;
-            font-size: 1rem;
-            line-height: 1.6;
-            color: var(--text-color);
-            white-space: pre-wrap;
+        .post-body { flex: 1; font-size: 1.1rem; line-height: 1.7; color: var(--txt-color); white-space: pre-wrap; }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; display: inline-block;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        
+        .btn-ghost {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: background 0.3s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        
+        .form-control {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--txt-color); padding: 15px; border-radius: 12px; font-size: 1rem; width: 100%; box-sizing: border-box; margin-bottom: 15px;
         }
     </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body">
-    <%- include('../acct/partials/sidebar') %>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <%- include('../acct/partials/sidebar', { active_page: 'community' }) %>
 
     <div class="main-content">
-        <!-- Curved Header -->
         <%- include('../acct/partials/app_header', { page_title: 'Discussion', page_desc: 'Share your thoughts' }) %>
 
-        <header class="dashboard-header mb-2" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1 style="margin: 0; font-size: 1.5rem;"><%= topic.title %></h1>
-            <a href="/community/forum/<%= topic.forum_id %>" class="btn btn-secondary">Back to Forum</a>
-        </header>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1 style="margin: 0; font-size: 2rem; color: var(--sec-color);"><%= topic.title %></h1>
+            <a href="/community/forum/<%= topic.forum_id %>" class="btn-ghost">Back to Forum</a>
+        </div>
 
         <!-- Original Topic Post -->
         <div class="post-card">
@@ -106,11 +105,11 @@
 
         <!-- Replies -->
         <% if (replies && replies.length > 0) { %>
-            <h3 style="margin: 2rem 0 1rem 0;">Replies (<%= replies.length %>)</h3>
+            <h3 style="margin: 3rem 0 1.5rem 0; color: var(--sec-color); font-size: 1.5rem;">Replies (<%= replies.length %>)</h3>
             <% replies.forEach(reply => { %>
                 <div class="post-card">
                     <div class="post-sidebar">
-                        <div class="post-avatar"><%= reply.author.charAt(0).toUpperCase() %></div>
+                        <div class="post-avatar" style="background: linear-gradient(135deg, #9c27b0, #e91e63); box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4);"><%= reply.author.charAt(0).toUpperCase() %></div>
                         <div class="post-author"><%= reply.author %></div>
                         <div class="post-role"><%= reply.author_role %></div>
                     </div>
@@ -123,20 +122,22 @@
         <% } %>
 
         <!-- Reply Form -->
-        <div class="glass-panel mt-2">
-            <h3>Post a Reply</h3>
+        <div class="glass-panel" style="margin-top: 3rem;">
+            <h3 style="color: var(--sec-color); margin-top: 0;">Post a Reply</h3>
             <form method="POST" action="/community/topic/<%= topic.id %>/reply">
-                <div class="form-group">
-                    <textarea name="content" class="form-control" rows="4" placeholder="Write your reply here..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Submit Reply</button>
+                <textarea name="content" class="form-control" rows="5" placeholder="Write your reply here..." required></textarea>
+                <button type="submit" class="btn-3d">Submit Reply</button>
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+            gsap.to(".post-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.15, ease: "power2.out" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-

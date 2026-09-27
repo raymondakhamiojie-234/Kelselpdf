@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,87 +6,100 @@
     <title>My Certificates - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <style>
+        .dashboard-body { position: relative; background: transparent; }
+        
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
+        }
+        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
+        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        }
+        
         .cert-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;
         }
+        
         .cert-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 2rem;
+            text-align: center; opacity: 0; transform: translateY(20px);
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
         }
-        .cert-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-        }
+        
         .cert-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 3.5rem; margin-bottom: 1rem; color: #ffc107;
+            text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
         }
+        
         .cert-course {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 0.5rem;
+            font-size: 1.3rem; font-weight: 700; color: var(--sec-color); margin-bottom: 0.5rem;
         }
+        
         .cert-date {
-            font-size: 0.9rem;
-            color: #777;
-            margin-bottom: 1.5rem;
+            font-size: 0.95rem; color: var(--ntxt-color); margin-bottom: 1.5rem; font-weight: 500;
         }
+        
+        .btn-3d {
+            background: linear-gradient(135deg, var(--cta-color), #2196f3);
+            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; text-decoration: none; display: inline-block;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
     </style>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
-        }
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body">
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <%- include('../acct/partials/sidebar', { active_page: 'certificates' }) %>
 
     <div class="main-content">
-        <!-- Curved Header -->
         <%- include('partials/app_header', { page_title: 'Certificates', page_desc: 'Your achievements' }) %>
-
-        <header class="dashboard-header glass-panel mb-2">
-            <h1>My Certificates</h1>
-            <p>View and download your earned certifications.</p>
-        </header>
 
         <div class="cert-grid">
             <% if (certs && certs.length > 0) { %>
                 <% certs.forEach(cert => { %>
                     <div class="cert-card">
-                        <div class="cert-icon"></div>
+                        <div class="cert-icon">🏆</div>
                         <div class="cert-course"><%= cert.course_title %></div>
                         <div class="cert-date">Issued: <%= new Date(cert.issued_at).toLocaleDateString() %></div>
-                        <a href="/academy/certificate/<%= cert.course_id %>" class="btn btn-primary" target="_blank">View Certificate</a>
+                        <a href="/academy/certificate/<%= cert.course_id %>" class="btn-3d" target="_blank">View Certificate</a>
                     </div>
                 <% }) %>
             <% } else { %>
-                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                    <h3>No certificates yet</h3>
-                    <p>Complete courses in the Skills Academy to earn your first certificate!</p>
-                    <a href="/academy" class="btn btn-primary mt-1">Browse Courses</a>
+                <div class="glass-panel" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">📜</div>
+                    <h3 style="color: var(--sec-color); font-size: 1.8rem; margin-bottom: 10px;">No certificates yet</h3>
+                    <p style="color: var(--ntxt-color); font-size: 1.1rem; margin-bottom: 25px;">Complete courses in the Skills Academy to earn your first certificate!</p>
+                    <a href="/skills" class="btn-3d">Browse Courses</a>
                 </div>
             <% } %>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+            gsap.to(".cert-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
+            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            VanillaTilt.init(document.querySelectorAll(".cert-card"), { max: 5, speed: 400, glare: true, "max-glare": 0.15 });
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
