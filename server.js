@@ -24,6 +24,7 @@ const materialRoutes = require('./src/routes/materialRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
 const cbtAdminRoutes = require('./src/routes/cbtAdminRoutes');
 const cbtPracticeRoutes = require('./src/routes/cbtPracticeRoutes');
+const cbtEngineRoutes = require('./src/routes/cbtEngineRoutes');
 
 const app = express();
 
@@ -81,6 +82,7 @@ app.use('/', materialRoutes);
 app.use('/', chatRoutes);
 app.use('/', cbtAdminRoutes);
 app.use('/', cbtPracticeRoutes);
+app.use('/', cbtEngineRoutes);
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {

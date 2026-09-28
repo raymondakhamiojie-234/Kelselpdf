@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination in Progress</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body { background: #f3f4f6; color: #1f2937; margin: 0; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+        .cbt-header { background: #111827; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .cbt-header h1 { font-size: 1.2rem; margin: 0; }
+        .timer-box { font-size: 1.5rem; font-family: monospace; font-weight: bold; background: #374151; padding: 0.5rem 1rem; border-radius: 6px; }
+        .timer-danger { background: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        
+        .cbt-layout { display: flex; height: calc(100vh - 64px); }
+        .cbt-main { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        .question-card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; flex: 1; display: none; }
+        .question-card.active { display: block; }
+        
+        .q-text { font-size: 1.3rem; margin-bottom: 2rem; line-height: 1.6; }
+        .option-label { display: block; padding: 15px 20px; margin-bottom: 10px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .option-label:hover { border-color: #3b82f6; }
+        .option-input { display: none; }
+        .option-label.selected { border-color: #3b82f6; background: #eff6ff; font-weight: bold; }
+        
+        .cbt-sidebar { width: 300px; background: white; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+        .grid-header { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-weight: bold; text-align: center; }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 1rem; overflow-y: auto; flex: 1; }
+        .nav-btn { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 10px 0; text-align: center; cursor: pointer; font-size: 0.9rem; }
+        .nav-btn:hover { background: #e5e7eb; }
+        .nav-btn.answered { background: #3b82f6; color: white; border-color: #2563eb; }
+        .nav-btn.current { border: 2px solid #111827; font-weight: bold; }
+        
+        .submit-section { padding: 1rem; border-top: 1px solid #e5e7eb; }
+        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-danger { background: #ef4444; color: white; width: 100%; padding: 15px; font-size: 1.1rem; }
+        
+        .fullscreen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-overlay" id="fsOverlay">
+        <h2>Fullscreen Required</h2>
+        <p style="margin-bottom: 2rem;">You must take this exam in fullscreen mode to prevent cheating.</p>
+        <button class="btn btn-primary" onclick="enterFullscreen()">Enter Fullscreen</button>
+    </div>
+
+    <header class="cbt-header">
+        <h1><%= session.exam_name %> - <%= session.body_code %></h1>
+        <div class="timer-box" id="timer">--:--</div>
+    </header>
+
+    <div class="cbt-layout">
+        <main class="cbt-main">
+            <% questions.forEach((q, index) => { %>
+                <div class="question-card <%= index === 0 ? 'active' : '' %>" id="q-<%= index %>" data-qid="<%= q.q_id %>">
+                    <div style="color: #6b7280; font-weight: bold; margin-bottom: 1rem;">Question <%= index + 1 %> of <%= questions.length %></div>
+                    <div class="q-text"><%= q.question_text %></div>
+                    
+                    <div class="options-container" id="opts-<%= index %>">
+                        <% ['a','b','c','d','e'].forEach(opt => { %>
+                            <% if (q['option_' + opt]) { %>
+                                <% const isSelected = q.selected_option === opt.toUpperCase(); %>
+                                <label class="option-label <%= isSelected ? 'selected' : '' %>" id="lbl-<%= index %>-<%= opt.toUpperCase() %>" onclick="selectOption(<%= index %>, '<%= opt.toUpperCase() %>')">
+                                    <%= opt.toUpperCase() %>. <%= q['option_' + opt] %>
+                                </label>
+                            <% } %>
+                        <% }) %>
+                    </div>
+                </div>
+            <% }) %>
+
+            <div style="display: flex; justify-content: space-between; margin-top: auto;">
+                <button class="btn btn-primary" onclick="prevQ()">Previous</button>
+                <button class="btn btn-primary" onclick="nextQ()">Next</button>
+            </div>
+        </main>
+
+        <aside class="cbt-sidebar">
+            <div class="grid-header">Navigation</div>
+            <div class="nav-grid">
+                <% questions.forEach((q, index) => { %>
+                    <div class="nav-btn <%= q.selected_option ? 'answered' : '' %> <%= index === 0 ? 'current' : '' %>" id="nav-<%= index %>" onclick="jumpTo(<%= index %>)">
+                        <%= index + 1 %>
+                    </div>
+                <% }) %>
+            </div>
+            <div class="submit-section">
+                <form id="submitForm" action="/cbt/submit" method="POST">
+                    <input type="hidden" name="session_id" value="<%= session.id %>">
+                    <button type="button" class="btn btn-danger" onclick="confirmSubmit()">Submit Exam</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const sessionId = "<%= session.id %>";
+        const total = <%= questions.length %>;
+        let currentIdx = 0;
+        
+        // Timer Logic
+        const startTime = new Date("<%= session.start_time %>").getTime();
+        const durationMs = <%= session.duration_minutes %> * 60000;
+        const endTime = startTime + durationMs;
+        const timerEl = document.getElementById('timer');
+
+        const timerInterval = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+
+            if (distance <= 0) {
+                clearInterval(timerInterval);
+                timerEl.innerHTML = "00:00";
+                document.getElementById('submitForm').submit();
+                return;
+            }
+
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerEl.innerHTML = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            
+            if (minutes < 5) {
+                timerEl.classList.add('timer-danger');
+            }
+        }, 1000);
+
+        // Fullscreen Logic
+        const overlay = document.getElementById('fsOverlay');
+        
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                overlay.style.display = 'flex';
+                logViolation();
+            } else {
+                overlay.style.display = 'none';
+            }
+        });
+
+        // Tab Switching Logic
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) logViolation();
+        });
+
+        window.onblur = () => logViolation();
+
+        function logViolation() {
+            fetch('/api/cbt/engine/violation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+        }
+
+        // Navigation
+        function jumpTo(idx) {
+            document.getElementById(`q-${currentIdx}`).classList.remove('active');
+            document.getElementById(`nav-${currentIdx}`).classList.remove('current');
+            
+            currentIdx = idx;
+            
+            document.getElementById(`q-${currentIdx}`).classList.add('active');
+            document.getElementById(`nav-${currentIdx}`).classList.add('current');
+        }
+
+        function nextQ() { if(currentIdx < total - 1) jumpTo(currentIdx + 1); }
+        function prevQ() { if(currentIdx > 0) jumpTo(currentIdx - 1); }
+
+        // Answering & Auto-save
+        async function selectOption(idx, option) {
+            const qCard = document.getElementById(`q-${idx}`);
+            const qId = qCard.dataset.qid;
+            
+            // UI Update
+            const labels = qCard.querySelectorAll('.option-label');
+            labels.forEach(l => l.classList.remove('selected'));
+            document.getElementById(`lbl-${idx}-${option}`).classList.add('selected');
+            document.getElementById(`nav-${idx}`).classList.add('answered');
+
+            // AJAX Save
+            try {
+                await fetch('/api/cbt/engine/autosave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, question_id: qId, selected_option: option })
+                });
+            } catch(e) { console.error("Autosave failed"); }
+        }
+
+        function confirmSubmit() {
+            if(confirm("Are you sure you want to submit? You cannot undo this action.")) {
+                document.getElementById('submitForm').submit();
+            }
+        }
+    </script>
+</body>
+</html>

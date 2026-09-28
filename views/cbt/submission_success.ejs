@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Submitted - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .result-card { max-width: 500px; margin: 4rem auto; background: var(--card-bg); border-radius: 12px; padding: 3rem 2rem; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .success-icon { font-size: 5rem; color: #10b981; margin-bottom: 1rem; }
+        .score-display { font-size: 4rem; font-weight: bold; color: var(--primary-color); margin: 1.5rem 0; font-family: monospace; }
+        .violation-warning { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 10px; border-radius: 6px; margin-top: 1rem; font-weight: bold; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'cbt_mock' }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: `Submission Successful`, 
+            page_desc: 'Your examination has been recorded.',
+            header_style: 'background: linear-gradient(135deg, #10b981 0%, #059669 100%);'
+        }) %>
+
+        <div class="result-card">
+            <div class="success-icon">✓</div>
+            <h2 style="color: var(--text-color);">Exam Completed</h2>
+            <p style="color: var(--ntxt-color);">Your answers have been securely submitted and graded.</p>
+            
+            <div class="score-display">
+                <%= session.score %> / <%= session.total_questions %>
+            </div>
+            
+            <p style="color: var(--ntxt-color); font-size: 1.1rem;">
+                Score: <strong><%= Math.round((session.score / session.total_questions) * 100) %>%</strong>
+            </p>
+
+            <% if (session.tab_switches > 0) { %>
+                <div class="violation-warning">
+                    ⚠️ Violation Detected: You left the exam window <%= session.tab_switches %> times.
+                </div>
+            <% } %>
+
+            <a href="/cbt/setup" class="btn btn-primary" style="display: inline-block; margin-top: 2rem; padding: 12px 24px;">Return to Dashboard</a>
+        </div>
+    </main>
+</body>
+</html>

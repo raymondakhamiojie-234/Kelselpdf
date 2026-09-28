@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Examination Setup - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
+        .rules { background: rgba(239, 68, 68, 0.05); border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .rules ul { margin-left: 1.5rem; margin-top: 0.5rem; color: var(--ntxt-color); }
+        .rules li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: locals.active_page }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: `CBT Engine Setup`, 
+            page_desc: 'Start a timed mock examination.',
+            header_style: 'background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);',
+            header_icon: '<svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+            search_placeholder: 'Search exams...'
+        }) %>
+
+        <div class="setup-container">
+            <div class="rules">
+                <strong style="color: #ef4444;">Examination Rules:</strong>
+                <ul>
+                    <li>You will be in a timed session (60 Minutes).</li>
+                    <li>Questions and options are randomized.</li>
+                    <li>You must remain in fullscreen mode.</li>
+                    <li>Switching browser tabs will be recorded as a violation.</li>
+                    <li>Your answers will auto-save.</li>
+                </ul>
+            </div>
+            
+            <form action="/cbt/start" method="POST">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">1. Exam Body</label>
+                    <select name="exam_body_id" class="form-control" onchange="window.location.href='/cbt/setup?body='+this.value" required>
+                        <% examBodies.forEach(b => { %>
+                            <option value="<%= b.id %>" <%= b.id == selectedBody ? 'selected' : '' %>><%= b.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">2. Exam</label>
+                    <select name="exam_id" class="form-control" onchange="window.location.href='/cbt/setup?body=<%= selectedBody %>&exam='+this.value" required>
+                        <% if(exams.length === 0) { %>
+                            <option value="">No exams available</option>
+                        <% } else { %>
+                            <% exams.forEach(e => { %>
+                                <option value="<%= e.id %>" <%= e.id == selectedExam ? 'selected' : '' %>><%= e.name %></option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">3. Subject (Optional for MVP)</label>
+                    <select name="subject_id" class="form-control">
+                        <option value="">Randomized across all subjects</option>
+                        <% subjects.forEach(s => { %>
+                            <option value="<%= s.id %>"><%= s.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <input type="hidden" name="duration" value="60">
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem; background: #ef4444; border:none;">Start Examination</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
