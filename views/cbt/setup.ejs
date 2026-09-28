@@ -13,6 +13,10 @@
         .rules { background: rgba(239, 68, 68, 0.05); border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
         .rules ul { margin-left: 1.5rem; margin-top: 0.5rem; color: var(--ntxt-color); }
         .rules li { margin-bottom: 0.5rem; }
+        .mock-card { border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .mock-card:hover { border-color: var(--primary-color); }
+        .mock-input { display: none; }
+        .mock-input:checked + .mock-card { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
     </style>
 </head>
 <body class="dashboard-body">
@@ -31,7 +35,7 @@
             <div class="rules">
                 <strong style="color: #ef4444;">Examination Rules:</strong>
                 <ul>
-                    <li>You will be in a timed session (60 Minutes).</li>
+                    <li>You will be placed in a strictly timed session.</li>
                     <li>Questions and options are randomized.</li>
                     <li>You must remain in fullscreen mode.</li>
                     <li>Switching browser tabs will be recorded as a violation.</li>
@@ -40,41 +44,32 @@
             </div>
             
             <form action="/cbt/start" method="POST">
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">1. Exam Body</label>
-                    <select name="exam_body_id" class="form-control" onchange="window.location.href='/cbt/setup?body='+this.value" required>
-                        <% examBodies.forEach(b => { %>
-                            <option value="<%= b.id %>" <%= b.id == selectedBody ? 'selected' : '' %>><%= b.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">2. Exam</label>
-                    <select name="exam_id" class="form-control" onchange="window.location.href='/cbt/setup?body=<%= selectedBody %>&exam='+this.value" required>
-                        <% if(exams.length === 0) { %>
-                            <option value="">No exams available</option>
-                        <% } else { %>
-                            <% exams.forEach(e => { %>
-                                <option value="<%= e.id %>" <%= e.id == selectedExam ? 'selected' : '' %>><%= e.name %></option>
-                            <% }) %>
-                        <% } %>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">3. Subject (Optional for MVP)</label>
-                    <select name="subject_id" class="form-control">
-                        <option value="">Randomized across all subjects</option>
-                        <% subjects.forEach(s => { %>
-                            <option value="<%= s.id %>"><%= s.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
+                <h3 style="margin-bottom: 1rem; color: var(--text-color);">Select a Mock Examination</h3>
                 
-                <input type="hidden" name="duration" value="60">
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem; background: #ef4444; border:none;">Start Examination</button>
+                <% if(mocks.length === 0) { %>
+                    <div style="padding: 2rem; text-align: center; color: var(--ntxt-color); border: 1px dashed var(--border-color); border-radius: 8px;">
+                        No Mock Examinations are currently available. Check back later!
+                    </div>
+                <% } else { %>
+                    <% mocks.forEach((m, idx) => { %>
+                        <label>
+                            <input type="radio" name="mock_id" value="<%= m.id %>" class="mock-input" <%= idx === 0 ? 'checked' : '' %> required>
+                            <div class="mock-card">
+                                <div>
+                                    <strong style="font-size: 1.1rem; color: var(--text-color); display: block;"><%= m.title %></strong>
+                                    <small style="color: var(--ntxt-color);"><%= m.body_name %> - <%= m.exam_name %></small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; background: var(--bg-color); color: var(--ntxt-color); font-size: 0.85rem;"><%= m.time_limit_minutes %> mins</span>
+                                    <% if (m.is_premium) { %>
+                                        <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-size: 0.85rem; margin-left: 5px;">Premium</span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </label>
+                    <% }) %>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1.5rem; background: #ef4444; border:none;">Start Examination</button>
+                <% } %>
             </form>
         </div>
     </main>

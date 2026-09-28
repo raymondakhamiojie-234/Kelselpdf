@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Mock - CBT Admin</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .cbt-container { display: flex; min-height: 100vh; }
+        .cbt-sidebar { width: 250px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 2rem 0; }
+        .cbt-sidebar a { display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-left: 3px solid transparent; }
+        .cbt-sidebar a:hover { background: var(--bg-color); }
+        .cbt-sidebar a.active { border-left-color: var(--primary-color); font-weight: bold; background: var(--bg-color); }
+        .cbt-content { flex: 1; padding: 2rem; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color); }
+        .subject-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <div class="cbt-container">
+        <%- include('partials/sidebar', { active: locals.active }) %>
+        
+        <div class="cbt-content">
+            <h2>Create Mock Examination</h2>
+            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Define a predefined mock exam blueprint with specific subject question counts.</p>
+            
+            <form action="/admin/cbt/mocks/create" method="POST" style="max-width: 800px; background: var(--card-bg); padding: 2rem; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Target Exam Base</label>
+                    <select id="examSelect" name="exam_id" class="form-control" required>
+                        <option value="">-- Select Exam --</option>
+                        <% exams.forEach(e => { %>
+                            <option value="<%= e.id %>"><%= e.name %> (<%= e.code %>)</option>
+                        <% }) %>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Mock Title (e.g. Official JAMB Mock 2024)</label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Time Limit (Minutes)</label>
+                        <input type="number" name="time_limit_minutes" class="form-control" value="120" required>
+                    </div>
+                    <div class="form-group" style="flex:1; padding-top: 30px;">
+                        <label><input type="checkbox" name="is_premium" value="true"> Premium Only (Paywall)</label>
+                    </div>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 2rem 0;">
+
+                <h3>Subject Distribution</h3>
+                <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-bottom: 1rem;">Add subjects and define exactly how many questions should be pulled for each.</p>
+                
+                <div id="subjectsContainer">
+                    <!-- Dynamic rows injected here -->
+                </div>
+                
+                <button type="button" class="btn btn-outline" onclick="addSubjectRow()" id="addSubjectBtn" disabled>+ Add Subject Rule</button>
+
+                <hr style="border-color: var(--border-color); margin: 2rem 0;">
+                
+                <button type="submit" class="btn btn-primary">Create Mock Blueprint</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let availableSubjects = [];
+
+        document.getElementById('examSelect').addEventListener('change', async (e) => {
+            const examId = e.target.value;
+            const container = document.getElementById('subjectsContainer');
+            container.innerHTML = ''; // Reset
+            
+            if(!examId) {
+                document.getElementById('addSubjectBtn').disabled = true;
+                return;
+            }
+            
+            const res = await fetch('/api/cbt/exams/' + examId + '/subjects');
+            availableSubjects = await res.json();
+            
+            document.getElementById('addSubjectBtn').disabled = false;
+            if(availableSubjects.length > 0) addSubjectRow(); // auto add first
+        });
+
+        function addSubjectRow() {
+            const container = document.getElementById('subjectsContainer');
+            
+            let options = '<option value="">-- Select Subject --</option>';
+            availableSubjects.forEach(s => {
+                options += `<option value="${s.id}">${s.name}</option>`;
+            });
+
+            const row = document.createElement('div');
+            row.className = 'subject-row';
+            row.innerHTML = `
+                <select name="subject_ids[]" class="form-control" style="flex: 2;" required>
+                    ${options}
+                </select>
+                <input type="number" name="question_counts[]" class="form-control" style="flex: 1;" placeholder="Count (e.g. 40)" required>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+            `;
+            container.appendChild(row);
+        }
+    </script>
+</body>
+</html>

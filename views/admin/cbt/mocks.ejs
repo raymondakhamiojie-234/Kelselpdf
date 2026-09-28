@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Configurations - CBT Admin</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .cbt-container { display: flex; min-height: 100vh; }
+        .cbt-sidebar { width: 250px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 2rem 0; }
+        .cbt-sidebar a { display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-left: 3px solid transparent; }
+        .cbt-sidebar a:hover { background: var(--bg-color); }
+        .cbt-sidebar a.active { border-left-color: var(--primary-color); font-weight: bold; background: var(--bg-color); }
+        .cbt-content { flex: 1; padding: 2rem; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
+        th { font-weight: bold; color: var(--ntxt-color); text-transform: uppercase; font-size: 0.85rem; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <div class="cbt-container">
+        <%- include('partials/sidebar', { active: locals.active }) %>
+        
+        <div class="cbt-content">
+            <div class="header-bar">
+                <h2>Mock Configurations</h2>
+                <a href="/admin/cbt/mocks/create" class="btn btn-primary">+ Create New Mock</a>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Exam</th>
+                        <th>Time Limit</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (mocks.length === 0) { %>
+                        <tr><td colspan="5" style="text-align: center;">No mocks created yet.</td></tr>
+                    <% } else { %>
+                        <% mocks.forEach(m => { %>
+                            <tr>
+                                <td><strong><%= m.title %></strong><br><small style="color: var(--ntxt-color);"><%= m.is_premium ? 'Premium' : 'Free' %></small></td>
+                                <td><%= m.exam_name %> (<%= m.exam_code %>)</td>
+                                <td><%= m.time_limit_minutes %> mins</td>
+                                <td>
+                                    <span class="badge" style="background: <%= m.status === 'PUBLISHED' ? '#10b981' : '#f59e0b' %>; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                        <%= m.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <form action="/admin/cbt/mocks/status" method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" value="<%= m.id %>">
+                                        <input type="hidden" name="status" value="<%= m.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED' %>">
+                                        <button type="submit" class="btn btn-sm btn-outline"><%= m.status === 'PUBLISHED' ? 'Unpublish' : 'Publish' %></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

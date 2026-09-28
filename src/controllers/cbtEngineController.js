@@ -1,36 +1,21 @@
 ﻿const pool = require('../config/db');
 const crypto = require('crypto');
 
-// 1. Setup / Selection View
+// 1. Setup / Selection View (Now based on Mocks)
 exports.getMockSetup = async (req, res) => {
     try {
-        const [examBodies] = await pool.query('SELECT * FROM cbt_exam_bodies WHERE status = ? ORDER BY name ASC', ['ACTIVE']);
-        const selectedBody = req.query.body || (examBodies.length > 0 ? examBodies[0].id : null);
+        const [mocks] = await pool.query(`
+            SELECT m.*, e.name as exam_name, b.name as body_name
+            FROM cbt_mocks m
+            JOIN cbt_exams e ON m.exam_id = e.id
+            JOIN cbt_exam_bodies b ON e.exam_body_id = b.id
+            WHERE m.status = ?
+            ORDER BY m.created_at DESC
+        `, ['PUBLISHED']);
         
-        let exams = [];
-        let subjects = [];
-        
-        if (selectedBody) {
-            const [fetchedExams] = await pool.query('SELECT * FROM cbt_exams WHERE exam_body_id = ? AND status = ?', [selectedBody, 'ACTIVE']);
-            exams = fetchedExams;
-            
-            // In a real advanced mock system, subjects are selected dynamically. 
-            // For MVP Phase 4, we fetch all subjects for the selected exam to let them practice a specific subject 
-            // or we can just randomize across all subjects of an exam. Let's do single subject mock for simplicity.
-            if (exams.length > 0) {
-                const selectedExam = req.query.exam || exams[0].id;
-                const [fetchedSubjects] = await pool.query('SELECT * FROM cbt_subjects WHERE exam_id = ? AND status = ?', [selectedExam, 'ACTIVE']);
-                subjects = fetchedSubjects;
-            }
-        }
-
         res.render('cbt/setup', { 
             active_page: 'cbt_mock',
-            examBodies,
-            exams,
-            subjects,
-            selectedBody,
-            selectedExam: req.query.exam
+            mocks
         });
     } catch (err) {
         console.error(err);
@@ -38,50 +23,65 @@ exports.getMockSetup = async (req, res) => {
     }
 };
 
-// 2. Start Session (Generate DB snapshot and redirect)
+// 2. Start Session 
 exports.postStartSession = async (req, res) => {
     try {
-        const { exam_body_id, exam_id, subject_id, duration } = req.body;
+        const { mock_id } = req.body;
         const userId = req.session.user_id;
-        
-        // Ensure user hasn't an active IN_PROGRESS session (to prevent multi-tab abuse)
+
+        const [mockInfo] = await pool.query(`
+            SELECT m.*, e.exam_body_id 
+            FROM cbt_mocks m 
+            JOIN cbt_exams e ON m.exam_id = e.id 
+            WHERE m.id = ? AND m.status = 'PUBLISHED'
+        `, [mock_id]);
+
+        if (mockInfo.length === 0) return res.status(404).send("Mock not found.");
+        const mock = mockInfo[0];
+
+        // Ensure user hasn't an active IN_PROGRESS session 
         await pool.query('UPDATE cbt_exam_sessions SET status = ? WHERE user_id = ? AND status = ?', ['ABANDONED', userId, 'IN_PROGRESS']);
 
-        // Generate Session ID
         const sessionId = crypto.randomUUID();
+        let allQuestions = [];
 
-        // Randomize questions for this session (e.g. 50 questions)
-        let query = 'SELECT id FROM cbt_questions WHERE status = ?';
-        let params = ['PUBLISHED'];
-        
-        if (subject_id) {
-            query += ' AND subject_id = ?';
-            params.push(subject_id);
-        } else if (exam_id) {
-            query += ' AND exam_id = ?';
-            params.push(exam_id);
+        // Fetch subject rules for this mock
+        const [rules] = await pool.query('SELECT subject_id, question_count FROM cbt_mock_subjects WHERE mock_id = ?', [mock_id]);
+
+        if (rules.length === 0) {
+            return res.status(400).send("Mock blueprint is empty (no subjects configured).");
         }
-        
-        query += ' ORDER BY RAND() LIMIT 50';
-        
-        const [questions] = await pool.query(query, params);
-        
-        if (questions.length === 0) {
-            return res.status(400).send("No published questions available for this selection.");
+
+        for (const rule of rules) {
+            // For each subject, randomly pull `question_count` questions
+            const [q] = await pool.query(`
+                SELECT id FROM cbt_questions 
+                WHERE subject_id = ? AND status = 'PUBLISHED' 
+                ORDER BY RAND() LIMIT ?
+            `, [rule.subject_id, rule.question_count]);
+            
+            allQuestions = allQuestions.concat(q);
+        }
+
+        // Shuffle all questions together so subjects are mixed (or we can keep them grouped, let's keep grouped for now)
+        // Actually, let's group by subject in the frontend later, but for now we just dump them into session_questions.
+
+        if (allQuestions.length === 0) {
+            return res.status(400).send("Not enough questions in the bank to fulfill this mock.");
         }
 
         // Create Session
         await pool.query(`
-            INSERT INTO cbt_exam_sessions (id, user_id, exam_body_id, exam_id, duration_minutes, total_questions) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [sessionId, userId, exam_body_id, exam_id, duration || 60, questions.length]);
+            INSERT INTO cbt_exam_sessions (id, user_id, exam_body_id, exam_id, mock_id, duration_minutes, total_questions) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [sessionId, userId, mock.exam_body_id, mock.exam_id, mock.id, mock.time_limit_minutes, allQuestions.length]);
 
         // Insert Session Questions
-        for (let i = 0; i < questions.length; i++) {
+        for (let i = 0; i < allQuestions.length; i++) {
             await pool.query(`
                 INSERT INTO cbt_session_questions (session_id, question_id, question_number)
                 VALUES (?, ?, ?)
-            `, [sessionId, questions[i].id, i + 1]);
+            `, [sessionId, allQuestions[i].id, i + 1]);
         }
 
         res.redirect(`/cbt/engine/${sessionId}`);
@@ -98,8 +98,9 @@ exports.getEngine = async (req, res) => {
         const userId = req.session.user_id;
 
         const [session] = await pool.query(`
-            SELECT s.*, e.name as exam_name, b.code as body_code
+            SELECT s.*, m.title as mock_title, e.name as exam_name, b.code as body_code
             FROM cbt_exam_sessions s
+            JOIN cbt_mocks m ON s.mock_id = m.id
             JOIN cbt_exams e ON s.exam_id = e.id
             JOIN cbt_exam_bodies b ON s.exam_body_id = b.id
             WHERE s.id = ? AND s.user_id = ?
@@ -111,7 +112,6 @@ exports.getEngine = async (req, res) => {
             return res.redirect(`/cbt/results/${sessionId}`);
         }
 
-        // Fetch Questions and User's currently selected answers
         const [questions] = await pool.query(`
             SELECT sq.question_number, sq.selected_option, q.id as q_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.option_e 
             FROM cbt_session_questions sq
@@ -136,7 +136,6 @@ exports.postAutoSave = async (req, res) => {
     try {
         const { session_id, question_id, selected_option } = req.body;
         
-        // Verify session ownership and status
         const [session] = await pool.query('SELECT status FROM cbt_exam_sessions WHERE id = ? AND user_id = ?', [session_id, req.session.user_id]);
         if (session.length === 0 || session[0].status !== 'IN_PROGRESS') {
             return res.status(403).json({ error: "Session expired or invalid" });
@@ -174,8 +173,6 @@ exports.postSubmit = async (req, res) => {
             return res.redirect(`/cbt/results/${session_id}`);
         }
 
-        // Calculate Score
-        // We fetch the correct answers and compare them with selected options
         const [answers] = await pool.query(`
             SELECT sq.id, sq.selected_option, q.correct_answer 
             FROM cbt_session_questions sq
@@ -188,7 +185,6 @@ exports.postSubmit = async (req, res) => {
             const isCorrect = ans.selected_option === ans.correct_answer;
             if (isCorrect) score++;
             
-            // Save correctness to DB for analytical reporting later
             await pool.query('UPDATE cbt_session_questions SET is_correct = ? WHERE id = ?', [isCorrect, ans.id]);
         }
 
@@ -201,11 +197,16 @@ exports.postSubmit = async (req, res) => {
     }
 };
 
-// 7. Success/Results Page (Basic Phase 4)
+// 7. Success/Results Page
 exports.getResults = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
-        const [session] = await pool.query('SELECT * FROM cbt_exam_sessions WHERE id = ? AND user_id = ?', [sessionId, req.session.user_id]);
+        const [session] = await pool.query(`
+            SELECT s.*, m.title as mock_title 
+            FROM cbt_exam_sessions s
+            JOIN cbt_mocks m ON s.mock_id = m.id
+            WHERE s.id = ? AND s.user_id = ?
+        `, [sessionId, req.session.user_id]);
         
         if (session.length === 0) return res.status(404).send("Session not found.");
         

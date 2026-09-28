@@ -1,4 +1,4 @@
-﻿<div class="cbt-sidebar">
+<div class="cbt-sidebar">
     <h3 style="margin-bottom: 2rem; padding-left: 15px; color: var(--primary-color);">CBT Engine Admin</h3>
     <a href="/admin/cbt/exam_bodies" class="<%= locals.active === 'bodies' ? 'active' : '' %>">Exam Bodies</a>
     <a href="/admin/cbt/exams" class="<%= locals.active === 'exams' ? 'active' : '' %>">Exams</a>
@@ -7,6 +7,8 @@
     <a href="/admin/cbt/questions" class="<%= locals.active === 'questions' ? 'active' : '' %>">Question Bank</a>
     <a href="/admin/cbt/import" class="<%= locals.active === 'import' ? 'active' : '' %>">Import Questions</a>
     <a href="/admin/cbt/review" class="<%= locals.active === 'review' ? 'active' : '' %>">Review Queue</a>
-    <hr style="border-color: var(--border-color); margin: 2rem 0;">
+    <hr style="border-color: var(--border-color); margin: 1rem 0;">
+    <a href="/admin/cbt/mocks" class="<%= locals.active === 'mocks' ? 'active' : '' %>">Mock Configurations</a>
+    <hr style="border-color: var(--border-color); margin: 1rem 0;">
     <a href="/admin">Back to Main Admin</a>
 </div>
