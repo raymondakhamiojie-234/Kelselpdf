@@ -3,14 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examination Submitted - KelselPDF</title>
+    <title>Examination Results & Analytics - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .result-card { max-width: 500px; margin: 4rem auto; background: var(--card-bg); border-radius: 12px; padding: 3rem 2rem; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .success-icon { font-size: 5rem; color: #10b981; margin-bottom: 1rem; }
-        .score-display { font-size: 4rem; font-weight: bold; color: var(--primary-color); margin: 1.5rem 0; font-family: monospace; }
-        .violation-warning { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 10px; border-radius: 6px; margin-top: 1rem; font-weight: bold; }
+        .analytics-container { max-width: 1000px; margin: 3rem auto; }
+        
+        /* Top Hero Card */
+        .result-hero { background: var(--card-bg); border-radius: 12px; padding: 3rem 2rem; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center; margin-bottom: 2rem; }
+        .score-box { text-align: center; }
+        .success-icon { font-size: 4rem; color: #10b981; margin-bottom: 0.5rem; }
+        .score-display { font-size: 3.5rem; font-weight: bold; color: var(--primary-color); font-family: monospace; }
+        
+        .stat-box { background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 2rem; width: 30%; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: #3b82f6; }
+        
+        .violation-warning { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 15px; border-radius: 8px; margin-bottom: 2rem; font-weight: bold; text-align: center; border: 1px solid #ef4444; }
+
+        /* Charts Section */
+        .charts-row { display: flex; gap: 2rem; margin-bottom: 2rem; }
+        .chart-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; flex: 1; }
+
+        /* Recommendations */
+        .rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 1rem; }
+        .rec-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background: var(--bg-color); }
+        .rec-card a { color: var(--primary-color); font-weight: bold; text-decoration: none; }
     </style>
 </head>
 <body class="dashboard-body">
@@ -18,32 +36,101 @@
 
     <main class="main-content">
         <%- include('../acct/partials/app_header', { 
-            page_title: `Submission Successful`, 
-            page_desc: 'Your examination has been recorded.',
+            page_title: `Performance Analytics`, 
+            page_desc: `Mock Session: ${session.mock_title}`,
             header_style: 'background: linear-gradient(135deg, #10b981 0%, #059669 100%);'
         }) %>
 
-        <div class="result-card">
-            <div class="success-icon">✓</div>
-            <h2 style="color: var(--text-color);">Exam Completed</h2>
-            <p style="color: var(--ntxt-color);">Your answers have been securely submitted and graded.</p>
-            
-            <div class="score-display">
-                <%= session.score %> / <%= session.total_questions %>
-            </div>
-            
-            <p style="color: var(--ntxt-color); font-size: 1.1rem;">
-                Score: <strong><%= Math.round((session.score / session.total_questions) * 100) %>%</strong>
-            </p>
-
+        <div class="analytics-container">
             <% if (session.tab_switches > 0) { %>
                 <div class="violation-warning">
-                    ⚠️ Violation Detected: You left the exam window <%= session.tab_switches %> times.
+                    ⚠️ Violation Detected: You exited fullscreen or switched tabs <%= session.tab_switches %> times.
                 </div>
             <% } %>
 
-            <a href="/cbt/setup" class="btn btn-primary" style="display: inline-block; margin-top: 2rem; padding: 12px 24px;">Return to Dashboard</a>
+            <div class="result-hero">
+                <div class="score-box">
+                    <div class="success-icon">✓</div>
+                    <h2 style="color: var(--text-color);">Final Score</h2>
+                    <div class="score-display"><%= session.score %> <span style="font-size: 1.5rem; color: var(--ntxt-color);">/ <%= session.total_questions %></span></div>
+                    <p style="color: var(--ntxt-color); font-size: 1.2rem;">Accuracy: <strong><%= Math.round((session.score / session.total_questions) * 100) %>%</strong></p>
+                </div>
+                
+                <div class="stat-box">
+                    <div style="color: var(--ntxt-color); font-size: 1.1rem; margin-bottom: 10px;">Percentile Rank</div>
+                    <div class="stat-value"><%= percentile %>th</div>
+                    <div style="color: var(--ntxt-color); font-size: 0.9rem; margin-top: 5px;">You scored higher than <%= percentile %>% of candidates on this mock.</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-color);">Subject Breakdown</h3>
+                    <canvas id="subjectBarChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3 style="margin-bottom: 1rem; color: var(--text-color);">Subject Radar</h3>
+                    <canvas id="subjectRadarChart"></canvas>
+                </div>
+            </div>
+
+            <% if (recommendedMaterials.length > 0) { %>
+                <div class="chart-card" style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--text-color);">Recommended Study Materials</h3>
+                    <p style="color: var(--ntxt-color);">Based on your weak performance in certain subjects, we recommend reading these PDFs:</p>
+                    <div class="rec-grid">
+                        <% recommendedMaterials.forEach(m => { %>
+                            <div class="rec-card">
+                                <h4 style="margin-bottom: 10px; font-size: 1rem;"><%= m.title %></h4>
+                                <a href="/exam_materials">Download Material &rarr;</a>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
+
+            <div style="text-align: center; margin-top: 3rem; margin-bottom: 3rem;">
+                <a href="/cbt/setup" class="btn btn-primary" style="padding: 12px 24px; font-size: 1.1rem;">Return to Dashboard</a>
+            </div>
         </div>
     </main>
+
+    <!-- Chart Setup -->
+    <script>
+        const subjectLabels = <%- JSON.stringify(analytics.map(a => a.subject_name)) %>;
+        const accuracyData = <%- JSON.stringify(analytics.map(a => a.accuracy_percentage)) %>;
+
+        // Bar Chart
+        new Chart(document.getElementById('subjectBarChart'), {
+            type: 'bar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Accuracy (%)',
+                    data: accuracyData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+
+        // Radar Chart
+        new Chart(document.getElementById('subjectRadarChart'), {
+            type: 'radar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Performance Radar',
+                    data: accuracyData,
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    pointBackgroundColor: 'rgb(16, 185, 129)'
+                }]
+            },
+            options: { scales: { r: { beginAtZero: true, max: 100 } } }
+        });
+    </script>
 </body>
 </html>

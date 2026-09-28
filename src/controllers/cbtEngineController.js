@@ -1,7 +1,7 @@
 ﻿const pool = require('../config/db');
 const crypto = require('crypto');
 
-// 1. Setup / Selection View (Now based on Mocks)
+// 1. Setup / Selection View 
 exports.getMockSetup = async (req, res) => {
     try {
         const [mocks] = await pool.query(`
@@ -62,9 +62,6 @@ exports.postStartSession = async (req, res) => {
             
             allQuestions = allQuestions.concat(q);
         }
-
-        // Shuffle all questions together so subjects are mixed (or we can keep them grouped, let's keep grouped for now)
-        // Actually, let's group by subject in the frontend later, but for now we just dump them into session_questions.
 
         if (allQuestions.length === 0) {
             return res.status(400).send("Not enough questions in the bank to fulfill this mock.");
@@ -162,7 +159,7 @@ exports.postLogViolation = async (req, res) => {
     }
 };
 
-// 6. Final Submit
+// 6. Final Submit & Analytics Generation
 exports.postSubmit = async (req, res) => {
     try {
         const { session_id } = req.body;
@@ -173,22 +170,42 @@ exports.postSubmit = async (req, res) => {
             return res.redirect(`/cbt/results/${session_id}`);
         }
 
+        // Fetch answers with their subject associations
         const [answers] = await pool.query(`
-            SELECT sq.id, sq.selected_option, q.correct_answer 
+            SELECT sq.id, sq.selected_option, q.correct_answer, q.subject_id 
             FROM cbt_session_questions sq
             JOIN cbt_questions q ON sq.question_id = q.id
             WHERE sq.session_id = ?
         `, [session_id]);
 
-        let score = 0;
+        let totalScore = 0;
+        let subjectStats = {};
+
         for (const ans of answers) {
             const isCorrect = ans.selected_option === ans.correct_answer;
-            if (isCorrect) score++;
+            if (isCorrect) totalScore++;
             
+            // Initialize subject tracker if missing
+            if (!subjectStats[ans.subject_id]) {
+                subjectStats[ans.subject_id] = { score: 0, total: 0 };
+            }
+            
+            subjectStats[ans.subject_id].total++;
+            if (isCorrect) subjectStats[ans.subject_id].score++;
+
             await pool.query('UPDATE cbt_session_questions SET is_correct = ? WHERE id = ?', [isCorrect, ans.id]);
         }
 
-        await pool.query('UPDATE cbt_exam_sessions SET status = ?, end_time = NOW(), score = ? WHERE id = ?', ['COMPLETED', score, session_id]);
+        await pool.query('UPDATE cbt_exam_sessions SET status = ?, end_time = NOW(), score = ? WHERE id = ?', ['COMPLETED', totalScore, session_id]);
+
+        // Insert subject-level analytics
+        for (const [subject_id, stats] of Object.entries(subjectStats)) {
+            const accuracy = (stats.score / stats.total) * 100;
+            await pool.query(`
+                INSERT INTO cbt_session_analytics (session_id, subject_id, score, total_questions, accuracy_percentage)
+                VALUES (?, ?, ?, ?, ?)
+            `, [session_id, subject_id, stats.score, stats.total, accuracy]);
+        }
 
         res.redirect(`/cbt/results/${session_id}`);
     } catch(err) {
@@ -197,22 +214,67 @@ exports.postSubmit = async (req, res) => {
     }
 };
 
-// 7. Success/Results Page
+// 7. Results Dashboard & Advanced Analytics
 exports.getResults = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
+        const userId = req.session.user_id;
+
         const [session] = await pool.query(`
             SELECT s.*, m.title as mock_title 
             FROM cbt_exam_sessions s
             JOIN cbt_mocks m ON s.mock_id = m.id
             WHERE s.id = ? AND s.user_id = ?
-        `, [sessionId, req.session.user_id]);
+        `, [sessionId, userId]);
         
         if (session.length === 0) return res.status(404).send("Session not found.");
+        const currentSession = session[0];
         
+        // 1. Fetch Subject Analytics Breakdown
+        const [analytics] = await pool.query(`
+            SELECT a.*, s.name as subject_name 
+            FROM cbt_session_analytics a
+            JOIN cbt_subjects s ON a.subject_id = s.id
+            WHERE a.session_id = ?
+        `, [sessionId]);
+
+        // 2. Fetch Percentile Rank for this Mock
+        const [allScoresResult] = await pool.query(`
+            SELECT score FROM cbt_exam_sessions 
+            WHERE mock_id = ? AND status = 'COMPLETED'
+        `, [currentSession.mock_id]);
+        
+        let percentile = 100;
+        if (allScoresResult.length > 1) {
+            const allScores = allScoresResult.map(s => s.score).sort((a,b) => a - b);
+            const belowCount = allScores.filter(s => s < currentSession.score).length;
+            percentile = Math.round((belowCount / allScores.length) * 100);
+        }
+
+        // 3. Recommended Study Materials based on Weak Subjects (< 50%)
+        let recommendedMaterials = [];
+        const weakSubjects = analytics.filter(a => a.accuracy_percentage < 50);
+        
+        if (weakSubjects.length > 0) {
+            // Simplified material recommendation using ILIKE match on subject names for Phase 6
+            // Or ideally mapping them directly if materials have subject_ids. For now we search title.
+            const weakNames = weakSubjects.map(w => w.subject_name.split(' ')[0]); // Grab first keyword
+            let likeQueries = weakNames.map(name => `title ILIKE '%${name}%'`).join(' OR ');
+            
+            const [materials] = await pool.query(`
+                SELECT * FROM exam_materials 
+                WHERE ${likeQueries}
+                LIMIT 3
+            `);
+            recommendedMaterials = materials;
+        }
+
         res.render('cbt/submission_success', {
             active_page: 'cbt_mock',
-            session: session[0]
+            session: currentSession,
+            analytics,
+            percentile,
+            recommendedMaterials
         });
     } catch (err) {
         console.error(err);
