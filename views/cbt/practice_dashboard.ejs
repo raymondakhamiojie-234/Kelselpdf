@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Question Practice - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .body-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; text-decoration: none; color: var(--text-color); transition: transform 0.2s, box-shadow 0.2s; }
+        .body-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); border-color: var(--primary-color); }
+        .body-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color); }
+        .history-item { background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: locals.active_page }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: 'Practice Mode', 
+            page_desc: 'Master past questions with immediate feedback.',
+            header_style: 'background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);',
+            header_icon: '<svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2z"/><path d="M3 13.27v4.4L12 22l9-4.33v-4.4l-9 4.33-9-4.33z"/></svg>',
+            search_placeholder: 'Search subjects...'
+        }) %>
+
+        <div style="padding: 0 1.5rem; max-width: 1200px; margin: 0 auto;">
+            <h3 style="color: var(--ntxt-color); margin-top: 2rem;">Select Examination Body</h3>
+            
+            <div class="grid">
+                <% if (examBodies && examBodies.length > 0) { %>
+                    <% examBodies.forEach(b => { %>
+                        <a href="/practice/setup?body=<%= b.id %>" class="body-card">
+                            <div class="body-icon">📚</div>
+                            <h3><%= b.code %></h3>
+                            <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-top: 0.5rem;"><%= b.name %></p>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--ntxt-color);">
+                        No examination bodies are currently active.
+                    </div>
+                <% } %>
+            </div>
+
+            <% if (history && history.length > 0) { %>
+                <h3 style="color: var(--ntxt-color); margin-top: 3rem; margin-bottom: 1rem;">Recent Practice Sessions</h3>
+                <% history.forEach(h => { %>
+                    <div class="history-item">
+                        <div>
+                            <strong style="color: var(--primary-color);"><%= h.body_code %> - <%= h.subject_name %> (<%= h.year || 'Random' %>)</strong>
+                            <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 5px;">
+                                Attempted: <%= h.questions_attempted %> | Correct: <%= h.correct_answers %> | Accuracy: <%= h.questions_attempted > 0 ? Math.round((h.correct_answers / h.questions_attempted) * 100) : 0 %>%
+                            </div>
+                        </div>
+                        <a href="/practice/session?subject_id=<%= h.subject_id %>&year=<%= h.year || '' %>" class="btn btn-sm btn-primary">Resume</a>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </main>
+</body>
+</html>

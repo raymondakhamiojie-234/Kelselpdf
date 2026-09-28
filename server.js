@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const cookieSession = require('cookie-session');
 const path = require('path');
@@ -23,6 +23,7 @@ const notificationRoutes = require('./src/routes/notificationRoutes');
 const materialRoutes = require('./src/routes/materialRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
 const cbtAdminRoutes = require('./src/routes/cbtAdminRoutes');
+const cbtPracticeRoutes = require('./src/routes/cbtPracticeRoutes');
 
 const app = express();
 
@@ -79,6 +80,7 @@ app.use('/', notificationRoutes);
 app.use('/', materialRoutes);
 app.use('/', chatRoutes);
 app.use('/', cbtAdminRoutes);
+app.use('/', cbtPracticeRoutes);
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {

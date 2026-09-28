@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Setup - <%= body.code %> - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: locals.active_page }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: `Configure ${body.code} Practice`, 
+            page_desc: 'Select your subject and year to begin.',
+            header_style: 'background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);',
+            header_icon: '<svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2z"/><path d="M3 13.27v4.4L12 22l9-4.33v-4.4l-9 4.33-9-4.33z"/></svg>',
+            search_placeholder: 'Search subjects...'
+        }) %>
+
+        <div class="setup-container">
+            <h2 style="margin-bottom: 1.5rem; text-align: center;"><%= body.name %></h2>
+            
+            <form action="/practice/session" method="GET">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">1. Select Exam</label>
+                    <select id="examSelect" class="form-control" required>
+                        <option value="">-- Choose Exam --</option>
+                        <% exams.forEach(e => { %>
+                            <option value="<%= e.id %>"><%= e.name %> (<%= e.code %>)</option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">2. Select Subject</label>
+                    <select id="subjectSelect" name="subject_id" class="form-control" required disabled>
+                        <option value="">-- Choose Subject --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: var(--ntxt-color);">3. Select Year (Optional)</label>
+                    <select name="year" class="form-control">
+                        <option value="">All Years (Randomized)</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                        <option value="2016">2016</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem;">Start Practice Session</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const examSelect = document.getElementById('examSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+
+        examSelect.addEventListener('change', async () => {
+            subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+            subjectSelect.disabled = true;
+
+            if (examSelect.value) {
+                const res = await fetch('/api/cbt/subjects/' + examSelect.value);
+                const subjects = await res.json();
+                subjects.forEach(s => {
+                    subjectSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                });
+                subjectSelect.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

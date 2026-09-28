@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice: <%= info.subject_name %> - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .session-container { max-width: 800px; margin: 2rem auto; }
+        .q-card { background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); display: none; }
+        .q-card.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .q-text { font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6; }
+        
+        .option-label { display: block; padding: 15px 20px; margin-bottom: 10px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--bg-color); }
+        .option-label:hover { border-color: var(--primary-color); }
+        .option-input { display: none; }
+        .option-input:checked + .option-text { font-weight: bold; }
+        
+        /* State Classes added via JS */
+        .option-label.selected { border-color: var(--primary-color); background: rgba(79, 70, 229, 0.1); }
+        .option-label.correct { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        .option-label.incorrect { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        
+        .explanation-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 8px; background: rgba(16, 185, 129, 0.05); border: 1px solid #10b981; display: none; }
+        
+        .nav-controls { display: flex; justify-content: space-between; margin-top: 2rem; align-items: center; }
+        
+        .progress-container { width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: locals.active_page }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: `${info.body_code} - ${info.subject_name}`, 
+            page_desc: `Year: ${year}`,
+            header_style: 'background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);'
+        }) %>
+
+        <div class="session-container">
+            <% if (!questions || questions.length === 0) { %>
+                <div style="text-align: center; padding: 4rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--ntxt-color);">No questions available for this selection yet.</h3>
+                    <a href="/practice" class="btn btn-primary" style="margin-top: 1rem;">Go Back</a>
+                </div>
+            <% } else { %>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--ntxt-color);">
+                    <span>Question <span id="currentQNum">1</span> of <%= questions.length %></span>
+                    <span>Score: <span id="scoreTracker" style="color: #10b981; font-weight: bold;">0</span></span>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <% questions.forEach((q, index) => { %>
+                    <div class="q-card <%= index === 0 ? 'active' : '' %>" id="q-<%= index %>" data-id="<%= q.id %>">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div class="q-text"><%= q.question_text %></div>
+                            <button class="btn btn-sm btn-outline bookmark-btn" onclick="toggleBookmark(<%= q.id %>, this)" title="Bookmark">🔖</button>
+                        </div>
+                        
+                        <div class="options-container" id="opts-<%= index %>">
+                            <% ['a','b','c','d','e'].forEach(opt => { %>
+                                <% if (q['option_' + opt]) { %>
+                                    <label class="option-label" id="lbl-<%= index %>-<%= opt.toUpperCase() %>" onclick="selectOption(<%= index %>, '<%= opt.toUpperCase() %>')">
+                                        <span class="option-text"><strong><%= opt.toUpperCase() %>.</strong> <%= q['option_' + opt] %></span>
+                                    </label>
+                                <% } %>
+                            <% }) %>
+                        </div>
+
+                        <div class="explanation-box" id="exp-<%= index %>">
+                            <h4 style="color: #10b981; margin-bottom: 0.5rem;">Explanation</h4>
+                            <p id="exp-text-<%= index %>"></p>
+                        </div>
+
+                        <div class="nav-controls">
+                            <button class="btn btn-secondary" onclick="prevQuestion()" id="prev-<%= index %>" <%= index === 0 ? 'disabled' : '' %>>Previous</button>
+                            
+                            <button class="btn btn-primary" id="check-<%= index %>" onclick="checkAnswer(<%= index %>)" disabled>Check Answer</button>
+                            
+                            <button class="btn btn-secondary" onclick="nextQuestion()" id="next-<%= index %>" style="display: none;">Next Question</button>
+                        </div>
+                    </div>
+                <% }) %>
+
+                <div class="q-card" id="q-end">
+                    <div style="text-align: center; padding: 2rem;">
+                        <h2 style="margin-bottom: 1rem;">Practice Session Complete! 🎉</h2>
+                        <p style="color: var(--ntxt-color); font-size: 1.2rem;">You scored <strong id="finalScore" style="color: #10b981;">0</strong> out of <span id="finalTotal">0</span>.</p>
+                        <br>
+                        <a href="/practice" class="btn btn-primary">Return to Dashboard</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </main>
+
+    <script>
+        let currentIdx = 0;
+        const total = <%= questions ? questions.length : 0 %>;
+        let score = 0;
+        let selectedAnswers = {}; 
+        let answered = {};
+        
+        const subjectId = <%= info ? info.subject_id || 'null' : 'null' %>; // Ensure defined
+        // Workaround for subject_id: actually info doesn't export subject_id directly in controller (info is subjectInfo[0] with body_code).
+        // Let's grab subject_id from URL search params.
+        const urlParams = new URLSearchParams(window.location.search);
+        const subId = urlParams.get('subject_id');
+        const yearParam = urlParams.get('year');
+
+        function updateProgress() {
+            if(total === 0) return;
+            const pct = ((currentIdx) / total) * 100;
+            document.getElementById('progressBar').style.width = pct + '%';
+            if(currentIdx < total) {
+                document.getElementById('currentQNum').innerText = (currentIdx + 1);
+            }
+        }
+        updateProgress();
+
+        function selectOption(qIdx, optionLetter) {
+            if (answered[qIdx]) return; // locked
+
+            // clear others
+            const labels = document.querySelectorAll(`#opts-${qIdx} .option-label`);
+            labels.forEach(l => l.classList.remove('selected'));
+
+            // highlight this one
+            document.getElementById(`lbl-${qIdx}-${optionLetter}`).classList.add('selected');
+            selectedAnswers[qIdx] = optionLetter;
+            
+            // enable check btn
+            document.getElementById(`check-${qIdx}`).disabled = false;
+        }
+
+        async function checkAnswer(qIdx) {
+            if (!selectedAnswers[qIdx] || answered[qIdx]) return;
+            
+            const qId = document.getElementById(`q-${qIdx}`).dataset.id;
+            const selected = selectedAnswers[qIdx];
+            const btn = document.getElementById(`check-${qIdx}`);
+            
+            btn.innerHTML = 'Checking...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/cbt/practice/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: qId, selected_option: selected })
+                });
+                const data = await res.json();
+                
+                answered[qIdx] = true;
+                
+                // Colorize
+                const selectedLabel = document.getElementById(`lbl-${qIdx}-${selected}`);
+                if (data.correct) {
+                    selectedLabel.classList.add('correct');
+                    score++;
+                    document.getElementById('scoreTracker').innerText = score;
+                } else {
+                    selectedLabel.classList.add('incorrect');
+                    // Highlight correct
+                    const correctLabel = document.getElementById(`lbl-${qIdx}-${data.correct_answer}`);
+                    if(correctLabel) correctLabel.classList.add('correct');
+                }
+
+                // Show explanation
+                const expBox = document.getElementById(`exp-${qIdx}`);
+                const expText = document.getElementById(`exp-text-${qIdx}`);
+                expText.innerText = data.explanation || (data.correct ? "Good job!" : `The correct answer is ${data.correct_answer}.`);
+                expBox.style.display = 'block';
+
+                // Swap buttons
+                btn.style.display = 'none';
+                document.getElementById(`next-${qIdx}`).style.display = 'block';
+                
+                // Notify backend for history
+                fetch('/api/cbt/practice/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject_id: subId, year: yearParam, is_correct: data.correct })
+                });
+
+            } catch (err) {
+                console.error(err);
+                btn.innerHTML = 'Error. Try again';
+                btn.disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            document.getElementById(`q-${currentIdx}`).classList.remove('active');
+            currentIdx++;
+            if (currentIdx >= total) {
+                document.getElementById('q-end').classList.add('active');
+                document.getElementById('finalScore').innerText = score;
+                document.getElementById('finalTotal').innerText = total;
+                document.getElementById('progressBar').style.width = '100%';
+                document.querySelector('.progress-container').style.display = 'none';
+                document.getElementById('currentQNum').parentElement.style.display = 'none';
+            } else {
+                document.getElementById(`q-${currentIdx}`).classList.add('active');
+                updateProgress();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIdx > 0) {
+                document.getElementById(`q-${currentIdx}`).classList.remove('active');
+                currentIdx--;
+                document.getElementById(`q-${currentIdx}`).classList.add('active');
+                updateProgress();
+            }
+        }
+        
+        async function toggleBookmark(qId, btn) {
+            try {
+                const res = await fetch('/api/cbt/practice/bookmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: qId })
+                });
+                const data = await res.json();
+                if(data.bookmarked) {
+                    btn.style.background = 'var(--primary-color)';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--text-color)';
+                }
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>
