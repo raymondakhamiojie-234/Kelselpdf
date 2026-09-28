@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CBT Admin - Review Queue</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .cbt-container { display: flex; height: 100vh; background: var(--bg-color); }
+        .cbt-sidebar { width: 250px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 2rem 1rem; }
+        .cbt-sidebar a { display: block; padding: 10px 15px; color: var(--text-color); text-decoration: none; border-radius: 8px; margin-bottom: 5px; }
+        .cbt-sidebar a:hover, .cbt-sidebar a.active { background: var(--primary-color); color: white; }
+        .cbt-content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .form-group { margin-bottom: 10px; }
+        .form-control { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
+        .review-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid #ffc107; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .badge-draft { background: #ffc107; color: #000; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="cbt-container">
+        <div class="cbt-sidebar">
+            <h3 style="margin-bottom: 2rem; padding-left: 15px; color: var(--primary-color);">CBT Engine Admin</h3>
+            <a href="/admin/cbt/exam_bodies">Exam Bodies</a>
+            <a href="/admin/cbt/exams">Exams</a>
+            <a href="/admin/cbt/subjects">Subjects</a>
+            <a href="/admin/cbt/topics">Topics</a>
+            <a href="/admin/cbt/questions">Question Bank</a>`n            <a href="/admin/cbt/import">Import Questions</a>`n            <a href="/admin/cbt/review">Review Queue</a>
+            <a href="/admin/cbt/import">Import Questions</a>
+            <a href="/admin/cbt/review" class="active">Review Queue</a>
+            <hr style="border-color: var(--border-color); margin: 2rem 0;">
+            <a href="/admin/dashboard">Back to Main Admin</a>
+        </div>
+        
+        <div class="cbt-content">
+            <h2 style="margin-bottom: 1rem;">Content Review Queue</h2>
+            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Verify AI-extracted questions before publishing them to candidates.</p>
+
+            <% if (questions && questions.length > 0) { %>
+                <div style="margin-bottom: 1rem; color: #ffc107; font-weight: bold;"><%= questions.length %> questions pending review.</div>
+                
+                <% questions.forEach(q => { %>
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div>
+                                <strong><%= q.subject_name %></strong> &mdash; Year: <%= q.year || 'N/A' %>
+                                <div style="font-size: 0.8rem; color: var(--ntxt-color);">Source: <%= q.source %></div>
+                            </div>
+                            <div><span class="badge-draft">PENDING REVIEW</span></div>
+                        </div>
+
+                        <form method="POST" action="/admin/cbt/questions/<%= q.id %>/approve">
+                            <div class="form-group">
+                                <label style="color: var(--primary-color);">Question Text</label>
+                                <textarea name="question_text" class="form-control" rows="3"><%= q.question_text %></textarea>
+                            </div>
+                            <div class="opt-grid">
+                                <div class="form-group"><label>A.</label><input type="text" name="option_a" class="form-control" value="<%= q.option_a %>"></div>
+                                <div class="form-group"><label>B.</label><input type="text" name="option_b" class="form-control" value="<%= q.option_b %>"></div>
+                                <div class="form-group"><label>C.</label><input type="text" name="option_c" class="form-control" value="<%= q.option_c %>"></div>
+                                <div class="form-group"><label>D.</label><input type="text" name="option_d" class="form-control" value="<%= q.option_d %>"></div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-top: 15px; align-items: flex-end;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Correct Answer</label>
+                                    <select name="correct_answer" class="form-control">
+                                        <option value="A" <%= q.correct_answer === 'A' ? 'selected' : '' %>>A</option>
+                                        <option value="B" <%= q.correct_answer === 'B' ? 'selected' : '' %>>B</option>
+                                        <option value="C" <%= q.correct_answer === 'C' ? 'selected' : '' %>>C</option>
+                                        <option value="D" <%= q.correct_answer === 'D' ? 'selected' : '' %>>D</option>
+                                        <option value="E" <%= q.correct_answer === 'E' ? 'selected' : '' %>>E</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 2;">
+                                    <label>License Status</label>
+                                    <select name="license_status" class="form-control">
+                                        <option value="AUTHORIZED">Authorized (Safe to Publish)</option>
+                                        <option value="RESTRICTED">Restricted</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display: flex; gap: 10px;">
+                                    <button type="submit" class="btn btn-primary" style="background: #28a745; border: none;">Approve & Publish</button>
+                                </div>
+                            </div>
+                        </form>
+                        <form method="POST" action="/admin/cbt/questions/<%= q.id %>/reject" style="text-align: right; margin-top: -38px;">
+                            <button type="submit" class="btn btn-sm" style="background: transparent; color: #dc3545; border: 1px solid #dc3545;">Reject (Delete)</button>
+                        </form>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div style="padding: 3rem; text-align: center; background: var(--card-bg); border-radius: 12px; border: 1px dashed var(--border-color);">
+                    <h3 style="color: #28a745;">Queue is Empty!</h3>
+                    <p style="color: var(--ntxt-color);">All extracted questions have been reviewed.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

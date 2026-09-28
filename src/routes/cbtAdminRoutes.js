@@ -1,11 +1,15 @@
 ﻿const express = require('express');
 const router = express.Router();
 const cbtAdminController = require('../controllers/cbtAdminController');
+const cbtImportController = require('../controllers/cbtImportController');
 const { checkAuth } = require('../middleware/auth'); 
+const multer = require('multer');
+
+// Configure multer for memory storage (we send buffer to pdf-parse)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Apply an admin check middleware inline or use existing
 const requireAdmin = (req, res, next) => {
-    // Assuming auth middleware sets req.session.user
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).send("Access Denied: Administrators only.");
     }
@@ -18,24 +22,27 @@ router.use(requireAdmin);
 // Dashboard
 router.get('/admin/cbt', (req, res) => res.redirect('/admin/cbt/exam_bodies'));
 
-// Exam Bodies
+// Core Entities
 router.get('/admin/cbt/exam_bodies', cbtAdminController.getExamBodies);
 router.post('/admin/cbt/exam_bodies', cbtAdminController.postExamBody);
-
-// Exams
 router.get('/admin/cbt/exams', cbtAdminController.getExams);
 router.post('/admin/cbt/exams', cbtAdminController.postExam);
-
-// Subjects
 router.get('/admin/cbt/subjects', cbtAdminController.getSubjects);
 router.post('/admin/cbt/subjects', cbtAdminController.postSubject);
-
-// Topics
 router.get('/admin/cbt/topics', cbtAdminController.getTopics);
 router.post('/admin/cbt/topics', cbtAdminController.postTopic);
-
-// Questions
 router.get('/admin/cbt/questions', cbtAdminController.getQuestions);
 router.post('/admin/cbt/questions', cbtAdminController.postQuestion);
+
+// Ingestion & Review
+router.get('/admin/cbt/import', cbtImportController.getImportView);
+router.post('/admin/cbt/import/pdf', upload.single('pdf_file'), cbtImportController.postImportPDF);
+router.get('/admin/cbt/review', cbtImportController.getReviewQueue);
+router.post('/admin/cbt/questions/:id/approve', cbtImportController.postApproveQuestion);
+router.post('/admin/cbt/questions/:id/reject', cbtImportController.postRejectQuestion);
+
+// AJAX Endpoints
+router.get('/api/cbt/exams/:bodyId', cbtImportController.getExamsForBody);
+router.get('/api/cbt/subjects/:examId', cbtImportController.getSubjectsForExam);
 
 module.exports = router;
