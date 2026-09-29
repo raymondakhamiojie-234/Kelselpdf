@@ -39,6 +39,15 @@ exports.postStartSession = async (req, res) => {
         if (mockInfo.length === 0) return res.status(404).send("Mock not found.");
         const mock = mockInfo[0];
 
+        // Enforce Premium Access
+        if (mock.is_premium) {
+            const user = req.session.user;
+            const isSubscribed = user && user.has_paid && (!user.expiry_date || new Date(user.expiry_date) > new Date());
+            if (!isSubscribed) {
+                return res.redirect('/payment?locked=true');
+            }
+        }
+
         // Ensure user hasn't an active IN_PROGRESS session 
         await pool.query('UPDATE cbt_exam_sessions SET status = ? WHERE user_id = ? AND status = ?', ['ABANDONED', userId, 'IN_PROGRESS']);
 

@@ -8,15 +8,19 @@
     <script src="/theme.js"></script>
     <style>
         .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
         .rules { background: rgba(239, 68, 68, 0.05); border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
         .rules ul { margin-left: 1.5rem; margin-top: 0.5rem; color: var(--ntxt-color); }
         .rules li { margin-bottom: 0.5rem; }
-        .mock-card { border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .mock-card { border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
         .mock-card:hover { border-color: var(--primary-color); }
         .mock-input { display: none; }
         .mock-input:checked + .mock-card { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+        
+        .mock-card.locked { opacity: 0.6; cursor: not-allowed; border-color: var(--border-color) !important; background: var(--bg-color) !important; }
+        .lock-overlay { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.1); backdrop-filter: blur(1px); }
+        .lock-icon { background: #f59e0b; color: white; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
+        .lock-icon a { color: white; text-decoration: none; }
     </style>
 </head>
 <body class="dashboard-body">
@@ -52,9 +56,12 @@
                     </div>
                 <% } else { %>
                     <% mocks.forEach((m, idx) => { %>
+                        <% const isLocked = m.is_premium && !isSubscribed; %>
+                        
                         <label>
-                            <input type="radio" name="mock_id" value="<%= m.id %>" class="mock-input" <%= idx === 0 ? 'checked' : '' %> required>
-                            <div class="mock-card">
+                            <input type="radio" name="mock_id" value="<%= m.id %>" class="mock-input" <%= idx === 0 && !isLocked ? 'checked' : '' %> <%= isLocked ? 'disabled' : '' %> required>
+                            
+                            <div class="mock-card <%= isLocked ? 'locked' : '' %>">
                                 <div>
                                     <strong style="font-size: 1.1rem; color: var(--text-color); display: block;"><%= m.title %></strong>
                                     <small style="color: var(--ntxt-color);"><%= m.body_name %> - <%= m.exam_name %></small>
@@ -65,6 +72,14 @@
                                         <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-size: 0.85rem; margin-left: 5px;">Premium</span>
                                     <% } %>
                                 </div>
+
+                                <% if (isLocked) { %>
+                                    <div class="lock-overlay">
+                                        <div class="lock-icon">
+                                            🔒 <a href="/payment?locked=true">Unlock Premium Access</a>
+                                        </div>
+                                    </div>
+                                <% } %>
                             </div>
                         </label>
                     <% }) %>

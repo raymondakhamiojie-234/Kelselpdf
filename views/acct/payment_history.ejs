@@ -1,104 +1,70 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment History - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        .dashboard-body { position: relative; background: transparent; }
+        .history-container { max-width: 1000px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
         
-        .ambient-bg {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
-        }
-        .orb {
-            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; will-change: transform;
-        }
-        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
-        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
-        }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .history-table th, .history-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .history-table th { color: var(--ntxt-color); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .history-table td { color: var(--text-color); font-size: 1.05rem; }
         
-        table.styled-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        table.styled-table th, table.styled-table td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        table.styled-table th { color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; }
-        table.styled-table td { color: var(--txt-color); font-size: 1rem; }
-        table.styled-table tr:hover { background: rgba(255,255,255,0.02); }
-
-        .btn-3d {
-            background: linear-gradient(135deg, var(--cta-color), #2196f3);
-            border: none; color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600;
-            cursor: pointer; text-decoration: none; display: inline-block;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2); transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); color: white; }
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+        .status-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
         
-        .status-badge {
-            padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-transform: capitalize;
-            background: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.2);
-        }
+        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--ntxt-color); }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5; }
     </style>
 </head>
 <body class="dashboard-body">
-    <div class="ambient-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-    </div>
-
-    <%- include('partials/sidebar', { active_page: 'billing' }) %>
+    <%- include('./partials/sidebar', { active_page: 'subscription' }) %>
 
     <main class="main-content">
-        <%- include('partials/app_header', { page_title: 'Billing', page_desc: 'Your transaction history' }) %>
+        <%- include('./partials/app_header', { 
+            page_title: `Payment History`, 
+            page_desc: `View your past subscription transactions.`
+        }) %>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
-            <h2 style="color: var(--sec-color); font-size: 2rem; margin: 0;">Payment History</h2>
-            <a href="/payment" class="btn-3d">Upgrade / Renew Subscription</a>
-        </div>
-
-        <div class="glass-panel">
-            <div style="overflow-x: auto;">
-                <table class="styled-table">
+        <div class="history-container">
+            <% if (transactions && transactions.length > 0) { %>
+                <table class="history-table">
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Reference</th>
+                            <th>Reference ID</th>
                             <th>Plan</th>
-                            <th>Amount Paid</th>
+                            <th>Amount (₦)</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% if (transactions.length === 0) { %>
-                            <tr><td colspan="5" style="text-align: center; padding: 3rem; color: var(--ntxt-color);">No payment history found.</td></tr>
-                        <% } else { %>
-                            <% transactions.forEach(t => { %>
+                        <% transactions.forEach(t => { %>
                             <tr>
-                                <td><%= new Date(t.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) %></td>
-                                <td style="font-family: monospace; color: var(--ntxt-color);"><%= t.reference %></td>
-                                <td style="font-weight: 600; color: var(--cta-color); text-transform: capitalize;"><%= t.plan %></td>
-                                <td style="font-weight: bold;">&#8358;<%= Number(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
-                                <td><span class="status-badge"><%= t.status %></span></td>
+                                <td><%= new Date(t.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                                <td style="font-family: monospace; color: var(--primary-color);"><%= t.reference %></td>
+                                <td><%= t.plan %></td>
+                                <td>₦<%= parseInt(t.amount).toLocaleString() %></td>
+                                <td>
+                                    <span class="status-badge status-success">Success</span>
+                                </td>
                             </tr>
-                            <% }); %>
-                        <% } %>
+                        <% }) %>
                     </tbody>
                 </table>
-            </div>
+            <% } else { %>
+                <div class="empty-state">
+                    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    <h3>No Transactions Found</h3>
+                    <p>You haven't made any subscription payments yet.</p>
+                    <a href="/payment" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">View Subscription Plans</a>
+                </div>
+            <% } %>
         </div>
     </main>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            gsap.to(".glass-panel", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
-            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
-            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
-        });
-    </script>
 </body>
 </html>

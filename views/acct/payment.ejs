@@ -1,110 +1,151 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>Subscription - KelselPDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Subscriptions - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="/theme.js"></script>
-    <link rel="manifest" href="/manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
-            });
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        .pricing-container { max-width: 1000px; margin: 3rem auto; text-align: center; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 3rem; }
+        
+        .price-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
-        <% if (typeof locked !== 'undefined' && locked) { %>
-            alert('Your account access has been restricted by an Admin. Please purchase a subscription to continue using KelselPDF.');
-        <% } %>
-    </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
-    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+        
+        .price-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .price-card.popular {
+            border: 2px solid var(--primary-color);
+            transform: scale(1.05);
+        }
+        .price-card.popular:hover { transform: scale(1.05) translateY(-10px); }
+        
+        .popular-badge {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%);
+            color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem;
+        }
+
+        .price-amount { font-size: 3rem; font-weight: bold; color: var(--text-color); margin: 1.5rem 0; }
+        .price-currency { font-size: 1.5rem; vertical-align: top; margin-right: 5px; }
+        
+        .features-list { list-style: none; padding: 0; margin: 2rem 0; text-align: left; }
+        .features-list li { margin-bottom: 1rem; color: var(--ntxt-color); display: flex; align-items: center; gap: 10px; }
+        .features-list li::before { content: '✓'; color: #10b981; font-weight: bold; }
+        
+        .locked-alert {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            color: #d97706;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
-    <div class="auth-wrapper" style="align-items: flex-start; padding-top: 2rem;">
-        <div style="width: 100%; max-width: 900px;">
-            <img src="/acct/img/KelselPDF.png" alt="KelselPDF Logo" style="max-width: 150px; margin: 0 auto 1.5rem; display: block;">
-            <h2 class="text-center" style="margin-bottom: 0.5rem;">Choose Your Plan</h2>
-            <p class="text-center mb-2">Select a subscription to unlock KelselPDF</p>
-            
-            <div style="display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;">
-                <!-- Premium Plan -->
-                <div class="glass-panel" style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
-                    <h3 style="color: var(--primary);">Premium</h3>
-                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">₦2,000 <span style="font-size: 1rem; color: var(--text-muted);">/ 1 month</span></h2>
-                    <ul style="list-style: none; margin-bottom: 2rem; flex: 1;">
-                        <li style="margin-bottom: 0.5rem;"> Access to Unlimited past questions</li>
-                        <li style="margin-bottom: 0.5rem;"> Full Mock exams & test</li>
-                        <li style="margin-bottom: 0.5rem;"> Limited study materials with AI</li>
-                        <li style="margin-bottom: 0.5rem;"> Limited live track record with AI</li>
-                        <li style="margin-bottom: 0.5rem;"> Unlimited contact support</li>
-                        <li style="margin-bottom: 0.5rem;"> Limited AI access to generate exam questions</li>
+    <%- include('./partials/sidebar', { active_page: 'subscription' }) %>
+
+    <main class="main-content">
+        <%- include('./partials/app_header', { 
+            page_title: `Premium Subscriptions`, 
+            page_desc: `Upgrade your plan to access premium CBT mocks and advanced materials.`,
+            header_style: 'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);'
+        }) %>
+
+        <div class="pricing-container">
+            <% if (locals.locked) { %>
+                <div class="locked-alert">
+                    🔒 The Mock Examination you selected requires an active Premium Subscription. Please upgrade to continue.
+                </div>
+            <% } %>
+
+            <div class="pricing-grid">
+                <!-- Monthly Plan -->
+                <div class="price-card">
+                    <h3 style="color: var(--text-color); font-size: 1.5rem;">Basic Premium</h3>
+                    <p style="color: var(--ntxt-color); margin-top: 10px;">Perfect for short-term preparation.</p>
+                    <div class="price-amount"><span class="price-currency">₦</span>2,000</div>
+                    <span style="color: var(--ntxt-color);">per month</span>
+                    
+                    <ul class="features-list">
+                        <li>Access all Premium Mock Exams</li>
+                        <li>Advanced Subject Analytics</li>
+                        <li>Download all Study PDFs</li>
+                        <li>Unlimited Practice Sessions</li>
                     </ul>
-                    <button type="button" onclick="payWithPaystack('premium', 200000)" class="btn" style="width: 100%;">Select Premium</button>
+                    
+                    <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; background: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);" onclick="payWithPaystack('premium', 200000)">Subscribe Monthly</button>
                 </div>
 
-                <!-- Full Premium Plan -->
-                <div class="glass-panel" style="flex: 1; min-width: 300px; border: 2px solid var(--accent); position: relative; display: flex; flex-direction: column;">
-                    <div style="position: absolute; top: -12px; right: 20px; background: var(--accent); padding: 2px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: bold;">RECOMMENDED</div>
-                    <h3 style="color: var(--accent);">Full Premium</h3>
-                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">₦5,000 <span style="font-size: 1rem; color: var(--text-muted);">/ 6 months</span></h2>
-                    <ul style="list-style: none; margin-bottom: 2rem; flex: 1;">
-                        <li style="margin-bottom: 0.5rem;"> Access to Unlimited past questions</li>
-                        <li style="margin-bottom: 0.5rem;"> Full Mock exams & test</li>
-                        <li style="margin-bottom: 0.5rem; color: var(--success);"> Unlimited study materials with AI</li>
-                        <li style="margin-bottom: 0.5rem; color: var(--success);"> Live track record with AI</li>
-                        <li style="margin-bottom: 0.5rem;"> Unlimited contact support</li>
-                        <li style="margin-bottom: 0.5rem; color: var(--success);"> Unlimited AI access to generate exam questions</li>
+                <!-- 6 Months Plan -->
+                <div class="price-card popular">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3 style="color: var(--text-color); font-size: 1.5rem;">Full Premium</h3>
+                    <p style="color: var(--ntxt-color); margin-top: 10px;">Complete access for an entire semester.</p>
+                    <div class="price-amount"><span class="price-currency">₦</span>10,000</div>
+                    <span style="color: var(--ntxt-color);">for 6 months (Save ₦2,000)</span>
+                    
+                    <ul class="features-list">
+                        <li>Access all Premium Mock Exams</li>
+                        <li>Advanced Subject Analytics</li>
+                        <li>Download all Study PDFs</li>
+                        <li>Unlimited Practice Sessions</li>
+                        <li>Priority Chat Support</li>
                     </ul>
-                    <button type="button" onclick="payWithPaystack('full_premium', 500000)" class="btn btn-ai" style="width: 100%;">Select Full Premium</button>
+                    
+                    <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="payWithPaystack('full_premium', 1000000)">Subscribe for 6 Months</button>
                 </div>
-            </div>
-
-            <div class="text-center mt-1" style="margin-top: 2rem;">
-                <p><a href="/logout" style="color: var(--error);">Logout and Return</a></p>
             </div>
         </div>
-    </div>
-    
+    </main>
+
     <script>
-      function payWithPaystack(plan, amountKobo) {
-        let handler = PaystackPop.setup({
-          key: '<%= paystack_public_key %>',
-          email: '<%= user.email %>',
-          amount: amountKobo, // Amount in kobo
-          currency: 'NGN',
-          ref: ''+Math.floor((Math.random() * 1000000000) + 1),
-          callback: function(response) {
-              // Verify on backend
-              fetch('/api/verify_payment', {
-                  method: 'POST',
-                  headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({
-                      reference: response.reference,
-                      plan: plan
-                  })
-              })
-              .then(res => res.json())
-              .then(data => {
-                  if (data.status === 'success') {
-                      window.location.href = "/dashboard";
-                  } else {
-                      alert('Payment verification failed. ' + (data.message || ''));
-                  }
-              });
-          },
-          onClose: function() {
-              alert('Payment cancelled.');
-          }
-        });
-        handler.openIframe();
-      }
+        function payWithPaystack(plan, amount) {
+            let handler = PaystackPop.setup({
+                key: '<%= paystack_public_key %>', 
+                email: '<%= user.email %>',
+                amount: amount,
+                currency: "NGN",
+                ref: '' + Math.floor((Math.random() * 1000000000) + 1),
+                callback: function (response) {
+                    fetch('/api/verify_payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ reference: response.reference, plan: plan })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Payment successful! Your account has been upgraded.');
+                            window.location.href = '/payment_history';
+                        } else {
+                            alert('Payment verification failed: ' + data.message);
+                        }
+                    });
+                },
+                onClose: function () {
+                    alert('Transaction was not completed, window closed.');
+                }
+            });
+            handler.openIframe();
+        }
     </script>
 </body>
 </html>
-
-
-
-
-
