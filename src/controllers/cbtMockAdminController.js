@@ -3,14 +3,13 @@
 exports.getMocks = async (req, res) => {
     try {
         const [mocks] = await pool.query(`
-            SELECT m.*, e.name as exam_name, e.code as exam_code 
+            SELECT m.*, e.name as exam_name 
             FROM cbt_mocks m
             JOIN cbt_exams e ON m.exam_id = e.id
             ORDER BY m.created_at DESC
         `);
-        
-        res.render('admin/cbt/mocks', { active: 'mocks', mocks });
-    } catch(err) {
+        res.render('admin/cbt/mocks', { mocks, active_page: 'cbt_mocks' });
+    } catch (err) {
         console.error(err);
         res.status(500).send("Database Error");
     }
@@ -18,56 +17,69 @@ exports.getMocks = async (req, res) => {
 
 exports.getCreateMock = async (req, res) => {
     try {
-        const [exams] = await pool.query('SELECT * FROM cbt_exams WHERE status = ?', ['ACTIVE']);
-        res.render('admin/cbt/mock_create', { active: 'mocks', exams });
-    } catch(err) {
+        const [exams] = await pool.query('SELECT id, name FROM cbt_exams ORDER BY name');
+        const [subjects] = await pool.query('SELECT id, name FROM cbt_subjects ORDER BY name');
+        res.render('admin/cbt/mock_create', { exams, subjects, active_page: 'cbt_mocks' });
+    } catch (err) {
         console.error(err);
         res.status(500).send("Database Error");
     }
 };
 
 exports.postCreateMock = async (req, res) => {
+    const connection = await pool.getConnection();
     try {
-        const { exam_id, title, description, time_limit_minutes, is_premium, subject_ids, question_counts } = req.body;
+        await connection.beginTransaction();
+
+        const { exam_id, title, description, time_limit_minutes, is_premium, status, candidate_subject_selection, required_elective_count } = req.body;
         
-        // Insert Mock
-        const [result] = await pool.query(`
-            INSERT INTO cbt_mocks (exam_id, title, description, time_limit_minutes, is_premium, status)
-            VALUES (?, ?, ?, ?, ?, 'DRAFT')
-            RETURNING id
-        `, [exam_id, title, description, time_limit_minutes || 120, is_premium ? true : false]);
+        const [mockResult] = await connection.query(
+            `INSERT INTO cbt_mocks (exam_id, title, description, time_limit_minutes, is_premium, status, candidate_subject_selection, required_elective_count) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                exam_id, 
+                title, 
+                description, 
+                time_limit_minutes || 120, 
+                is_premium === 'on', 
+                status || 'DRAFT',
+                candidate_subject_selection === 'on',
+                required_elective_count || 0
+            ]
+        );
 
-        const mockId = result[0] ? result[0].id : result.insertId;
+        const mockId = mockResult.insertId;
 
-        // Insert Subjects (Handle arrays)
-        if (subject_ids && Array.isArray(subject_ids)) {
-            for (let i = 0; i < subject_ids.length; i++) {
-                if (subject_ids[i]) {
-                    await pool.query(`
-                        INSERT INTO cbt_mock_subjects (mock_id, subject_id, question_count)
-                        VALUES (?, ?, ?)
-                    `, [mockId, subject_ids[i], question_counts[i] || 40]);
+        if (req.body.subjects && Array.isArray(req.body.subjects)) {
+            for (let i = 0; i < req.body.subjects.length; i++) {
+                const subjId = req.body.subjects[i];
+                const count = req.body.question_counts[i];
+                const isCompulsory = Array.isArray(req.body.is_compulsory) ? (req.body.is_compulsory.includes(subjId) || req.body.is_compulsory[i] === 'on') : req.body.is_compulsory === 'on';
+
+                if (subjId && count > 0) {
+                    await connection.query(
+                        'INSERT INTO cbt_mock_subjects (mock_id, subject_id, question_count, is_compulsory) VALUES (?, ?, ?, ?)',
+                        [mockId, subjId, count, isCompulsory]
+                    );
                 }
             }
-        } else if (subject_ids) {
-            // single subject
-            await pool.query(`
-                INSERT INTO cbt_mock_subjects (mock_id, subject_id, question_count)
-                VALUES (?, ?, ?)
-            `, [mockId, subject_ids, question_counts || 40]);
         }
 
+        await connection.commit();
         res.redirect('/admin/cbt/mocks');
-    } catch(err) {
+    } catch (err) {
+        await connection.rollback();
         console.error(err);
-        res.status(500).send("Database Error");
+        res.status(500).send("Error creating mock: " + err.message);
+    } finally {
+        connection.release();
     }
 };
 
 exports.postToggleStatus = async (req, res) => {
     try {
-        const { id, status } = req.body;
-        await pool.query('UPDATE cbt_mocks SET status = ? WHERE id = ?', [status, id]);
+        const { mock_id, status } = req.body;
+        await pool.query('UPDATE cbt_mocks SET status = ? WHERE id = ?', [status, mock_id]);
         res.redirect('/admin/cbt/mocks');
     } catch(err) {
         console.error(err);
@@ -75,12 +87,13 @@ exports.postToggleStatus = async (req, res) => {
     }
 };
 
-// API for fetching subjects when exam is selected
 exports.getExamSubjectsAPI = async (req, res) => {
     try {
-        const [subjects] = await pool.query('SELECT * FROM cbt_subjects WHERE exam_id = ? AND status = ?', [req.params.examId, 'ACTIVE']);
+        const examId = req.params.examId;
+        const [subjects] = await pool.query('SELECT id, name FROM cbt_subjects WHERE exam_id = ? ORDER BY name', [examId]);
         res.json(subjects);
     } catch(err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({error: "Database Error"});
     }
 };

@@ -26,7 +26,7 @@ exports.getMockSetup = async (req, res) => {
 // 2. Start Session 
 exports.postStartSession = async (req, res) => {
     try {
-        const { mock_id } = req.body;
+        const { mock_id, selected_electives } = req.body;
         const userId = req.session.user_id;
 
         const [mockInfo] = await pool.query(`
@@ -48,21 +48,50 @@ exports.postStartSession = async (req, res) => {
             }
         }
 
+        // Fetch subject rules for this mock
+        const [rules] = await pool.query('SELECT subject_id, question_count, is_compulsory FROM cbt_mock_subjects WHERE mock_id = ?', [mock_id]);
+        if (rules.length === 0) return res.status(400).send("Mock blueprint is empty.");
+
+        // CANDIDATE SUBJECT SELECTION LOGIC (JAMB)
+        if (mock.candidate_subject_selection && !selected_electives) {
+            // Need to render the subject selection screen!
+            const [subjectsData] = await pool.query(`
+                SELECT ms.*, s.name as subject_name 
+                FROM cbt_mock_subjects ms 
+                JOIN cbt_subjects s ON ms.subject_id = s.id 
+                WHERE ms.mock_id = ?
+            `, [mock_id]);
+            
+            return res.render('cbt/select_subjects', {
+                active_page: 'cbt_mock',
+                mock,
+                subjects: subjectsData
+            });
+        }
+
+        // Determine Final Allowed Subjects
+        let activeRules = [];
+        if (mock.candidate_subject_selection) {
+            let electives = [];
+            if (Array.isArray(selected_electives)) { electives = selected_electives; }
+            else if (typeof selected_electives === 'string') { electives = [selected_electives]; }
+            
+            if (electives.length !== mock.required_elective_count) {
+                return res.status(400).send(`You must select exactly ${mock.required_elective_count} electives.`);
+            }
+            
+            activeRules = rules.filter(r => r.is_compulsory || electives.includes(r.subject_id.toString()));
+        } else {
+            activeRules = rules; // Take all
+        }
+
         // Ensure user hasn't an active IN_PROGRESS session 
         await pool.query('UPDATE cbt_exam_sessions SET status = ? WHERE user_id = ? AND status = ?', ['ABANDONED', userId, 'IN_PROGRESS']);
 
         const sessionId = crypto.randomUUID();
         let allQuestions = [];
 
-        // Fetch subject rules for this mock
-        const [rules] = await pool.query('SELECT subject_id, question_count FROM cbt_mock_subjects WHERE mock_id = ?', [mock_id]);
-
-        if (rules.length === 0) {
-            return res.status(400).send("Mock blueprint is empty (no subjects configured).");
-        }
-
-        for (const rule of rules) {
-            // For each subject, randomly pull `question_count` questions
+        for (const rule of activeRules) {
             const [q] = await pool.query(`
                 SELECT id FROM cbt_questions 
                 WHERE subject_id = ? AND status = 'PUBLISHED' 
@@ -72,17 +101,13 @@ exports.postStartSession = async (req, res) => {
             allQuestions = allQuestions.concat(q);
         }
 
-        if (allQuestions.length === 0) {
-            return res.status(400).send("Not enough questions in the bank to fulfill this mock.");
-        }
+        if (allQuestions.length === 0) return res.status(400).send("Not enough questions in the bank.");
 
-        // Create Session
         await pool.query(`
             INSERT INTO cbt_exam_sessions (id, user_id, exam_body_id, exam_id, mock_id, duration_minutes, total_questions) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [sessionId, userId, mock.exam_body_id, mock.exam_id, mock.id, mock.time_limit_minutes, allQuestions.length]);
 
-        // Insert Session Questions
         for (let i = 0; i < allQuestions.length; i++) {
             await pool.query(`
                 INSERT INTO cbt_session_questions (session_id, question_id, question_number)

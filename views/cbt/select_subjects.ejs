@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Subjects - KelselPDF</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/theme.js"></script>
+    <style>
+        .select-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        .subject-card { border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .subject-card:hover { border-color: var(--primary-color); }
+        
+        .elective-input { display: none; }
+        .elective-input:checked + .subject-card { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        
+        .compulsory-card { border-color: #10b981; background: rgba(16, 185, 129, 0.05); cursor: not-allowed; }
+        .compulsory-badge { background: #10b981; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        
+        #electiveCounter { color: #f59e0b; font-weight: bold; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <%- include('../acct/partials/sidebar', { active_page: 'cbt_mock' }) %>
+
+    <main class="main-content">
+        <%- include('../acct/partials/app_header', { 
+            page_title: `Configure Subjects`, 
+            page_desc: `Mock: ${mock.title}`,
+            header_style: 'background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);'
+        }) %>
+
+        <div class="select-container">
+            <h3 style="margin-bottom: 1rem; color: var(--text-color);">Subject Selection</h3>
+            <p style="color: var(--ntxt-color); margin-bottom: 1.5rem;">
+                This exam requires you to choose exactly <span id="electiveCounter"><%= mock.required_elective_count %></span> elective subjects alongside the compulsory subjects.
+            </p>
+            
+            <form action="/cbt/start" method="POST" id="subjectForm">
+                <input type="hidden" name="mock_id" value="<%= mock.id %>">
+                
+                <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--text-color);">Compulsory Subjects</h4>
+                <% subjects.filter(s => s.is_compulsory).forEach(s => { %>
+                    <div class="subject-card compulsory-card">
+                        <div>
+                            <strong style="color: var(--text-color);"><%= s.subject_name %></strong>
+                            <div style="color: var(--ntxt-color); font-size: 0.85rem;"><%= s.question_count %> Questions</div>
+                        </div>
+                        <span class="compulsory-badge">COMPULSORY</span>
+                    </div>
+                <% }) %>
+
+                <h4 style="margin-top: 2rem; margin-bottom: 0.5rem; color: var(--text-color);">Choose Electives (<%= mock.required_elective_count %> Required)</h4>
+                <% subjects.filter(s => !s.is_compulsory).forEach(s => { %>
+                    <label>
+                        <input type="checkbox" name="selected_electives" value="<%= s.subject_id %>" class="elective-input" onchange="checkLimit()">
+                        <div class="subject-card">
+                            <div>
+                                <strong style="color: var(--text-color);"><%= s.subject_name %></strong>
+                                <div style="color: var(--ntxt-color); font-size: 0.85rem;"><%= s.question_count %> Questions</div>
+                            </div>
+                            <span style="color: var(--ntxt-color); font-size: 1.2rem;">+</span>
+                        </div>
+                    </label>
+                <% }) %>
+
+                <button type="submit" class="btn btn-primary" id="startBtn" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 2rem;" disabled>
+                    Select Exactly <%= mock.required_elective_count %> Electives
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const requiredCount = <%= mock.required_elective_count %>;
+        
+        function checkLimit() {
+            const checked = document.querySelectorAll('.elective-input:checked').length;
+            const btn = document.getElementById('startBtn');
+            const counter = document.getElementById('electiveCounter');
+            
+            const remaining = requiredCount - checked;
+            counter.innerText = Math.abs(remaining);
+            
+            if (checked === requiredCount) {
+                btn.disabled = false;
+                btn.innerText = "Start Examination Now";
+                btn.style.background = "#10b981";
+                btn.style.borderColor = "#10b981";
+                
+                // Disable unchecked to prevent more selection
+                document.querySelectorAll('.elective-input:not(:checked)').forEach(el => el.disabled = true);
+            } else {
+                btn.disabled = true;
+                btn.innerText = `Select Exactly ${requiredCount} Electives`;
+                btn.style.background = "";
+                btn.style.borderColor = "";
+                
+                // Re-enable
+                document.querySelectorAll('.elective-input').forEach(el => el.disabled = false);
+            }
+        }
+    </script>
+</body>
+</html>

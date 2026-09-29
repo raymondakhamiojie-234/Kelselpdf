@@ -46,12 +46,11 @@ router.post('/admin/cbt/questions/:id/reject', cbtImportController.postRejectQue
 router.get('/api/cbt/exams/:bodyId', cbtImportController.getExamsForBody);
 router.get('/api/cbt/subjects/:examId', cbtImportController.getSubjectsForExam);
 
-module.exports = router;
-
-
 // Phase 5: Mock Configurations
-router.get('/cbt/mocks', cbtMockAdminController.getMocks);
-router.get('/cbt/mocks/create', cbtMockAdminController.getCreateMock);
-router.post('/cbt/mocks/create', cbtMockAdminController.postCreateMock);
-router.post('/cbt/mocks/status', cbtMockAdminController.postToggleStatus);
+router.get('/admin/cbt/mocks', cbtMockAdminController.getMocks);
+router.get('/admin/cbt/mocks/create', cbtMockAdminController.getCreateMock);
+router.post('/admin/cbt/mocks/create', cbtMockAdminController.postCreateMock);
+router.post('/admin/cbt/mocks/status', cbtMockAdminController.postToggleStatus);
 router.get('/api/cbt/exams/:examId/subjects', cbtMockAdminController.getExamSubjectsAPI);
+
+module.exports = router;
