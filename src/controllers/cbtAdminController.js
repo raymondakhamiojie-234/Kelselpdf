@@ -1,4 +1,48 @@
-﻿const pool = require('../config/db');
+﻿
+exports.getDashboard = async (req, res) => {
+    try {
+        // Aggregate KPIs
+        const [[{ total_questions }]] = await pool.query("SELECT COUNT(*) as total_questions FROM cbt_questions");
+        const [[{ pending_review }]] = await pool.query("SELECT COUNT(*) as pending_review FROM cbt_questions WHERE status = 'DRAFT'");
+        const [[{ total_mocks }]] = await pool.query("SELECT COUNT(*) as total_mocks FROM cbt_mocks");
+        const [[{ total_candidates }]] = await pool.query("SELECT COUNT(DISTINCT user_id) as total_candidates FROM cbt_exam_sessions");
+        
+        // Recent Uploads / Review Queue snapshot
+        const [recentDrafts] = await pool.query(`
+            SELECT q.id, q.question_text, s.name as subject_name
+            FROM cbt_questions q
+            JOIN cbt_subjects s ON q.subject_id = s.id
+            WHERE q.status = 'DRAFT'
+            ORDER BY q.created_at DESC LIMIT 5
+        `);
+
+        // Exam Body Breakdown
+        const [examStats] = await pool.query(`
+            SELECT b.code, COUNT(DISTINCT q.id) as question_count
+            FROM cbt_exam_bodies b
+            LEFT JOIN cbt_exams e ON e.exam_body_id = b.id
+            LEFT JOIN cbt_subjects s ON s.exam_id = e.id
+            LEFT JOIN cbt_questions q ON q.subject_id = s.id
+            GROUP BY b.code
+        `);
+
+        res.render('admin/cbt/dashboard', {
+            active_page: 'cbt_dashboard',
+            stats: {
+                total_questions,
+                pending_review,
+                total_mocks,
+                total_candidates
+            },
+            recentDrafts,
+            examStats
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Error loading dashboard");
+    }
+};
+const pool = require('../config/db');
 
 // --- EXAM BODIES ---
 
@@ -208,3 +252,4 @@ exports.postQuestion = async (req, res) => {
         res.status(500).send("Error creating question: " + err.message);
     }
 };
+

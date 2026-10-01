@@ -21,7 +21,7 @@ router.use(checkAuth);
 router.use(requireAdmin);
 
 // Dashboard
-router.get('/admin/cbt', (req, res) => res.redirect('/admin/cbt/exam_bodies'));
+router.get('/admin/cbt', cbtAdminController.getDashboard);
 
 // Core Entities
 router.get('/admin/cbt/exam_bodies', cbtAdminController.getExamBodies);

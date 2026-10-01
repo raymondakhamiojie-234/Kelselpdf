@@ -1,14 +1,76 @@
-<div class="cbt-sidebar">
-    <h3 style="margin-bottom: 2rem; padding-left: 15px; color: var(--primary-color);">CBT Engine Admin</h3>
-    <a href="/admin/cbt/exam_bodies" class="<%= locals.active === 'bodies' ? 'active' : '' %>">Exam Bodies</a>
-    <a href="/admin/cbt/exams" class="<%= locals.active === 'exams' ? 'active' : '' %>">Exams</a>
-    <a href="/admin/cbt/subjects" class="<%= locals.active === 'subjects' ? 'active' : '' %>">Subjects</a>
-    <a href="/admin/cbt/topics" class="<%= locals.active === 'topics' ? 'active' : '' %>">Topics</a>
-    <a href="/admin/cbt/questions" class="<%= locals.active === 'questions' ? 'active' : '' %>">Question Bank</a>
-    <a href="/admin/cbt/import" class="<%= locals.active === 'import' ? 'active' : '' %>">Import Questions</a>
-    <a href="/admin/cbt/review" class="<%= locals.active === 'review' ? 'active' : '' %>">Review Queue</a>
-    <hr style="border-color: var(--border-color); margin: 1rem 0;">
-    <a href="/admin/cbt/mocks" class="<%= locals.active === 'mocks' ? 'active' : '' %>">Mock Configurations</a>
-    <hr style="border-color: var(--border-color); margin: 1rem 0;">
-    <a href="/admin">Back to Main Admin</a>
+﻿<div class="sidebar">
+    <div class="sidebar-header" style="padding: 20px; text-align: center; border-bottom: 1px solid var(--border-color);">
+        <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px;">KelselPDF Admin</h2>
+        <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 5px;">CBT Engine Panel</div>
+    </div>
+    <ul class="sidebar-menu" style="list-style: none; padding: 15px 0; margin: 0;">
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt" class="<%= locals.active_page === 'cbt_dashboard' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                📊 Dashboard
+            </a>
+        </li>
+
+        <div style="padding: 15px 20px 5px 20px; font-size: 0.75rem; font-weight: bold; color: var(--ntxt-color); text-transform: uppercase; letter-spacing: 1px;">Examinations</div>
+        
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/exam_bodies" class="<%= locals.active_page === 'cbt_exam_bodies' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                🏛 Exam Bodies
+            </a>
+        </li>
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/exams" class="<%= locals.active_page === 'cbt_exams' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                📝 Exams (UTME, WASSCE)
+            </a>
+        </li>
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/subjects" class="<%= locals.active_page === 'cbt_subjects' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                📚 Subjects
+            </a>
+        </li>
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/topics" class="<%= locals.active_page === 'cbt_topics' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                📑 Topics
+            </a>
+        </li>
+
+        <div style="padding: 15px 20px 5px 20px; font-size: 0.75rem; font-weight: bold; color: var(--ntxt-color); text-transform: uppercase; letter-spacing: 1px;">Content & Processing</div>
+
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/import" class="<%= locals.active_page === 'cbt_import' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                ⚡ AI PDF Extraction
+            </a>
+        </li>
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/review" class="<%= locals.active_page === 'cbt_review' ? 'active' : '' %>" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                <span>🔍 Review Queue</span>
+                <span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">New</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/questions" class="<%= locals.active_page === 'cbt_questions' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                🏦 Question Bank
+            </a>
+        </li>
+
+        <div style="padding: 15px 20px 5px 20px; font-size: 0.75rem; font-weight: bold; color: var(--ntxt-color); text-transform: uppercase; letter-spacing: 1px;">Mock Exams</div>
+
+        <li style="margin-bottom: 5px;">
+            <a href="/admin/cbt/mocks" class="<%= locals.active_page === 'cbt_mocks' ? 'active' : '' %>" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                🎯 Mock Blueprints
+            </a>
+        </li>
+
+        <div style="padding: 15px 20px 5px 20px; font-size: 0.75rem; font-weight: bold; color: var(--ntxt-color); text-transform: uppercase; letter-spacing: 1px;">Settings</div>
+        <li style="margin-bottom: 5px;">
+            <a href="/dashboard" style="display: block; padding: 10px 20px; color: var(--text-color); text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                ⬅ Back to Portal
+            </a>
+        </li>
+    </ul>
 </div>
+<style>
+    .sidebar { width: 260px; background: var(--card-bg); height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto; border-right: 1px solid var(--border-color); box-shadow: 5px 0 15px rgba(0,0,0,0.02); }
+    .main-content { margin-left: 260px; padding: 2rem 3rem; background: var(--bg-color); min-height: 100vh; }
+    .sidebar-menu a:hover { background: rgba(59, 130, 246, 0.1); color: var(--primary-color) !important; }
+    .sidebar-menu a.active { background: var(--primary-color) !important; color: white !important; font-weight: bold; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+</style>
