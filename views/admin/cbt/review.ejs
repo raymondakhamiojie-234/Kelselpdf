@@ -2,39 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CBT Admin - Review Queue</title>
+    <title>CBT Admin - review</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
-    <style>
-        .cbt-container { display: flex; height: 100vh; background: var(--bg-color); }
-        .cbt-sidebar { width: 250px; background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 2rem 1rem; }
-        .cbt-sidebar a { display: block; padding: 10px 15px; color: var(--text-color); text-decoration: none; border-radius: 8px; margin-bottom: 5px; }
-        .cbt-sidebar a:hover, .cbt-sidebar a.active { background: var(--primary-color); color: white; }
-        .cbt-content { flex: 1; padding: 2rem; overflow-y: auto; }
-        .form-group { margin-bottom: 10px; }
-        .form-control { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
-        .review-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid #ffc107; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        .badge-draft { background: #ffc107; color: #000; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    </style>
 </head>
-<body class="dark-mode">
-    <div class="cbt-container">
-        <div class="cbt-sidebar">
-            <h3 style="margin-bottom: 2rem; padding-left: 15px; color: var(--primary-color);">CBT Engine Admin</h3>
-            <a href="/admin/cbt/exam_bodies">Exam Bodies</a>
-            <a href="/admin/cbt/exams">Exams</a>
-            <a href="/admin/cbt/subjects">Subjects</a>
-            <a href="/admin/cbt/topics">Topics</a>
-            <a href="/admin/cbt/questions">Question Bank</a>`n            <a href="/admin/cbt/import">Import Questions</a>`n            <a href="/admin/cbt/review">Review Queue</a>
-            <a href="/admin/cbt/import">Import Questions</a>
-            <a href="/admin/cbt/review" class="active">Review Queue</a>
-            <hr style="border-color: var(--border-color); margin: 2rem 0;">
-            <a href="/admin/dashboard">Back to Main Admin</a>
-        </div>
-        
-        <div class="cbt-content">
+<body class="dashboard-body">
+    <%- include('./partials/sidebar', { active_page: 'cbt_review' }) %>
+    <main class="main-content">
             <h2 style="margin-bottom: 1rem;">Content Review Queue</h2>
             <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Verify AI-extracted questions before publishing them to candidates.</p>
 
@@ -48,7 +22,7 @@
                                 <strong><%= q.subject_name %></strong> &mdash; Year: <%= q.year || 'N/A' %>
                                 <div style="font-size: 0.8rem; color: var(--ntxt-color);">Source: <%= q.source %></div>
                             </div>
-                            <div><span class="badge-draft">PENDING REVIEW</span></div>
+                            <div><span class="badge badge-warning">PENDING REVIEW</span></div>
                         </div>
 
                         <form method="POST" action="/admin/cbt/questions/<%= q.id %>/approve">
@@ -97,7 +71,6 @@
                     <p style="color: var(--ntxt-color);">All extracted questions have been reviewed.</p>
                 </div>
             <% } %>
-        </div>
-    </div>
+            </main>
 </body>
 </html>
