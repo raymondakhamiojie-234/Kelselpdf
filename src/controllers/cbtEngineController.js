@@ -1,6 +1,40 @@
 ﻿const pool = require('../config/db');
 const crypto = require('crypto');
 
+// 0. Unified Hub Landing Page
+exports.getStudentHub = async (req, res) => {
+    try {
+        const [examBodies] = await pool.query('SELECT * FROM cbt_exam_bodies WHERE status = ? ORDER BY name ASC', ['ACTIVE']);
+        res.render('cbt/hub', { 
+            active_page: 'cbt_hub',
+            examBodies
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+};
+
+// 0.5. Dedicated Exam Hub
+exports.getExamHub = async (req, res) => {
+    try {
+        const bodyCode = req.params.code;
+        const [bodyInfo] = await pool.query('SELECT * FROM cbt_exam_bodies WHERE code = ?', [bodyCode]);
+        
+        if (bodyInfo.length === 0) return res.redirect('/cbt');
+        
+        const body = bodyInfo[0];
+        
+        res.render('cbt/exam_hub', {
+            active_page: 'cbt_hub',
+            body
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+};
+
 // 1. Setup / Selection View 
 exports.getMockSetup = async (req, res) => {
     try {
@@ -9,9 +43,9 @@ exports.getMockSetup = async (req, res) => {
             FROM cbt_mocks m
             JOIN cbt_exams e ON m.exam_id = e.id
             JOIN cbt_exam_bodies b ON e.exam_body_id = b.id
-            WHERE m.status = ?
+            WHERE m.status = ? ${req.query.body_id ? 'AND b.id = ?' : ''}
             ORDER BY m.created_at DESC
-        `, ['PUBLISHED']);
+        `, req.query.body_id ? ['PUBLISHED', req.query.body_id] : ['PUBLISHED']);
         
         res.render('cbt/setup', { 
             active_page: 'cbt_mock',
@@ -315,3 +349,4 @@ exports.getResults = async (req, res) => {
         res.status(500).send("Database Error");
     }
 };
+

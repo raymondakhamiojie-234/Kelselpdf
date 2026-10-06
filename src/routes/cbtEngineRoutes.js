@@ -6,6 +6,11 @@ const { checkAuth } = require('../middleware/auth');
 router.use(checkAuth);
 
 // UI Routes
+// Phase 10: Unified Student Hub
+router.get('/cbt', cbtEngineController.getStudentHub);
+router.get('/cbt/hub/:code', cbtEngineController.getExamHub);
+
+// UI Routes
 router.get('/cbt/setup', cbtEngineController.getMockSetup);
 router.get('/cbt/engine/:sessionId', cbtEngineController.getEngine);
 router.get('/cbt/results/:sessionId', cbtEngineController.getResults);
