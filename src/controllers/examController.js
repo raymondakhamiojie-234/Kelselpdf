@@ -59,7 +59,7 @@ exports.getTakeExam = async (req, res) => {
         const question_limit = parseInt(req.query.questions) || 20;
 
         const [questions] = await pool.query(
-            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE LOWER(REPLACE(course_code, ' ', '')) = LOWER(?) ORDER BY RAND() LIMIT ?",
+            "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE LOWER(REPLACE(course_code, ' ', '')) = LOWER(?) ORDER BY RANDOM() LIMIT ?",
             [(course||'').replace(/\s+/g, ''), question_limit]
         );
 

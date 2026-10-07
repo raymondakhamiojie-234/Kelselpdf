@@ -1,8 +1,14 @@
+﻿require('dotenv').config();
 const pool = require('./src/config/db');
-pool.query('SELECT * FROM questions LIMIT 5').then(res => {
-    console.log(res[0]);
-    process.exit(0);
-}).catch(err => {
-    console.error(err);
-    process.exit(1);
-});
+
+async function checkTable() {
+    try {
+        const [rows] = await pool.query("SELECT * FROM cbt_practice_history LIMIT 1");
+        console.log("Table exists! Rows:", rows);
+    } catch(err) {
+        console.error("Error:", err.message);
+    } finally {
+        process.exit();
+    }
+}
+checkTable();

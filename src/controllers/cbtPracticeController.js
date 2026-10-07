@@ -69,7 +69,7 @@ exports.getPracticeSession = async (req, res) => {
             params.push(year);
         }
 
-        query += ' ORDER BY RAND() LIMIT 50'; // For practice, limit to 50 random
+        query += ' ORDER BY RANDOM() LIMIT 50'; // For practice, limit to 50 random
 
         const [questions] = await pool.query(query, params);
 

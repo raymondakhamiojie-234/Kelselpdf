@@ -129,7 +129,7 @@ exports.postStartSession = async (req, res) => {
             const [q] = await pool.query(`
                 SELECT id FROM cbt_questions 
                 WHERE subject_id = ? AND status = 'PUBLISHED' 
-                ORDER BY RAND() LIMIT ?
+                ORDER BY RANDOM() LIMIT ?
             `, [rule.subject_id, rule.question_count]);
             
             allQuestions = allQuestions.concat(q);
