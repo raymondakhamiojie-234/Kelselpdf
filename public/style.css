@@ -10,12 +10,15 @@
   --cta-color-hover: #2563eb;
   --sec-color: #1E3A8A;
   --text-color: #333;
-  --ntxt-color: rgb(0, 0, 0);
+  --ntxt-color: #64748b;
   --shd-color: #3333331c;
   --tran-color: #464545;
   --tab-color: #5a5656fb;
   --success: #10b981;
   --error: #ef4444;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --primary-color: #3b82f6;
 }
 
 [data-theme="dark"] {
@@ -28,10 +31,102 @@
   --cta-color-hover: #2563eb;
   --sec-color: #8b5cf6;
   --text-color: #f8fafc;
-  --ntxt-color: #f8fafc;
+  --ntxt-color: #94a3b8;
   --shd-color: rgba(0, 0, 0, 0.3);
   --tran-color: #94a3b8;
   --tab-color: #94a3b8;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+  --primary-color: #3b82f6;
+}
+
+/* ========================================================
+   2026 Sleek Custom Scrollbar Design System
+   ======================================================== */
+
+/* Firefox Standard */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+[data-theme="dark"],
+.dark-mode,
+.admin-body {
+  scrollbar-color: rgba(51, 65, 85, 0.8) transparent;
+}
+
+/* WebKit & Chromium Browsers (Chrome, Edge, Safari, Brave, Opera) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.65);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark Mode & Admin Custom Scrollbars */
+[data-theme="dark"] ::-webkit-scrollbar-thumb,
+.dark-mode ::-webkit-scrollbar-thumb,
+.admin-body ::-webkit-scrollbar-thumb,
+.admin-sidebar ::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.75);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+.dark-mode ::-webkit-scrollbar-thumb:hover,
+.admin-body ::-webkit-scrollbar-thumb:hover,
+.admin-sidebar ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Active Dragging State */
+[data-theme="dark"] ::-webkit-scrollbar-thumb:active,
+.dark-mode ::-webkit-scrollbar-thumb:active,
+.admin-body ::-webkit-scrollbar-thumb:active {
+  background: #3b82f6;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Slim scrollbars for sidebars, dropdowns, and horizontal data tables */
+.admin-sidebar-scroll::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+.glass-panel::-webkit-scrollbar,
+.cbt-sidebar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.admin-sidebar-scroll,
+.sidebar,
+.table-responsive,
+.cbt-sidebar {
+  scrollbar-width: thin;
 }
 
 .theme-toggle-btn {

@@ -1,4 +1,4 @@
-﻿# KelselPDF Design System (2026 Edition)
+# KelselPDF Design System (2026 Edition)
 
 ## Design Philosophy
 KelselPDF's administrator interface is designed to be a premium, responsive, EdTech SaaS platform. It strictly avoids the "old Bootstrap admin template" aesthetic. The design prioritizes **high information density without clutter, clear typography, and strong visual hierarchy**.
@@ -43,6 +43,13 @@ KelselPDF's administrator interface is designed to be a premium, responsive, EdT
 - Sidebar Width: `260px` fixed.
 - Main Content Padding: `2rem 3rem`.
 - Active Menu Items: Full primary color background with a subtle glow (`box-shadow`).
+
+### Scrollbars
+- Width: `8px` for main document; ultra-thin `5px` for sidebars, dropdowns, and horizontal table containers.
+- Track: `transparent` to preserve clean glassmorphism surfaces.
+- Thumb: Pill shape (`border-radius: 9999px`) with 2px transparent border using `background-clip: padding-box`.
+- Dark Mode / Admin: Slate 700 (`rgba(51, 65, 85, 0.75)`), hover Slate 600 (`rgba(100, 116, 139, 0.9)`), with active brand blue accent on dragging.
+- Cross-Browser: Full support for both standard Firefox `scrollbar-width` and Chromium/WebKit pseudo-elements.
 
 ## 4. Workflows & States
 - **Empty States**: Must be communicative. Do not leave blank screens. Use large icons and clear calls to action.
