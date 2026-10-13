@@ -1,4 +1,4 @@
-﻿const pool = require('../config/db');
+const pool = require('../config/db');
 const { extractTextFromPDF, extractQuestionsFromText } = require('../services/questionExtractorService');
 const csv = require('csv-parser');
 const fs = require('fs');
@@ -37,8 +37,8 @@ exports.postImportPDF = async (req, res) => {
         for (const q of questions) {
             await pool.query(`
                 INSERT INTO cbt_questions 
-                (exam_body_id, exam_id, subject_id, paper_id, year, question_text, option_a, option_b, option_c, option_d, option_e, correct_answer, explanation, topic, difficulty, source, source_type, license_status, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PDF_UPLOAD', 'PENDING_REVIEW', 'DRAFT')
+                (exam_body_id, exam_id, subject_id, paper_id, year, question_text, option_a, option_b, option_c, option_d, option_e, correct_answer, explanation, topic, topic_id, difficulty, source, source_type, license_status, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PDF_UPLOAD', 'PENDING_REVIEW', 'DRAFT')
             `, [
                 exam_body_id || null, 
                 exam_id || null, 
@@ -49,7 +49,8 @@ exports.postImportPDF = async (req, res) => {
                 q.option_a, q.option_b, q.option_c, q.option_d, q.option_e || null, 
                 q.correct_answer, 
                 q.explanation, 
-                null, // For now, we skip topic_id binding until we create a topic resolution layer
+                q.topic || null,
+                null, // topic_id
                 q.difficulty || 'MEDIUM', 
                 source || req.file.originalname
             ]);
