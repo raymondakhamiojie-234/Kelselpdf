@@ -1,4 +1,4 @@
-﻿
+
 exports.getDashboard = async (req, res) => {
     try {
         // Aggregate KPIs
@@ -70,6 +70,21 @@ exports.postExamBody = async (req, res) => {
     }
 };
 
+exports.postEditExamBody = async (req, res) => {
+    const bodyId = req.params.id;
+    const { name, code, description, website, status } = req.body;
+    try {
+        await pool.query(
+            'UPDATE cbt_exam_bodies SET name = ?, code = ?, description = ?, website = ?, status = ? WHERE id = ?',
+            [name, code, description, website, status || 'ACTIVE', bodyId]
+        );
+        res.redirect('/admin/cbt/exam_bodies');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating exam body: " + err.message);
+    }
+};
+
 // --- EXAMS ---
 
 exports.getExams = async (req, res) => {
@@ -109,6 +124,56 @@ exports.postExam = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Error creating exam: " + err.message);
+    }
+};
+
+exports.getEditExam = async (req, res) => {
+    try {
+        const examId = req.params.id;
+        const [rows] = await pool.query(`
+            SELECT e.*, b.name as body_name 
+            FROM cbt_exams e
+            JOIN cbt_exam_bodies b ON e.exam_body_id = b.id
+            WHERE e.id = ?
+        `, [examId]);
+        if (rows.length === 0) {
+            return res.status(404).send("Exam not found");
+        }
+        const [bodies] = await pool.query('SELECT * FROM cbt_exam_bodies ORDER BY name ASC');
+        res.render('admin/cbt/exam_edit', {
+            exam: rows[0],
+            bodies,
+            error: null
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading exam: " + err.message);
+    }
+};
+
+exports.postEditExam = async (req, res) => {
+    const examId = req.params.id;
+    const { exam_body_id, name, code, description, duration, status } = req.body;
+    try {
+        await pool.query(
+            'UPDATE cbt_exams SET exam_body_id = ?, name = ?, code = ?, description = ?, duration = ?, status = ? WHERE id = ?',
+            [exam_body_id, name, code, description, duration || null, status || 'ACTIVE', examId]
+        );
+        res.redirect('/admin/cbt/exams' + (exam_body_id ? '?body_id=' + exam_body_id : ''));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating exam: " + err.message);
+    }
+};
+
+exports.postDeleteExam = async (req, res) => {
+    const examId = req.params.id;
+    try {
+        await pool.query('DELETE FROM cbt_exams WHERE id = ?', [examId]);
+        res.redirect('/admin/cbt/exams');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error deleting exam: " + err.message);
     }
 };
 

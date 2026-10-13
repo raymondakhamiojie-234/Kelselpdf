@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const cbtAdminController = require('../controllers/cbtAdminController');
 const cbtImportController = require('../controllers/cbtImportController');
@@ -26,8 +26,13 @@ router.get('/admin/cbt', cbtAdminController.getDashboard);
 // Core Entities
 router.get('/admin/cbt/exam_bodies', cbtAdminController.getExamBodies);
 router.post('/admin/cbt/exam_bodies', cbtAdminController.postExamBody);
+router.post('/admin/cbt/exam_bodies/:id/edit', cbtAdminController.postEditExamBody);
+
 router.get('/admin/cbt/exams', cbtAdminController.getExams);
 router.post('/admin/cbt/exams', cbtAdminController.postExam);
+router.get('/admin/cbt/exams/:id/edit', cbtAdminController.getEditExam);
+router.post('/admin/cbt/exams/:id/edit', cbtAdminController.postEditExam);
+router.post('/admin/cbt/exams/:id/delete', cbtAdminController.postDeleteExam);
 router.get('/admin/cbt/subjects', cbtAdminController.getSubjects);
 router.post('/admin/cbt/subjects', cbtAdminController.postSubject);
 router.get('/admin/cbt/topics', cbtAdminController.getTopics);

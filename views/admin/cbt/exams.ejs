@@ -2,94 +2,199 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CBT Admin - exams</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Admin - Examinations</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_exams' }) %>
     <main class="main-content">
-            <h2 style="margin-bottom: 1rem;">Examinations</h2>
-            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Manage specific examinations (e.g. UTME, WASSCE) under their respective bodies.</p>
+        <div class="page-header">
+            <h2>Examinations Registry</h2>
+            <p>Manage national and professional examinations (e.g. UTME, SSCE, WASSCE, NABTEB) and configure their default parameters.</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h3>Add New Examination</h3>
+            <form method="POST" action="/admin/cbt/exams" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Exam Body</label>
+                    <select name="exam_body_id" class="form-control" required>
+                        <option value="">Select Exam Body</option>
+                        <% bodies.forEach(b => { %>
+                            <option value="<%= b.id %>" <%= selected_body == b.id ? 'selected' : '' %>><%= b.code %> - <%= b.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Exam Name (e.g., Unified Tertiary Matriculation Examination)</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Senior School Certificate Examination" required>
+                </div>
+                <div class="form-group">
+                    <label>Exam Code (e.g., UTME, SSCE, WASSCE)</label>
+                    <input type="text" name="code" class="form-control" placeholder="e.g. UTME or SSCE" required>
+                </div>
+                <div class="form-group">
+                    <label>Default Duration (Minutes)</label>
+                    <input type="number" name="duration" class="form-control" placeholder="e.g. 120">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Brief summary of syllabus and examination coverage..."></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 22px;">Create Examination</button>
+                </div>
+            </form>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0; color: var(--text-color); font-size: 1.2rem;">Registered Examinations</h3>
+            <form method="GET" action="/admin/cbt/exams" style="display: flex; gap: 10px;">
+                <select name="body_id" class="form-control" style="width: auto;">
+                    <option value="">All Exam Bodies</option>
+                    <% bodies.forEach(b => { %>
+                        <option value="<%= b.id %>" <%= selected_body == b.id ? 'selected' : '' %>><%= b.code %></option>
+                    <% }) %>
+                </select>
+                <button type="submit" class="btn btn-secondary" style="padding: 8px 16px;">Filter</button>
+            </form>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Exam Body</th>
+                    <th>Code</th>
+                    <th>Exam Name</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (exams && exams.length > 0) { %>
+                    <% exams.forEach(exam => { %>
+                        <tr>
+                            <td>#<%= exam.id %></td>
+                            <td><span class="badge badge-info"><%= exam.body_name %></span></td>
+                            <td><strong style="color: var(--text-color); font-size: 1rem;"><%= exam.code %></strong></td>
+                            <td><%= exam.name %></td>
+                            <td><%= exam.duration ? exam.duration + ' mins' : 'N/A' %></td>
+                            <td>
+                                <span class="badge <%= exam.status === 'ACTIVE' ? 'badge-success' : 'badge-gray' %>">
+                                    <%= exam.status || 'ACTIVE' %>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button type="button" class="btn btn-sm btn-primary" onclick='openEditModal(<%- JSON.stringify(exam) %>)' style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 600;">
+                                        <span>✏️</span>
+                                        <span>Edit</span>
+                                    </button>
+                                    <a href="/admin/cbt/subjects?exam_id=<%= exam.id %>" class="btn btn-sm btn-outline" style="padding: 6px 12px;">
+                                        Subjects &rarr;
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">
+                            No examinations found for this selection.
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Modal for Editing Examination -->
+    <div id="editExamModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <h3 id="modalExamTitle" style="margin: 0; color: var(--text-color); font-size: 1.25rem;">Edit Examination</h3>
+                    <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 3px;">Update examination settings and parameters</div>
+                </div>
+                <button type="button" onclick="closeEditModal()" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+            </div>
             
-            <div class="glass-panel">
-                <h3>Add New Exam</h3>
-                <form method="POST" action="/admin/cbt/exams" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
+            <form id="editExamForm" method="POST" action="">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label>Exam Body</label>
-                        <select name="exam_body_id" class="form-control" required>
-                            <option value="">Select Exam Body</option>
+                        <select name="exam_body_id" id="edit_exam_body_id" class="form-control" required>
                             <% bodies.forEach(b => { %>
-                                <option value="<%= b.id %>" <%= selected_body == b.id ? 'selected' : '' %>><%= b.code %> - <%= b.name %></option>
+                                <option value="<%= b.id %>"><%= b.code %> - <%= b.name %></option>
                             <% }) %>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Name (e.g., Unified Tertiary Matriculation Examination)</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <label>Status</label>
+                        <select name="status" id="edit_status" class="form-control">
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label>Code (e.g., UTME)</label>
-                        <input type="text" name="code" class="form-control" required>
+                        <label>Exam Name (e.g. Senior School Certificate Examination)</label>
+                        <input type="text" name="name" id="edit_name" class="form-control" required>
                     </div>
                     <div class="form-group">
+                        <label>Exam Code (e.g. SSCE, UTME, WASSCE)</label>
+                        <input type="text" name="code" id="edit_code" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Default Duration (Minutes)</label>
-                        <input type="number" name="duration" class="form-control">
+                        <input type="number" name="duration" id="edit_duration" class="form-control" placeholder="e.g. 120">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Description</label>
-                        <textarea name="description" class="form-control" rows="2"></textarea>
+                        <textarea name="description" id="edit_description" class="form-control" rows="3"></textarea>
                     </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <button type="submit" class="btn btn-primary">Create Exam</button>
-                    </div>
-                </form>
-            </div>
+                </div>
 
-            <div style="margin-bottom: 15px;">
-                <form method="GET" action="/admin/cbt/exams" style="display: flex; gap: 10px;">
-                    <select name="body_id" class="form-control" style="width: auto;">
-                        <option value="">All Exam Bodies</option>
-                        <% bodies.forEach(b => { %>
-                            <option value="<%= b.id %>" <%= selected_body == b.id ? 'selected' : '' %>><%= b.code %></option>
-                        <% }) %>
-                    </select>
-                    <button type="submit" class="btn btn-secondary">Filter</button>
-                </form>
-            </div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()" style="padding: 8px 18px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 22px;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Body</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Duration</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (exams && exams.length > 0) { %>
-                        <% exams.forEach(exam => { %>
-                            <tr>
-                                <td><%= exam.id %></td>
-                                <td><%= exam.body_name %></td>
-                                <td><strong><%= exam.code %></strong></td>
-                                <td><%= exam.name %></td>
-                                <td><%= exam.duration ? exam.duration + ' mins' : 'N/A' %></td>
-                                <td>
-                                    <a href="/admin/cbt/subjects?exam_id=<%= exam.id %>" class="btn btn-sm btn-outline">View Subjects</a>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="6" style="text-align: center;">No exams found.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-            </main>
+    <script>
+        function openEditModal(exam) {
+            document.getElementById('editExamForm').action = '/admin/cbt/exams/' + exam.id + '/edit';
+            document.getElementById('modalExamTitle').innerText = 'Edit Examination: ' + exam.code;
+            document.getElementById('edit_exam_body_id').value = exam.exam_body_id;
+            document.getElementById('edit_status').value = exam.status || 'ACTIVE';
+            document.getElementById('edit_name').value = exam.name || '';
+            document.getElementById('edit_code').value = exam.code || '';
+            document.getElementById('edit_duration').value = exam.duration || '';
+            document.getElementById('edit_description').value = exam.description || '';
+            document.getElementById('editExamModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editExamModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('editExamModal');
+            if (e.target === modal) {
+                closeEditModal();
+            }
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+            }
+        });
+    </script>
 </body>
 </html>

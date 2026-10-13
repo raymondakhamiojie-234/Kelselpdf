@@ -2,71 +2,159 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CBT Admin - exam_bodies</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Admin - Exam Bodies</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_exam_bodies' }) %>
     <main class="main-content">
-            <h2 style="margin-bottom: 1rem;">Examination Bodies</h2>
-            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Manage top-level examination boards (e.g. JAMB, WAEC).</p>
+        <div class="page-header">
+            <h2>Examination Bodies</h2>
+            <p>Manage top-level examination authorities (e.g. JAMB, WAEC, NECO, NABTEB, BECE).</p>
+        </div>
+        
+        <div class="glass-panel">
+            <h3>Add New Exam Body</h3>
+            <form method="POST" action="/admin/cbt/exam_bodies" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Official Name (e.g., Joint Admissions and Matriculation Board)</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. West African Examinations Council" required>
+                </div>
+                <div class="form-group">
+                    <label>Acronym / Code (e.g., JAMB, WAEC)</label>
+                    <input type="text" name="code" class="form-control" placeholder="e.g. WAEC" required>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Mandate, jurisdiction, and official details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Official Portal / Website URL</label>
+                    <input type="url" name="website" class="form-control" placeholder="https://example.gov.ng">
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;">Create Exam Body</button>
+                </div>
+            </form>
+        </div>
+
+        <h3 style="margin-bottom: 15px; color: var(--text-color); font-size: 1.2rem;">Registered Bodies</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Code</th>
+                    <th>Full Official Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (bodies && bodies.length > 0) { %>
+                    <% bodies.forEach(body => { %>
+                        <tr>
+                            <td>#<%= body.id %></td>
+                            <td><strong style="color: var(--text-color); font-size: 1rem;"><%= body.code %></strong></td>
+                            <td><%= body.name %></td>
+                            <td><span class="badge <%= body.status === 'ACTIVE' ? 'badge-success' : 'badge-gray' %>"><%= body.status || 'ACTIVE' %></span></td>
+                            <td>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button type="button" class="btn btn-sm btn-primary" onclick='openEditBodyModal(<%- JSON.stringify(body) %>)' style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 600;">
+                                        <span>✏️</span>
+                                        <span>Edit</span>
+                                    </button>
+                                    <a href="/admin/cbt/exams?body_id=<%= body.id %>" class="btn btn-sm btn-outline" style="padding: 6px 12px;">
+                                        Exams &rarr;
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">No exam bodies found.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Modal for Editing Exam Body -->
+    <div id="editBodyModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <h3 id="modalBodyTitle" style="margin: 0; color: var(--text-color); font-size: 1.25rem;">Edit Exam Body</h3>
+                    <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 3px;">Update exam body details and official information</div>
+                </div>
+                <button type="button" onclick="closeEditBodyModal()" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+            </div>
             
-            <div class="glass-panel">
-                <h3>Add New Exam Body</h3>
-                <form method="POST" action="/admin/cbt/exam_bodies" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
+            <form id="editBodyForm" method="POST" action="">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Name (e.g., Joint Admissions and Matriculation Board)</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <label>Official Name</label>
+                        <input type="text" name="name" id="edit_body_name" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label>Code (e.g., JAMB)</label>
-                        <input type="text" name="code" class="form-control" required>
+                        <label>Acronym / Code</label>
+                        <input type="text" name="code" id="edit_body_code" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status" id="edit_body_status" class="form-control">
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Portal / Website URL</label>
+                        <input type="url" name="website" id="edit_body_website" class="form-control">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Description</label>
-                        <textarea name="description" class="form-control" rows="3"></textarea>
+                        <textarea name="description" id="edit_body_description" class="form-control" rows="3"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label>Website URL (Optional)</label>
-                        <input type="url" name="website" class="form-control">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Exam Body</button>
-                    </div>
-                </form>
-            </div>
+                </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (bodies && bodies.length > 0) { %>
-                        <% bodies.forEach(body => { %>
-                            <tr>
-                                <td><%= body.id %></td>
-                                <td><strong><%= body.code %></strong></td>
-                                <td><%= body.name %></td>
-                                <td><span class="badge badge-success"><%= body.status %></span></td>
-                                <td>
-                                    <a href="/admin/cbt/exams?body_id=<%= body.id %>" class="btn btn-sm btn-outline">View Exams</a>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="5" style="text-align: center;">No exam bodies found.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-            </main>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditBodyModal()" style="padding: 8px 18px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 22px;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditBodyModal(body) {
+            document.getElementById('editBodyForm').action = '/admin/cbt/exam_bodies/' + body.id + '/edit';
+            document.getElementById('modalBodyTitle').innerText = 'Edit Exam Body: ' + body.code;
+            document.getElementById('edit_body_name').value = body.name || '';
+            document.getElementById('edit_body_code').value = body.code || '';
+            document.getElementById('edit_body_status').value = body.status || 'ACTIVE';
+            document.getElementById('edit_body_website').value = body.website || '';
+            document.getElementById('edit_body_description').value = body.description || '';
+            document.getElementById('editBodyModal').style.display = 'flex';
+        }
+
+        function closeEditBodyModal() {
+            document.getElementById('editBodyModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('editBodyModal');
+            if (e.target === modal) {
+                closeEditBodyModal();
+            }
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditBodyModal();
+            }
+        });
+    </script>
 </body>
 </html>
