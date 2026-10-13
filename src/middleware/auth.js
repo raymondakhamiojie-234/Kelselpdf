@@ -60,13 +60,16 @@ const requireAdmin = async (req, res, next) => {
         return res.redirect('/admin/login');
     }
     try {
-        const [rows] = await pool.query("SELECT role FROM users WHERE id = ?", [req.session.user_id]);
+        const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [req.session.user_id]);
         if (rows.length === 0 || rows[0].role !== 'admin') {
             if (isApiRequest(req)) {
                 return res.status(403).json({ error: 'Forbidden: Admins Only' });
             }
             return res.status(403).send("Forbidden: Admins Only");
         }
+        req.session.user = rows[0];
+        res.locals.user = rows[0];
+        res.locals.user_id = rows[0].id;
         next();
     } catch (error) {
         console.error(error);

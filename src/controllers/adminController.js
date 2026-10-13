@@ -18,6 +18,7 @@ exports.postAdminLogin = async (req, res) => {
                 return res.render('admin/login', { error: 'Access Denied: You are not an administrator.' });
             }
             req.session.user_id = user.id;
+            req.session.user = user;
             res.redirect('/admin');
         } else {
             res.render('admin/login', { error: 'Invalid admin credentials.' });
@@ -34,8 +35,15 @@ exports.getAdmin = async (req, res) => {
         const [[{ count: users_count }]] = await pool.query('SELECT COUNT(id) AS count FROM users');
         const [[{ total: revenue }]] = await pool.query("SELECT SUM(amount) AS total FROM transactions WHERE status='success'");
         const [[{ count: active_subs }]] = await pool.query('SELECT COUNT(id) AS count FROM users WHERE has_paid = true AND expiry_date >= CURRENT_DATE');
-        const [[{ count: q_count }]] = await pool.query('SELECT COUNT(id) AS count FROM questions');
-        const [[{ count: pq_count }]] = await pool.query('SELECT COUNT(id) AS count FROM past_questions');
+        const [[{ count: total_tx_count }]] = await pool.query("SELECT COUNT(id) AS count FROM transactions WHERE status='success'");
+        const [[{ count: q_count }]] = await pool.query('SELECT COUNT(id) AS count FROM questions').catch(() => [[{ count: 0 }]]);
+        const [[{ count: pq_count }]] = await pool.query('SELECT COUNT(id) AS count FROM past_questions').catch(() => [[{ count: 0 }]]);
+        
+        // CBT Engine metrics
+        const [[{ count: cbt_q_count }]] = await pool.query('SELECT COUNT(id) AS count FROM cbt_questions').catch(() => [[{ count: 0 }]]);
+        const [[{ count: cbt_pending_count }]] = await pool.query("SELECT COUNT(id) AS count FROM cbt_questions WHERE status = 'DRAFT'").catch(() => [[{ count: 0 }]]);
+        const [[{ count: cbt_mocks_count }]] = await pool.query("SELECT COUNT(id) AS count FROM cbt_mocks WHERE status = 'PUBLISHED'").catch(() => [[{ count: 0 }]]);
+
         const [dept_stats] = await pool.query(`
             SELECT department_id, COUNT(id) as paid_count 
             FROM users 
@@ -44,13 +52,37 @@ exports.getAdmin = async (req, res) => {
             ORDER BY paid_count DESC
         `);
 
+        // Recent verified transactions
+        const [recent_transactions] = await pool.query(`
+            SELECT t.id, t.reference, t.amount, t.status, t.created_at, u.full_name, u.email, u.department_id 
+            FROM transactions t 
+            LEFT JOIN users u ON t.user_id = u.id 
+            ORDER BY t.created_at DESC 
+            LIMIT 6
+        `).catch(() => [[]]);
+
+        // Recent registered candidates
+        const [recent_users] = await pool.query(`
+            SELECT id, full_name, email, department_id, level, role, has_paid, created_at 
+            FROM users 
+            ORDER BY created_at DESC 
+            LIMIT 6
+        `).catch(() => [[]]);
+
         res.render('admin/index', {
-            users_count,
-            revenue: revenue || 0,
-            active_subs,
-            q_count,
-            pq_count,
-            dept_stats
+            active_page: 'admin',
+            users_count: parseInt(users_count) || 0,
+            revenue: parseFloat(revenue) || 0,
+            active_subs: parseInt(active_subs) || 0,
+            total_tx_count: parseInt(total_tx_count) || 0,
+            q_count: parseInt(q_count) || 0,
+            pq_count: parseInt(pq_count) || 0,
+            cbt_q_count: parseInt(cbt_q_count) || 0,
+            cbt_pending_count: parseInt(cbt_pending_count) || 0,
+            cbt_mocks_count: parseInt(cbt_mocks_count) || 0,
+            dept_stats: dept_stats || [],
+            recent_transactions: recent_transactions || [],
+            recent_users: recent_users || []
         });
     } catch (err) {
         console.error(err);

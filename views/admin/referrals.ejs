@@ -7,14 +7,26 @@
     <link rel="stylesheet" href="/style.css?v=3">
     <script src="/theme.js"></script>
 </head>
-<body class="dashboard-body">
-    <%- include('../acct/partials/sidebar', { active_page: 'admin_referrals' }) %>
+<body class="dashboard-body admin-body">
+    <%- include('./partials/admin_sidebar', { active_page: 'admin_referrals' }) %>
 
-    <main class="main-content">
-        <%- include('../acct/partials/app_header', { 
-            page_title: 'Referrals', 
-            page_desc: 'Manage affiliate codes & track conversions' 
-        }) %>
+    <main class="admin-main-content">
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">Referrals & Affiliates</h1>
+                    <p class="admin-subtitle">Generate referral campaigns, track affiliate signups and conversion metrics.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
+                    &larr; Overview
+                </a>
+            </div>
+        </header>
         
         <div style="padding: 20px;">
             <h3>Generate New Referral Code</h3>
