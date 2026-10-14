@@ -1,26 +1,121 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mock Examination Setup - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <style>
-        .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
-        .rules { background: rgba(239, 68, 68, 0.05); border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .rules ul { margin-left: 1.5rem; margin-top: 0.5rem; color: var(--ntxt-color); }
-        .rules li { margin-bottom: 0.5rem; }
+        .setup-container { 
+            max-width: 680px; 
+            margin: 2rem auto; 
+            background: var(--card-bg); 
+            padding: 2.2rem; 
+            border-radius: 14px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .rules { 
+            background: rgba(239, 68, 68, 0.06); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            padding: 1.2rem; 
+            border-radius: 10px; 
+            margin-bottom: 1.8rem; 
+        }
+        .rules-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ef4444;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .rules ul { 
+            margin-left: 1.2rem; 
+            margin-top: 0.5rem; 
+            color: var(--ntxt-color); 
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+        .rules li { 
+            margin-bottom: 0.35rem; 
+        }
         
-        .mock-card { border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
-        .mock-card:hover { border-color: var(--primary-color); }
-        .mock-input { display: none; }
-        .mock-input:checked + .mock-card { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+        .mock-card { 
+            border: 2px solid var(--border-color); 
+            padding: 16px 20px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: relative; 
+            overflow: hidden; 
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .mock-card:hover { 
+            border-color: var(--primary-color, #3b82f6); 
+            transform: translateY(-1px);
+        }
+        .mock-input { 
+            display: none; 
+        }
+        .mock-input:checked + .mock-card { 
+            border-color: var(--primary-color, #3b82f6); 
+            background: rgba(59, 130, 246, 0.08); 
+            box-shadow: 0 0 0 1px var(--primary-color, #3b82f6);
+        }
         
-        .mock-card.locked { opacity: 0.6; cursor: not-allowed; border-color: var(--border-color) !important; background: var(--bg-color) !important; }
-        .lock-overlay { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.1); backdrop-filter: blur(1px); }
-        .lock-icon { background: #f59e0b; color: white; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
-        .lock-icon a { color: white; text-decoration: none; }
+        .mock-card.locked { 
+            opacity: 0.75; 
+            cursor: not-allowed; 
+            border-color: var(--border-color) !important; 
+            background: var(--bg-color) !important; 
+        }
+        .lock-overlay { 
+            position: absolute; 
+            inset: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: rgba(15, 23, 42, 0.7); 
+            backdrop-filter: blur(2px); 
+        }
+        .lock-icon { 
+            background: #f59e0b; 
+            color: white; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .lock-icon a { 
+            color: white; 
+            text-decoration: none; 
+        }
+        .lock-icon a:hover {
+            text-decoration: underline;
+        }
+
+        .exam-tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body class="dashboard-body">
@@ -28,48 +123,63 @@
 
     <main class="main-content">
         <%- include('../acct/partials/app_header', { 
-            page_title: `CBT Engine Setup`, 
-            page_desc: 'Start a timed mock examination.',
-            header_style: 'background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);',
-            header_icon: '<svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>',
+            page_title: 'Mock Examination Setup', 
+            page_desc: 'Start a realistic, timed CBT examination session.',
+            header_style: 'background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);',
             search_placeholder: 'Search exams...'
         }) %>
 
         <div class="setup-container">
             <div class="rules">
-                <strong style="color: #ef4444;">Examination Rules:</strong>
+                <div class="rules-title">
+                    <span>⚠️</span>
+                    <span>Examination Instructions & Anti-Cheat Rules:</span>
+                </div>
                 <ul>
-                    <li>You will be placed in a strictly timed session.</li>
-                    <li>Questions and options are randomized.</li>
-                    <li>You must remain in fullscreen mode.</li>
-                    <li>Switching browser tabs will be recorded as a violation.</li>
-                    <li>Your answers will auto-save.</li>
+                    <li>You will be placed into a strictly timed, realistic exam simulation.</li>
+                    <li>Questions and options are randomized for each candidate.</li>
+                    <li>Full-screen mode is required throughout the test.</li>
+                    <li>Switching browser tabs or minimizing the window will be logged as an integrity violation.</li>
+                    <li>Your selected answers are automatically saved to the server as you answer.</li>
                 </ul>
             </div>
             
             <form action="/cbt/start" method="POST">
-                <h3 style="margin-bottom: 1rem; color: var(--text-color);">Select a Mock Examination</h3>
+                <h3 style="margin-bottom: 1.2rem; color: var(--text-color); font-size: 1.2rem; font-weight: 700;">Select a Mock Examination</h3>
                 
-                <% if(mocks.length === 0) { %>
-                    <div style="padding: 2rem; text-align: center; color: var(--ntxt-color); border: 1px dashed var(--border-color); border-radius: 8px;">
-                        No Mock Examinations are currently available. Check back later!
+                <% if (!mocks || mocks.length === 0) { %>
+                    <div style="padding: 2.5rem 1.5rem; text-align: center; color: var(--ntxt-color); border: 2px dashed var(--border-color); border-radius: 10px; background: rgba(255,255,255,0.01);">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">📋</div>
+                        <h4 style="color: var(--text-color); margin-bottom: 6px;">No Mock Examinations Available</h4>
+                        <p style="font-size: 0.9rem; margin-bottom: 15px;">There are no published mock examinations available under this category right now.</p>
+                        <a href="/cbt" class="btn btn-secondary" style="padding: 8px 18px; font-size: 0.9rem;">View All Exam Hubs</a>
                     </div>
                 <% } else { %>
+                    <% 
+                    const isUserSubscribed = (typeof isSubscribed !== 'undefined') ? isSubscribed : (locals.user && locals.user.has_paid);
+                    %>
                     <% mocks.forEach((m, idx) => { %>
-                        <% const isLocked = m.is_premium && !isSubscribed; %>
+                        <% const isLocked = m.is_premium && !isUserSubscribed; %>
                         
-                        <label>
+                        <label style="display: block;">
                             <input type="radio" name="mock_id" value="<%= m.id %>" class="mock-input" <%= idx === 0 && !isLocked ? 'checked' : '' %> <%= isLocked ? 'disabled' : '' %> required>
                             
                             <div class="mock-card <%= isLocked ? 'locked' : '' %>">
-                                <div>
-                                    <strong style="font-size: 1.1rem; color: var(--text-color); display: block;"><%= m.title %></strong>
-                                    <small style="color: var(--ntxt-color);"><%= m.body_name %> - <%= m.exam_name %></small>
+                                <div style="flex: 1; padding-right: 15px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                        <span class="exam-tag"><%= m.exam_code || m.exam_name %></span>
+                                        <strong style="font-size: 1.05rem; color: var(--text-color);"><%= m.title %></strong>
+                                    </div>
+                                    <small style="color: var(--ntxt-color); font-size: 0.82rem; display: block;">
+                                        <%= m.body_name || m.body_code %> &bull; <%= m.subject_count || 1 %> Subject<%= (m.subject_count == 1) ? '' : 's' %> &bull; <%= m.total_questions || 'Standard' %> Questions
+                                    </small>
                                 </div>
-                                <div style="text-align: right;">
-                                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; background: var(--bg-color); color: var(--ntxt-color); font-size: 0.85rem;"><%= m.time_limit_minutes %> mins</span>
+                                <div style="text-align: right; white-space: nowrap;">
+                                    <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 0.85rem; font-weight: 600;">⏱ <%= m.time_limit_minutes %> mins</span>
                                     <% if (m.is_premium) { %>
-                                        <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-size: 0.85rem; margin-left: 5px;">Premium</span>
+                                        <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: rgba(168, 85, 247, 0.15); color: #c084fc; font-size: 0.8rem; font-weight: 700; margin-left: 6px;">★ Premium</span>
+                                    <% } else { %>
+                                        <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.8rem; font-weight: 700; margin-left: 6px;">Free</span>
                                     <% } %>
                                 </div>
 
@@ -83,7 +193,7 @@
                             </div>
                         </label>
                     <% }) %>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1.5rem; background: #ef4444; border:none;">Start Examination</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 700; margin-top: 1.5rem; border-radius: 8px;">Begin Examination Session</button>
                 <% } %>
             </form>
         </div>
