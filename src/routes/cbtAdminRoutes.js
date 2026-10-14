@@ -9,16 +9,28 @@ const multer = require('multer');
 // Configure multer for memory storage (we send buffer to pdf-parse)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Apply an admin check middleware inline or use existing
+// Authentication is required for all CBT operations
+router.use(checkAuth);
+
+// AJAX Endpoints (Accessible to both students and admins for dynamic subject/exam dropdowns)
+router.get('/api/cbt/exams/:bodyId', cbtImportController.getExamsForBody);
+router.get('/api/cbt/subjects/:examId', cbtImportController.getSubjectsForExam);
+router.get('/api/cbt/exams/:examId/subjects', cbtMockAdminController.getExamSubjectsAPI);
+
+// Apply admin check middleware to admin routes
 const requireAdmin = (req, res, next) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
+        // If logged in as student, guide them directly to the student mock exam hub
+        if (req.session.user && req.session.user.role === 'student') {
+            return res.redirect('/cbt/setup');
+        }
         return res.status(403).send("Access Denied: Administrators only.");
     }
     next();
 };
 
-router.use(checkAuth);
-router.use(requireAdmin);
+// Protect all /admin routes
+router.use('/admin', requireAdmin);
 
 // Dashboard
 router.get('/admin/cbt', cbtAdminController.getDashboard);
@@ -47,10 +59,6 @@ router.get('/admin/cbt/review', cbtImportController.getReviewQueue);
 router.post('/admin/cbt/questions/:id/approve', cbtImportController.postApproveQuestion);
 router.post('/admin/cbt/questions/:id/reject', cbtImportController.postRejectQuestion);
 
-// AJAX Endpoints
-router.get('/api/cbt/exams/:bodyId', cbtImportController.getExamsForBody);
-router.get('/api/cbt/subjects/:examId', cbtImportController.getSubjectsForExam);
-
 // Phase 5: Mock Configurations
 router.get('/admin/cbt/mocks', cbtMockAdminController.getMocks);
 router.get('/admin/cbt/mocks/create', cbtMockAdminController.getCreateMock);
@@ -58,6 +66,5 @@ router.post('/admin/cbt/mocks/create', cbtMockAdminController.postCreateMock);
 router.post('/admin/cbt/mocks/status', cbtMockAdminController.postToggleStatus);
 router.post('/admin/cbt/mocks/delete', cbtMockAdminController.postDeleteMock);
 router.post('/admin/cbt/mocks/:id/delete', cbtMockAdminController.postDeleteMock);
-router.get('/api/cbt/exams/:examId/subjects', cbtMockAdminController.getExamSubjectsAPI);
 
 module.exports = router;

@@ -11,6 +11,7 @@ router.get('/cbt', cbtEngineController.getStudentHub);
 router.get('/cbt/hub/:code', cbtEngineController.getExamHub);
 
 // UI Routes
+router.get('/cbt/mocks', (req, res) => res.redirect('/cbt/setup'));
 router.get('/cbt/setup', cbtEngineController.getMockSetup);
 router.get('/cbt/engine/:sessionId', cbtEngineController.getEngine);
 router.get('/cbt/results/:sessionId', cbtEngineController.getResults);
