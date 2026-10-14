@@ -38,22 +38,41 @@ exports.getExamHub = async (req, res) => {
 // 1. Setup / Selection View 
 exports.getMockSetup = async (req, res) => {
     try {
-        const [mocks] = await pool.query(`
-            SELECT m.*, e.name as exam_name, b.name as body_name
+        const user = req.session.user;
+        const isSubscribed = user && user.has_paid && (!user.expiry_date || new Date(user.expiry_date) > new Date());
+
+        let query = `
+            SELECT m.*, e.name as exam_name, e.code as exam_code, b.name as body_name, b.code as body_code,
+                   (SELECT COUNT(*) FROM cbt_mock_subjects ms WHERE ms.mock_id = m.id) as subject_count,
+                   (SELECT COALESCE(SUM(ms.question_count), 0) FROM cbt_mock_subjects ms WHERE ms.mock_id = m.id) as total_questions
             FROM cbt_mocks m
             JOIN cbt_exams e ON m.exam_id = e.id
             JOIN cbt_exam_bodies b ON e.exam_body_id = b.id
-            WHERE m.status = ? ${req.query.body_id ? 'AND b.id = ?' : ''}
-            ORDER BY m.created_at DESC
-        `, req.query.body_id ? ['PUBLISHED', req.query.body_id] : ['PUBLISHED']);
-        
+            WHERE m.status = ?
+        `;
+        const params = ['PUBLISHED'];
+
+        if (req.query.body_id) {
+            query += ' AND b.id = ?';
+            params.push(req.query.body_id);
+        } else if (req.query.exam_id) {
+            query += ' AND e.id = ?';
+            params.push(req.query.exam_id);
+        }
+
+        query += ' ORDER BY m.created_at DESC';
+
+        const [mocks] = await pool.query(query, params);
+
         res.render('cbt/setup', { 
             active_page: 'cbt_mock',
-            mocks
+            mocks,
+            isSubscribed: !!isSubscribed,
+            selected_body_id: req.query.body_id || null
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Database Error");
+        console.error("Error in getMockSetup:", err);
+        res.status(500).send("Database Error: " + err.message);
     }
 };
 
