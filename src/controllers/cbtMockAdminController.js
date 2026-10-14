@@ -3,15 +3,51 @@ const pool = require('../config/db');
 exports.getMocks = async (req, res) => {
     try {
         const [mocks] = await pool.query(`
-            SELECT m.*, e.name as exam_name 
+            SELECT 
+                m.*, 
+                e.name as exam_name, 
+                e.code as exam_code,
+                (SELECT COUNT(*) FROM cbt_mock_subjects ms WHERE ms.mock_id = m.id) as subject_count,
+                (SELECT COALESCE(SUM(ms.question_count), 0) FROM cbt_mock_subjects ms WHERE ms.mock_id = m.id) as total_questions
             FROM cbt_mocks m
             JOIN cbt_exams e ON m.exam_id = e.id
             ORDER BY m.created_at DESC
         `);
-        res.render('admin/cbt/mocks', { mocks, active_page: 'cbt_mocks' });
+
+        // Fetch subject details for all mocks
+        const [mockSubjects] = await pool.query(`
+            SELECT ms.mock_id, ms.subject_id, ms.question_count, ms.is_compulsory, s.name as subject_name
+            FROM cbt_mock_subjects ms
+            JOIN cbt_subjects s ON ms.subject_id = s.id
+            ORDER BY ms.mock_id, s.name ASC
+        `);
+
+        // Group subjects by mock_id
+        const subjectsByMock = {};
+        for (const item of mockSubjects) {
+            if (!subjectsByMock[item.mock_id]) {
+                subjectsByMock[item.mock_id] = [];
+            }
+            subjectsByMock[item.mock_id].push(item);
+        }
+
+        // Attach subjects to each mock
+        for (const mock of mocks) {
+            mock.subjects = subjectsByMock[mock.id] || [];
+        }
+
+        // Calculate stats
+        const stats = {
+            total: mocks.length,
+            published: mocks.filter(m => m.status === 'PUBLISHED').length,
+            draft: mocks.filter(m => m.status === 'DRAFT').length,
+            total_questions: mocks.reduce((acc, m) => acc + (parseInt(m.total_questions, 10) || 0), 0)
+        };
+
+        res.render('admin/cbt/mocks', { mocks, stats, active_page: 'cbt_mocks' });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Database Error");
+        console.error("Error in getMocks:", err);
+        res.status(500).send("Database Error: " + err.message);
     }
 };
 
@@ -100,8 +136,37 @@ exports.postToggleStatus = async (req, res) => {
         await pool.query('UPDATE cbt_mocks SET status = ? WHERE id = ?', [status, mock_id]);
         res.redirect('/admin/cbt/mocks');
     } catch(err) {
-        console.error(err);
+        console.error("Error toggling mock status:", err);
         res.status(500).send("Database Error");
+    }
+};
+
+exports.postDeleteMock = async (req, res) => {
+    let connection;
+    try {
+        const mock_id = req.body.mock_id || req.body.id || req.params.id;
+        if (!mock_id) {
+            return res.status(400).send("Mock ID is required.");
+        }
+
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        await connection.query('DELETE FROM cbt_mock_subjects WHERE mock_id = ?', [mock_id]);
+        await connection.query('DELETE FROM cbt_mocks WHERE id = ?', [mock_id]);
+
+        await connection.commit();
+        res.redirect('/admin/cbt/mocks');
+    } catch (err) {
+        if (connection && connection.rollback) {
+            await connection.rollback();
+        }
+        console.error("Error deleting mock:", err);
+        res.status(500).send("Error deleting mock: " + err.message);
+    } finally {
+        if (connection && connection.release) {
+            connection.release();
+        }
     }
 };
 

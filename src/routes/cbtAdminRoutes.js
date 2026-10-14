@@ -56,6 +56,8 @@ router.get('/admin/cbt/mocks', cbtMockAdminController.getMocks);
 router.get('/admin/cbt/mocks/create', cbtMockAdminController.getCreateMock);
 router.post('/admin/cbt/mocks/create', cbtMockAdminController.postCreateMock);
 router.post('/admin/cbt/mocks/status', cbtMockAdminController.postToggleStatus);
+router.post('/admin/cbt/mocks/delete', cbtMockAdminController.postDeleteMock);
+router.post('/admin/cbt/mocks/:id/delete', cbtMockAdminController.postDeleteMock);
 router.get('/api/cbt/exams/:examId/subjects', cbtMockAdminController.getExamSubjectsAPI);
 
 module.exports = router;
