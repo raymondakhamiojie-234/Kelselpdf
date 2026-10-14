@@ -22,41 +22,43 @@ if (process.env.DATABASE_URL) {
 const pool = new Pool(poolConfig);
 
 /**
- * A wrapper that emulates `mysql2/promise` so that 145 existing queries in the codebase
+ * Converts MySQL `?` placeholders into Postgres `$1, $2` etc.
+ * Appends `RETURNING id` for INSERT statements if not present so `result.insertId` keeps working.
+ */
+function prepareSql(sql) {
+    let i = 1;
+    const pgSql = sql.replace(/\?/g, () => `$${i++}`);
+    let finalSql = pgSql;
+    if (pgSql.trim().toUpperCase().startsWith('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
+        finalSql = `${pgSql} RETURNING id`;
+    }
+    return finalSql;
+}
+
+/**
+ * Formats the return array to match MySQL `[rows, fields]` or `[resultObject, fields]`
+ */
+function formatResult(res) {
+    if (res.command === 'INSERT' || res.command === 'UPDATE' || res.command === 'DELETE') {
+        const mockResult = {
+            insertId: (res.rows && res.rows.length > 0) ? res.rows[0].id : null,
+            affectedRows: res.rowCount
+        };
+        return [mockResult, res.fields];
+    }
+    return [res.rows, res.fields];
+}
+
+/**
+ * A wrapper that emulates `mysql2/promise` so that existing queries in the codebase
  * don't need to be rewritten.
- * 
- * What this does:
- * 1. Converts MySQL `?` placeholders into Postgres `$1, $2` etc.
- * 2. Formats the return array to match MySQL `[rows, fields]` or `[resultObject, fields]`
- * 3. Injects `RETURNING id` into INSERT queries so `result.insertId` keeps working.
  */
 const customPool = {
     query: async (sql, params = []) => {
         try {
-            // Convert ? to $1, $2...
-            let i = 1;
-            const pgSql = sql.replace(/\?/g, () => `$${i++}`);
-
-            // Append RETURNING id for INSERT statements if not present
-            let finalSql = pgSql;
-            if (pgSql.trim().toUpperCase().startsWith('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
-                finalSql = `${pgSql} RETURNING id`;
-            }
-
+            const finalSql = prepareSql(sql);
             const res = await pool.query(finalSql, params);
-
-            // Mock mysql2 return signature: [rows, fields]
-            // If it's an insert/update/delete, mysql returns a result object at index 0 with insertId and affectedRows
-            if (res.command === 'INSERT' || res.command === 'UPDATE' || res.command === 'DELETE') {
-                const mockResult = {
-                    insertId: (res.rows && res.rows.length > 0) ? res.rows[0].id : null,
-                    affectedRows: res.rowCount
-                };
-                return [mockResult, res.fields];
-            }
-            
-            // If it's a SELECT, return the rows array at index 0
-            return [res.rows, res.fields];
+            return formatResult(res);
         } catch (err) {
             console.error("Postgres Query Error:", err.message, " | SQL:", sql);
             throw err;
@@ -65,8 +67,32 @@ const customPool = {
     getConnection: async () => {
         const client = await pool.connect();
         return {
-            query: async (sql, params) => customPool.query(sql, params),
-            release: () => client.release()
+            query: async (sql, params = []) => {
+                try {
+                    const finalSql = prepareSql(sql);
+                    const res = await client.query(finalSql, params);
+                    return formatResult(res);
+                } catch (err) {
+                    console.error("Postgres Client Query Error:", err.message, " | SQL:", sql);
+                    throw err;
+                }
+            },
+            beginTransaction: async () => {
+                await client.query('BEGIN');
+            },
+            commit: async () => {
+                await client.query('COMMIT');
+            },
+            rollback: async () => {
+                try {
+                    await client.query('ROLLBACK');
+                } catch (e) {
+                    console.error("Postgres Rollback Error:", e.message);
+                }
+            },
+            release: () => {
+                client.release();
+            }
         };
     }
 };

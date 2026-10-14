@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,28 +7,90 @@
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <style>
-        .form-container { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: var(--text-color); font-weight: 500; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); }
-        .subject-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: var(--bg-color); border-radius: 5px; border: 1px solid var(--border-color); }
-        .subject-row select, .subject-row input[type="number"] { padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); }
-        .jamb-config { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 8px; margin-top: 20px; margin-bottom: 20px; }
+        .form-container { 
+            background: var(--card-bg); 
+            padding: 24px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            max-width: 900px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-color); font-weight: 600; font-size: 0.95rem; }
+        .form-control { 
+            width: 100%; 
+            padding: 11px 14px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color, #3b82f6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .subject-row { 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            margin-bottom: 12px; 
+            padding: 12px 14px; 
+            background: rgba(255, 255, 255, 0.03); 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+        }
+        .subject-row select, .subject-row input[type="number"] { 
+            padding: 10px 12px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border-color); 
+            background: var(--card-bg); 
+            color: var(--text-color); 
+            font-size: 0.95rem;
+        }
+        .jamb-config { 
+            background: rgba(59, 130, 246, 0.08); 
+            border: 1px solid rgba(59, 130, 246, 0.25); 
+            padding: 18px; 
+            border-radius: 10px; 
+            margin-top: 24px; 
+            margin-bottom: 24px; 
+        }
+        .btn-remove-row {
+            padding: 8px 14px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-remove-row:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-save-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="dashboard-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_mocks' }) %>
 
     <main class="main-content">
-        <%- include('../../acct/partials/app_header', { page_title: 'Create Mock Examination', page_desc: 'Design a new blueprint.' }) %>
+        <%- include('../../acct/partials/app_header', { page_title: 'Create Mock Examination', page_desc: 'Design a new examination blueprint.' }) %>
 
         <div class="form-container">
-            <form action="/admin/cbt/mocks/create" method="POST">
+            <form action="/admin/cbt/mocks/create" method="POST" id="createMockForm">
                 
                 <div class="form-group">
-                    <label>Target Parent Exam</label>
-                    <select name="exam_id" class="form-control" required>
-                        <option value="">Select Exam (e.g. UTME)</option>
+                    <label>Target Parent Exam *</label>
+                    <select name="exam_id" id="examSelect" class="form-control" required>
+                        <option value="">-- Select Exam (e.g. UTME, WASSCE, SSCE) --</option>
                         <% exams.forEach(e => { %>
                             <option value="<%= e.id %>"><%= e.name %></option>
                         <% }) %>
@@ -36,22 +98,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Mock Title</label>
-                    <input type="text" name="title" class="form-control" placeholder="e.g. Official 2024 JAMB Mock" required>
+                    <label>Mock Title *</label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g. Official 2024 JAMB National Mock" required>
                 </div>
 
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Brief instructions or details about this mock examination..."></textarea>
                 </div>
 
                 <div class="form-group" style="display: flex; gap: 20px;">
                     <div style="flex: 1;">
-                        <label>Time Limit (Minutes)</label>
-                        <input type="number" name="time_limit_minutes" class="form-control" value="120" required>
+                        <label>Time Limit (Minutes) *</label>
+                        <input type="number" name="time_limit_minutes" class="form-control" value="120" min="5" max="360" required>
                     </div>
                     <div style="flex: 1;">
-                        <label>Status</label>
+                        <label>Status *</label>
                         <select name="status" class="form-control">
                             <option value="DRAFT">DRAFT</option>
                             <option value="PUBLISHED">PUBLISHED</option>
@@ -60,92 +122,162 @@
                 </div>
 
                 <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" name="is_premium"> 
-                        <strong>Premium Only (Requires active subscription)</strong>
+                        <span><strong>Premium Only</strong> (Requires an active subscription)</span>
                     </label>
                 </div>
 
                 <div class="jamb-config">
-                    <h3 style="color: var(--primary-color); margin-bottom: 10px;">Candidate Subject Selection (e.g. JAMB UTME)</h3>
-                    <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-bottom: 15px;">Enable this if candidates must choose their own elective subjects from the list below before starting.</p>
+                    <h3 style="color: var(--primary-color, #3b82f6); margin-bottom: 8px; font-size: 1.1rem;">Candidate Subject Selection (e.g. JAMB UTME)</h3>
+                    <p style="color: var(--ntxt-color); font-size: 0.88rem; margin-bottom: 15px;">Enable this if candidates must pick their own elective subjects from the blueprint below before starting the exam.</p>
                     
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px;">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="checkbox" name="candidate_subject_selection" id="candidateSelectionToggle"> 
                             <strong>Enable Candidate Selection</strong>
                         </label>
                     </div>
                     
-                    <div class="form-group" id="electiveCountGroup" style="display: none;">
-                        <label>Required Elective Count (How many subjects must they choose?)</label>
+                    <div class="form-group" id="electiveCountGroup" style="display: none; margin-bottom: 0;">
+                        <label>Required Elective Count (How many subjects must candidate choose?)</label>
                         <input type="number" name="required_elective_count" class="form-control" value="3" min="1" max="10" style="width: 200px;">
                     </div>
                 </div>
 
-                <hr style="border-color: var(--border-color); margin: 20px 0;">
+                <hr style="border-color: var(--border-color); margin: 24px 0;">
 
-                <h3 style="margin-bottom: 10px; color: var(--text-color);">Subject Blueprint</h3>
-                <p style="color: var(--ntxt-color); font-size: 0.9rem; margin-bottom: 15px;">Add subjects and the exact number of questions to pull. If Candidate Selection is enabled, check "Compulsory" for subjects they MUST take (like English).</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin-bottom: 4px; color: var(--text-color); font-size: 1.15rem;">Subject Blueprint</h3>
+                        <p style="color: var(--ntxt-color); font-size: 0.88rem;">Specify subjects and question count per paper. Check "Compulsory" for mandatory subjects (e.g. English Language).</p>
+                    </div>
+                </div>
 
                 <div id="subjectsContainer">
                     <div class="subject-row">
-                        <select name="subjects[]" required style="flex: 2;">
+                        <select name="subjects[]" class="subject-select" required style="flex: 2;">
                             <option value="">Select Subject</option>
                             <% subjects.forEach(s => { %>
-                                <option value="<%= s.id %>"><%= s.name %></option>
+                                <option value="<%= s.id %>" data-exam="<%= s.exam_id %>"><%= s.name %></option>
                             <% }) %>
                         </select>
-                        <input type="number" name="question_counts[]" placeholder="Questions (e.g. 40)" required style="flex: 1;" min="1">
-                        <label style="display: flex; align-items: center; gap: 5px; flex: 1; color: var(--text-color);">
+                        <input type="number" name="question_counts[]" placeholder="Questions (e.g. 40)" required style="flex: 1;" min="1" value="40">
+                        <label style="display: flex; align-items: center; gap: 6px; flex: 1; color: var(--text-color); cursor: pointer; user-select: none;">
                             <input type="checkbox" name="is_compulsory[]" class="compulsory-cb" checked> Compulsory
                         </label>
+                        <div style="width: 40px;"></div>
                     </div>
                 </div>
                 
-                <button type="button" class="btn btn-secondary" id="addSubjBtn" style="margin-bottom: 20px;">+ Add Another Subject</button>
+                <button type="button" class="btn btn-secondary" id="addSubjBtn" style="margin-bottom: 24px;">+ Add Another Subject</button>
                 <br>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem;">Save Blueprint</button>
+                <button type="submit" id="saveMockBtn" class="btn btn-primary btn-save-submit" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 600;">Save Blueprint</button>
             </form>
         </div>
     </main>
 
+    <!-- Embedded Subject Data for instant filtering -->
+    <script id="all-subjects-data" type="application/json"><%- JSON.stringify(subjects) %></script>
+
     <script>
-        document.getElementById('candidateSelectionToggle').addEventListener('change', function() {
-            document.getElementById('electiveCountGroup').style.display = this.checked ? 'block' : 'none';
+        const allSubjects = JSON.parse(document.getElementById('all-subjects-data').textContent || '[]');
+        const examSelect = document.getElementById('examSelect');
+        const subjectsContainer = document.getElementById('subjectsContainer');
+        const candidateToggle = document.getElementById('candidateSelectionToggle');
+        const electiveCountGroup = document.getElementById('electiveCountGroup');
+        const createMockForm = document.getElementById('createMockForm');
+        const saveMockBtn = document.getElementById('saveMockBtn');
+
+        // Toggle candidate elective count
+        candidateToggle.addEventListener('change', function() {
+            electiveCountGroup.style.display = this.checked ? 'block' : 'none';
         });
 
+        // Filter subjects based on selected exam
+        function getSubjectsForCurrentExam() {
+            const selectedExamId = examSelect.value;
+            if (!selectedExamId) {
+                return allSubjects;
+            }
+            return allSubjects.filter(s => String(s.exam_id) === String(selectedExamId));
+        }
+
+        function populateSelectOptions(selectElem, currentVal) {
+            const available = getSubjectsForCurrentExam();
+            selectElem.innerHTML = '<option value="">Select Subject</option>';
+            if (available.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.disabled = true;
+                opt.textContent = "No subjects found for this exam";
+                selectElem.appendChild(opt);
+                return;
+            }
+            available.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                opt.setAttribute('data-exam', s.exam_id);
+                if (currentVal && String(currentVal) === String(s.id)) {
+                    opt.selected = true;
+                }
+                selectElem.appendChild(opt);
+            });
+        }
+
+        // When exam dropdown changes, update all existing subject selects
+        examSelect.addEventListener('change', function() {
+            const selects = subjectsContainer.querySelectorAll('.subject-select');
+            selects.forEach(sel => {
+                const curVal = sel.value;
+                populateSelectOptions(sel, curVal);
+            });
+        });
+
+        // Add new subject row
         document.getElementById('addSubjBtn').addEventListener('click', () => {
-            const container = document.getElementById('subjectsContainer');
             const row = document.createElement('div');
             row.className = 'subject-row';
+            
+            const select = document.createElement('select');
+            select.name = 'subjects[]';
+            select.className = 'subject-select';
+            select.required = true;
+            select.style.flex = '2';
+            populateSelectOptions(select, null);
+
             row.innerHTML = `
-                <select name="subjects[]" required style="flex: 2;">
-                    <option value="">Select Subject</option>
-                    <% subjects.forEach(s => { %>
-                        <option value="<%= s.id %>"><%= s.name %></option>
-                    <% }) %>
-                </select>
-                <input type="number" name="question_counts[]" placeholder="Questions (e.g. 40)" required style="flex: 1;" min="1">
-                <label style="display: flex; align-items: center; gap: 5px; flex: 1; color: var(--text-color);">
+                <input type="number" name="question_counts[]" placeholder="Questions (e.g. 40)" required style="flex: 1;" min="1" value="40">
+                <label style="display: flex; align-items: center; gap: 6px; flex: 1; color: var(--text-color); cursor: pointer; user-select: none;">
                     <input type="checkbox" name="is_compulsory[]" class="compulsory-cb"> Compulsory
                 </label>
-                <button type="button" class="btn btn-secondary" onclick="this.parentElement.remove()" style="padding: 5px 10px; background: #ef4444; border:none; color:white;">X</button>
+                <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()" title="Remove Subject">✕</button>
             `;
-            container.appendChild(row);
+            row.insertBefore(select, row.firstElementChild);
+            subjectsContainer.appendChild(row);
         });
-        
-        // Before submit, we must handle the array logic for checkboxes.
-        // Unchecked checkboxes don't submit anything, which ruins parallel arrays.
-        document.querySelector('form').addEventListener('submit', function(e) {
+
+        // On submit:
+        // 1. Assign checkbox value = subject ID so the backend knows specifically which subjects are compulsory.
+        // 2. Provide instant submit feedback and disable button to avoid duplicate requests.
+        createMockForm.addEventListener('submit', function(e) {
             const rows = document.querySelectorAll('.subject-row');
             rows.forEach(row => {
                 const select = row.querySelector('select');
                 const cb = row.querySelector('.compulsory-cb');
-                if(cb.checked) {
-                    cb.value = select.value; // Set value to subject ID so we know WHICH ones are compulsory on backend
+                if (cb && select) {
+                    if (cb.checked) {
+                        cb.value = select.value;
+                    } else {
+                        // Unchecked checkboxes aren't submitted by standard HTML forms
+                        cb.disabled = true;
+                    }
                 }
             });
+
+            saveMockBtn.disabled = true;
+            saveMockBtn.innerHTML = 'Saving Blueprint... Please wait';
         });
     </script>
 </body>
