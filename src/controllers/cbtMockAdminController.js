@@ -54,7 +54,15 @@ exports.getMocks = async (req, res) => {
 exports.getCreateMock = async (req, res) => {
     try {
         const [exams] = await pool.query('SELECT id, name FROM cbt_exams ORDER BY name');
-        const [subjects] = await pool.query('SELECT id, name, exam_id FROM cbt_subjects ORDER BY name');
+        const [subjects] = await pool.query(`
+            SELECT s.id, s.name, s.exam_id,
+                   COUNT(CASE WHEN q.status = 'PUBLISHED' THEN 1 END) as published_q_count,
+                   COUNT(CASE WHEN q.status = 'DRAFT' THEN 1 END) as draft_q_count
+            FROM cbt_subjects s
+            LEFT JOIN cbt_questions q ON s.id = q.subject_id
+            GROUP BY s.id, s.name, s.exam_id
+            ORDER BY s.name ASC
+        `);
         res.render('admin/cbt/mock_create', { exams, subjects, active_page: 'cbt_mocks' });
     } catch (err) {
         console.error("Error loading mock create page:", err);

@@ -56,6 +56,7 @@ router.post('/admin/cbt/questions', cbtAdminController.postQuestion);
 router.get('/admin/cbt/import', cbtImportController.getImportView);
 router.post('/admin/cbt/import/pdf', upload.single('pdf_file'), cbtImportController.postImportPDF);
 router.get('/admin/cbt/review', cbtImportController.getReviewQueue);
+router.post('/admin/cbt/questions/approve-all', cbtImportController.postApproveAllQuestions);
 router.post('/admin/cbt/questions/:id/approve', cbtImportController.postApproveQuestion);
 router.post('/admin/cbt/questions/:id/reject', cbtImportController.postRejectQuestion);
 

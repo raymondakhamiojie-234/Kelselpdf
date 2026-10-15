@@ -158,11 +158,16 @@
                     <div class="subject-row">
                         <select name="subjects[]" class="subject-select" required style="flex: 2;">
                             <option value="">Select Subject</option>
-                            <% subjects.forEach(s => { %>
-                                <option value="<%= s.id %>" data-exam="<%= s.exam_id %>"><%= s.name %></option>
+                            <% subjects.forEach(s => { 
+                                const pubCount = parseInt(s.published_q_count) || 0;
+                                const draftCount = parseInt(s.draft_q_count) || 0;
+                                let badge = ` (${pubCount} questions ready)`;
+                                if (draftCount > 0) badge += ` [${draftCount} in review]`;
+                            %>
+                                <option value="<%= s.id %>" data-exam="<%= s.exam_id %>" data-count="<%= pubCount %>"><%= s.name %><%= badge %></option>
                             <% }) %>
                         </select>
-                        <input type="number" name="question_counts[]" placeholder="Questions (e.g. 40)" required style="flex: 1;" min="1" value="40">
+                        <input type="number" name="question_counts[]" class="q-count-input" placeholder="Questions" required style="flex: 1;" min="1" value="10">
                         <label style="display: flex; align-items: center; gap: 6px; flex: 1; color: var(--text-color); cursor: pointer; user-select: none;">
                             <input type="checkbox" name="is_compulsory[]" class="compulsory-cb" checked> Compulsory
                         </label>
@@ -217,14 +222,35 @@
             available.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
-                opt.textContent = s.name;
+                const pubCount = parseInt(s.published_q_count) || 0;
+                const draftCount = parseInt(s.draft_q_count) || 0;
+                let badge = ` (${pubCount} ready)`;
+                if (draftCount > 0) {
+                    badge += ` [${draftCount} in review]`;
+                }
+                opt.textContent = `${s.name}${badge}`;
                 opt.setAttribute('data-exam', s.exam_id);
+                opt.setAttribute('data-count', pubCount);
                 if (currentVal && String(currentVal) === String(s.id)) {
                     opt.selected = true;
                 }
                 selectElem.appendChild(opt);
             });
         }
+
+        // Auto-adjust question count based on selected subject's available bank
+        subjectsContainer.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('subject-select')) {
+                const selectedOpt = e.target.options[e.target.selectedIndex];
+                const availableCount = parseInt(selectedOpt.getAttribute('data-count'), 10) || 0;
+                const row = e.target.closest('.subject-row');
+                const countInput = row.querySelector('.q-count-input');
+                if (countInput && availableCount > 0) {
+                    countInput.value = availableCount >= 40 ? 40 : availableCount;
+                    countInput.max = availableCount;
+                }
+            }
+        });
 
         // When exam dropdown changes, update all existing subject selects
         examSelect.addEventListener('change', function() {
