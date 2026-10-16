@@ -1,206 +1,1626 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examination in Progress</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title><%= session.mock_title || session.exam_name %> &mdash; CBT Examination</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        body { background: #f3f4f6; color: #1f2937; margin: 0; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
-        .cbt-header { background: #111827; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .cbt-header h1 { font-size: 1.2rem; margin: 0; }
-        .timer-box { font-size: 1.5rem; font-family: monospace; font-weight: bold; background: #374151; padding: 0.5rem 1rem; border-radius: 6px; }
-        .timer-danger { background: #ef4444; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-        
-        .cbt-layout { display: flex; height: calc(100vh - 64px); }
-        .cbt-main { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; }
-        
-        .question-card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; flex: 1; display: none; }
-        .question-card.active { display: block; }
-        
-        .q-text { font-size: 1.3rem; margin-bottom: 2rem; line-height: 1.6; }
-        .option-label { display: block; padding: 15px 20px; margin-bottom: 10px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .option-label:hover { border-color: #3b82f6; }
-        .option-input { display: none; }
-        .option-label.selected { border-color: #3b82f6; background: #eff6ff; font-weight: bold; }
-        
-        .cbt-sidebar { width: 300px; background: white; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; }
-        .grid-header { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-weight: bold; text-align: center; }
-        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 1rem; overflow-y: auto; flex: 1; }
-        .nav-btn { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 10px 0; text-align: center; cursor: pointer; font-size: 0.9rem; }
-        .nav-btn:hover { background: #e5e7eb; }
-        .nav-btn.answered { background: #3b82f6; color: white; border-color: #2563eb; }
-        .nav-btn.current { border: 2px solid #111827; font-weight: bold; }
-        
-        .submit-section { padding: 1rem; border-top: 1px solid #e5e7eb; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-danger { background: #ef4444; color: white; width: 100%; padding: 15px; font-size: 1.1rem; }
-        
-        .fullscreen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-hover: #243248;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --ntxt-color: #94a3b8;
+            --primary-color: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.25);
+            --success-color: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.25);
+            --warning-color: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.25);
+            --danger-color: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body.cbt-engine-body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* -------------------------------------------------------------
+           1. TOP EXECUTIVE HEADER
+           ------------------------------------------------------------- */
+        .cbt-header {
+            height: 60px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.25rem;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            white-space: nowrap;
+        }
+
+        .exam-title-text {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Countdown Timer */
+        .timer-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 5px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .timer-icon {
+            color: var(--ntxt-color);
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .timer-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #38bdf8;
+        }
+
+        .timer-card.warning {
+            border-color: var(--warning-color);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .timer-card.warning .timer-text {
+            color: var(--warning-color);
+        }
+
+        .timer-card.danger {
+            border-color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.18);
+            animation: pulse-danger 1s infinite alternate;
+        }
+        .timer-card.danger .timer-text {
+            color: #ef4444;
+        }
+
+        @keyframes pulse-danger {
+            from { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+            to { box-shadow: 0 0 20px rgba(239, 68, 68, 0.7); }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--ntxt-color);
+        }
+
+        .mobile-palette-toggle {
+            display: none;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* -------------------------------------------------------------
+           2. SUBJECT SWITCHER TABS BAR
+           ------------------------------------------------------------- */
+        .subject-tabs-nav {
+            background: #162032;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            gap: 8px;
+            overflow-x: auto;
+            flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .subject-tabs-nav::-webkit-scrollbar { display: none; }
+
+        .subject-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--ntxt-color);
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .subject-tab-btn:hover {
+            color: var(--text-color);
+        }
+        .subject-tab-btn.active {
+            color: #38bdf8;
+            border-bottom-color: #38bdf8;
+            font-weight: 700;
+        }
+        .subject-tab-count {
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            color: var(--text-color);
+        }
+        .subject-tab-btn.active .subject-tab-count {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+        }
+
+        /* -------------------------------------------------------------
+           3. MAIN LAYOUT (STAGE + SIDEBAR)
+           ------------------------------------------------------------- */
+        .cbt-main-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cbt-stage {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .question-card-wrapper {
+            max-width: 860px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .q-view {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+        .q-view.active {
+            display: flex;
+        }
+
+        /* Question Header Metadata */
+        .q-meta-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .q-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .q-num-badge {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-color);
+        }
+
+        .q-subject-pill {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .q-save-status {
+            font-size: 0.78rem;
+            color: var(--success-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .q-save-status.visible {
+            opacity: 1;
+        }
+
+        .q-meta-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-flag {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--ntxt-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-flag:hover {
+            border-color: var(--warning-color);
+            color: var(--warning-color);
+        }
+        .btn-flag.flagged {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning-color);
+            color: #fbbf24;
+        }
+
+        /* Question Content Container */
+        .q-content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .q-text-body {
+            font-size: 1.12rem;
+            line-height: 1.7;
+            color: var(--text-color);
+            margin-bottom: 26px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .opt-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .opt-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+        .opt-item.selected {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: #3b82f6;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .opt-key-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--ntxt-color);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .opt-item.selected .opt-key-badge {
+            background: #2563eb;
+            border-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+        }
+
+        .opt-label-text {
+            font-size: 1.02rem;
+            line-height: 1.5;
+            color: var(--text-color);
+            padding-top: 3px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .opt-item.selected .opt-label-text {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Bottom Sticky Action Toolbar */
+        .stage-action-bar {
+            margin-top: auto;
+            padding-top: 10px;
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .action-group-left, .action-group-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-prev {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        .btn-prev:hover:not(:disabled) {
+            background: var(--card-hover);
+            border-color: var(--ntxt-color);
+        }
+        .btn-prev:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-next {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+        .btn-next:hover:not(:disabled) {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .btn-next:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: var(--ntxt-color);
+            border: 1px dashed var(--border-color);
+            font-size: 0.85rem;
+            padding: 9px 14px;
+        }
+        .btn-clear:hover {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-submit-main {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+            transition: all 0.2s;
+        }
+        .btn-submit-main:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        }
+
+        /* -------------------------------------------------------------
+           4. RIGHT QUESTION PALETTE SIDEBAR
+           ------------------------------------------------------------- */
+        .cbt-palette-sidebar {
+            width: 320px;
+            background: var(--card-bg);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 40;
+        }
+
+        .palette-header-box {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .palette-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--ntxt-color);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Status Summary Chips */
+        .status-chips-row {
+            display: flex;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .status-chip {
+            flex: 1;
+            padding: 6px 8px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            border: 1px solid transparent;
+        }
+        .chip-answered {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.25);
+        }
+        .chip-unanswered {
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        .chip-flagged {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+
+        /* Palette Filter Tabs */
+        .palette-filters {
+            display: flex;
+            padding: 8px 16px;
+            gap: 6px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.2);
+        }
+        .filter-btn {
+            background: transparent;
+            border: none;
+            color: var(--ntxt-color);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            color: var(--text-color);
+        }
+        .filter-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        /* Grid of Questions */
+        .palette-grid-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            align-content: start;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .q-tile {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+        .q-tile:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--ntxt-color);
+            transform: scale(1.05);
+        }
+        .q-tile.current {
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            font-weight: 900;
+        }
+        .q-tile.answered {
+            background: #059669;
+            border-color: #10b981;
+            color: #ffffff;
+        }
+        .q-tile.flagged::after {
+            content: '★';
+            position: absolute;
+            top: 2px;
+            right: 3px;
+            font-size: 0.65rem;
+            color: #fbbf24;
+        }
+
+        .palette-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        /* -------------------------------------------------------------
+           5. FLOATING SCIENTIFIC/BASIC CBT CALCULATOR
+           ------------------------------------------------------------- */
+        .calc-modal {
+            position: fixed;
+            top: 80px;
+            right: 340px;
+            width: 280px;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .calc-header {
+            background: #0f172a;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--ntxt-color);
+            cursor: move;
+        }
+        .calc-display {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-align: right;
+            padding: 14px 16px;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .calc-keys-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            padding: 12px;
+        }
+        .calc-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .calc-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .calc-btn:active {
+            transform: scale(0.96);
+        }
+        .calc-btn.op {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .calc-btn.eq {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #3b82f6;
+            grid-column: span 2;
+        }
+
+        /* -------------------------------------------------------------
+           6. SUBMISSION CONFIRMATION MODAL
+           ------------------------------------------------------------- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            padding: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            animation: modalPop 0.25s ease-out;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 0 0 8px 0;
+            color: var(--text-color);
+        }
+        .modal-desc {
+            font-size: 0.92rem;
+            color: var(--ntxt-color);
+            text-align: center;
+            margin: 0 0 24px 0;
+        }
+
+        .summary-stats-box {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .summary-stat-val {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .summary-stat-lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--ntxt-color);
+            margin-top: 4px;
+        }
+
+        .modal-warning-alert {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            font-size: 0.86rem;
+            color: #fca5a5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        .modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .modal-btn-confirm {
+            background: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        .modal-btn-confirm:hover {
+            background: #dc2626;
+        }
+
+        /* -------------------------------------------------------------
+           7. ANTI-CHEAT TOAST & FULLSCREEN NOTIFICATION
+           ------------------------------------------------------------- */
+        .toast-warning {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #ef4444;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 12px 24px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 9999;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        .toast-warning.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* -------------------------------------------------------------
+           8. RESPONSIVE BREAKPOINTS
+           ------------------------------------------------------------- */
+        @media (max-width: 900px) {
+            .cbt-header {
+                padding: 0 1rem;
+            }
+            .exam-title-text {
+                display: none;
+            }
+            .tool-btn.hide-mobile {
+                display: none;
+            }
+            .mobile-palette-toggle {
+                display: inline-block;
+            }
+            .cbt-palette-sidebar {
+                position: fixed;
+                top: 60px;
+                right: 0;
+                bottom: 0;
+                width: 290px;
+                transform: translateX(100%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: -10px 0 30px rgba(0,0,0,0.7);
+            }
+            .cbt-palette-sidebar.open {
+                transform: translateX(0);
+            }
+            .calc-modal {
+                right: 15px;
+                top: 70px;
+            }
+            .cbt-stage {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="fullscreen-overlay" id="fsOverlay">
-        <h2>Fullscreen Required</h2>
-        <p style="margin-bottom: 2rem;">You must take this exam in fullscreen mode to prevent cheating.</p>
-        <button class="btn btn-primary" onclick="enterFullscreen()">Enter Fullscreen</button>
-    </div>
+<body class="cbt-engine-body">
 
+    <!-- 1. TOP EXECUTIVE HEADER -->
     <header class="cbt-header">
-        <h1><%= session.exam_name %> - <%= session.body_code %></h1>
-        <div class="timer-box" id="timer">--:--</div>
+        <div class="header-brand">
+            <span class="brand-badge"><%= session.body_code || 'UTME' %></span>
+            <span class="exam-title-text"><%= session.mock_title || session.exam_name %></span>
+        </div>
+
+        <div class="header-center">
+            <div class="timer-card" id="timerBox" title="Time remaining for this examination">
+                <span class="timer-icon">⏱</span>
+                <span class="timer-text" id="timer">--:--</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button type="button" class="tool-btn hide-mobile" onclick="toggleCalc()" title="Open CBT Calculator [C]">
+                <span>🖩</span>
+                <span>Calc</span>
+            </button>
+            <button type="button" class="tool-btn hide-mobile" onclick="toggleShortcuts()" title="View Keyboard Shortcuts">
+                <span>⌨</span>
+                <span>Keys</span>
+            </button>
+            <div style="display: flex; gap: 2px;">
+                <button type="button" class="tool-btn" style="padding: 6px 9px;" onclick="adjustFontSize(-1)" title="Decrease font size">A-</button>
+                <button type="button" class="tool-btn" style="padding: 6px 9px;" onclick="adjustFontSize(1)" title="Increase font size">A+</button>
+            </div>
+            <button type="button" class="mobile-palette-toggle" onclick="toggleMobilePalette()">
+                <span>☰ Grid (<span id="mobileAnsweredBadge">0</span>)</span>
+            </button>
+        </div>
     </header>
 
-    <div class="cbt-layout">
-        <main class="cbt-main">
-            <% questions.forEach((q, index) => { %>
-                <div class="question-card <%= index === 0 ? 'active' : '' %>" id="q-<%= index %>" data-qid="<%= q.q_id %>">
-                    <div style="color: #6b7280; font-weight: bold; margin-bottom: 1rem;">Question <%= index + 1 %> of <%= questions.length %></div>
-                    <div class="q-text"><%= q.question_text %></div>
-                    
-                    <div class="options-container" id="opts-<%= index %>">
-                        <% ['a','b','c','d','e'].forEach(opt => { %>
-                            <% if (q['option_' + opt]) { %>
-                                <% const isSelected = q.selected_option === opt.toUpperCase(); %>
-                                <label class="option-label <%= isSelected ? 'selected' : '' %>" id="lbl-<%= index %>-<%= opt.toUpperCase() %>" onclick="selectOption(<%= index %>, '<%= opt.toUpperCase() %>')">
-                                    <%= opt.toUpperCase() %>. <%= q['option_' + opt] %>
-                                </label>
-                            <% } %>
-                        <% }) %>
+    <!-- 2. SUBJECT SWITCHER TABS -->
+    <% if (locals.subjects && subjects.length > 0) { %>
+        <nav class="subject-tabs-nav" id="subjectTabsNav">
+            <% subjects.forEach((s, idx) => { %>
+                <button type="button" class="subject-tab-btn <%= idx === 0 ? 'active' : '' %>" id="subtab-<%= s.id %>" onclick="switchSubject(<%= s.id %>, <%= s.startIndex %>)">
+                    <span><%= s.name %></span>
+                    <span class="subject-tab-count" id="subcount-<%= s.id %>"><%= s.count %> Qs</span>
+                </button>
+            <% }) %>
+        </nav>
+    <% } %>
+
+    <!-- 3. MAIN WORKSPACE (STAGE + QUESTION PALETTE) -->
+    <div class="cbt-main-body">
+        
+        <!-- Left: Stage -->
+        <main class="cbt-stage" id="stageContainer">
+            <div class="question-card-wrapper">
+                
+                <% questions.forEach((q, index) => { %>
+                    <div class="q-view <%= index === 0 ? 'active' : '' %>" id="q-<%= index %>" data-qid="<%= q.q_id %>" data-subid="<%= q.subject_id || 0 %>">
+                        
+                        <!-- Question Meta Header -->
+                        <div class="q-meta-card">
+                            <div class="q-meta-left">
+                                <span class="q-num-badge">Question <%= index + 1 %> of <%= questions.length %></span>
+                                <% if (q.subject_name) { %>
+                                    <span class="q-subject-pill"><%= q.subject_name %></span>
+                                <% } %>
+                                <span class="q-save-status" id="save-status-<%= index %>">✓ Saved</span>
+                            </div>
+                            <div class="q-meta-right">
+                                <button type="button" class="btn-flag" id="flag-btn-<%= index %>" onclick="toggleFlag(<%= index %>)" title="Flag this question for review [F]">
+                                    <span>★</span>
+                                    <span id="flag-txt-<%= index %>">Flag for Review</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Question Body & Options -->
+                        <div class="q-content-card">
+                            <div class="q-text-body" id="q-text-<%= index %>"><%- q.question_text %></div>
+                            
+                            <div class="options-list">
+                                <% ['a','b','c','d','e'].forEach(opt => { %>
+                                    <% if (q['option_' + opt]) { %>
+                                        <% const isSelected = q.selected_option === opt.toUpperCase(); %>
+                                        <div class="opt-item <%= isSelected ? 'selected' : '' %>" id="lbl-<%= index %>-<%= opt.toUpperCase() %>" onclick="selectOption(<%= index %>, '<%= opt.toUpperCase() %>')">
+                                            <div class="opt-key-badge"><%= opt.toUpperCase() %></div>
+                                            <div class="opt-label-text"><%= q['option_' + opt] %></div>
+                                        </div>
+                                    <% } %>
+                                <% }) %>
+                            </div>
+                        </div>
+
+                    </div>
+                <% }) %>
+
+                <!-- Stage Bottom Sticky Toolbar -->
+                <div class="stage-action-bar">
+                    <div class="action-group-left">
+                        <button type="button" class="btn-action btn-prev" id="btnPrev" onclick="prevQ()" title="Previous Question [P]">
+                            <span>← Previous</span>
+                        </button>
+                        <button type="button" class="btn-action btn-clear" onclick="clearCurrentChoice()" title="Clear your selected answer [R]">
+                            <span>✕ Clear Choice</span>
+                        </button>
+                    </div>
+
+                    <div class="action-group-right">
+                        <button type="button" class="btn-action btn-next" id="btnNext" onclick="nextQ()" title="Next Question [N]">
+                            <span>Next →</span>
+                        </button>
+                        <button type="button" class="btn-submit-main" onclick="openSubmitModal()" title="Submit Examination [S]">
+                            <span>✓ Final Submit</span>
+                        </button>
                     </div>
                 </div>
-            <% }) %>
 
-            <div style="display: flex; justify-content: space-between; margin-top: auto;">
-                <button class="btn btn-primary" onclick="prevQ()">Previous</button>
-                <button class="btn btn-primary" onclick="nextQ()">Next</button>
             </div>
         </main>
 
-        <aside class="cbt-sidebar">
-            <div class="grid-header">Navigation</div>
-            <div class="nav-grid">
-                <% questions.forEach((q, index) => { %>
-                    <div class="nav-btn <%= q.selected_option ? 'answered' : '' %> <%= index === 0 ? 'current' : '' %>" id="nav-<%= index %>" onclick="jumpTo(<%= index %>)">
-                        <%= index + 1 %>
+        <!-- Right: Question Palette Sidebar -->
+        <aside class="cbt-palette-sidebar" id="paletteSidebar">
+            <div class="palette-header-box">
+                <div class="palette-title">
+                    <span>Question Palette</span>
+                    <span id="answeredPercentage" style="color: #38bdf8;">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status-chips-row">
+                    <div class="status-chip chip-answered">
+                        <span id="statAnsweredCount">0</span>
+                        <span>Answered</span>
                     </div>
+                    <div class="status-chip chip-unanswered">
+                        <span id="statUnansweredCount"><%= questions.length %></span>
+                        <span>Unanswered</span>
+                    </div>
+                    <div class="status-chip chip-flagged">
+                        <span id="statFlaggedCount">0</span>
+                        <span>Flagged</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-filters">
+                <button type="button" class="filter-btn active" onclick="setPaletteFilter('all', this)">All</button>
+                <button type="button" class="filter-btn" onclick="setPaletteFilter('answered', this)">Answered</button>
+                <button type="button" class="filter-btn" onclick="setPaletteFilter('unanswered', this)">Pending</button>
+                <button type="button" class="filter-btn" onclick="setPaletteFilter('flagged', this)">Flagged</button>
+            </div>
+
+            <div class="palette-grid-scroll" id="paletteGrid">
+                <% questions.forEach((q, index) => { %>
+                    <button type="button" class="q-tile <%= q.selected_option ? 'answered' : '' %> <%= index === 0 ? 'current' : '' %>" id="nav-<%= index %>" onclick="jumpTo(<%= index %>)" data-subid="<%= q.subject_id || 0 %>">
+                        <%= index + 1 %>
+                    </button>
                 <% }) %>
             </div>
-            <div class="submit-section">
-                <form id="submitForm" action="/cbt/submit" method="POST">
-                    <input type="hidden" name="session_id" value="<%= session.id %>">
-                    <button type="button" class="btn btn-danger" onclick="confirmSubmit()">Submit Exam</button>
-                </form>
+
+            <div class="palette-footer">
+                <button type="button" class="btn-submit-main" style="width: 100%; justify-content: center;" onclick="openSubmitModal()">
+                    <span>Submit Examination</span>
+                </button>
             </div>
         </aside>
+
     </div>
 
+    <!-- 4. FLOATING CALCULATOR WIDGET -->
+    <div class="calc-modal" id="calcWidget">
+        <div class="calc-header" id="calcHeader">
+            <span>CBT CALCULATOR</span>
+            <span style="cursor: pointer; padding: 2px 6px;" onclick="toggleCalc()">✕</span>
+        </div>
+        <div class="calc-display" id="calcDisplay">0</div>
+        <div class="calc-keys-grid">
+            <button type="button" class="calc-btn op" onclick="calcClear()">C</button>
+            <button type="button" class="calc-btn op" onclick="calcBackspace()">⌫</button>
+            <button type="button" class="calc-btn op" onclick="calcOp('%')">%</button>
+            <button type="button" class="calc-btn op" onclick="calcOp('/')">÷</button>
+            
+            <button type="button" class="calc-btn" onclick="calcNum('7')">7</button>
+            <button type="button" class="calc-btn" onclick="calcNum('8')">8</button>
+            <button type="button" class="calc-btn" onclick="calcNum('9')">9</button>
+            <button type="button" class="calc-btn op" onclick="calcOp('*')">×</button>
+            
+            <button type="button" class="calc-btn" onclick="calcNum('4')">4</button>
+            <button type="button" class="calc-btn" onclick="calcNum('5')">5</button>
+            <button type="button" class="calc-btn" onclick="calcNum('6')">6</button>
+            <button type="button" class="calc-btn op" onclick="calcOp('-')">-</button>
+            
+            <button type="button" class="calc-btn" onclick="calcNum('1')">1</button>
+            <button type="button" class="calc-btn" onclick="calcNum('2')">2</button>
+            <button type="button" class="calc-btn" onclick="calcNum('3')">3</button>
+            <button type="button" class="calc-btn op" onclick="calcOp('+')">+</button>
+            
+            <button type="button" class="calc-btn" onclick="calcNum('0')">0</button>
+            <button type="button" class="calc-btn" onclick="calcDot()">.</button>
+            <button type="button" class="calc-btn eq" onclick="calcEqual()">=</button>
+        </div>
+    </div>
+
+    <!-- 5. KEYBOARD SHORTCUTS MODAL -->
+    <div class="modal-overlay" id="shortcutsModal">
+        <div class="modal-card">
+            <div class="modal-header-icon">⌨️</div>
+            <h3 class="modal-title">CBT Keyboard Shortcuts</h3>
+            <p class="modal-desc">This examination supports standard national JAMB 8-key keyboard controls:</p>
+            
+            <div style="background: #0f172a; border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Select Option A, B, C, D, E</strong>
+                    <code style="color: #38bdf8; font-weight: bold;">A, B, C, D, E</code>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Next Question</strong>
+                    <code style="color: #38bdf8; font-weight: bold;">N or → Arrow</code>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Previous Question</strong>
+                    <code style="color: #38bdf8; font-weight: bold;">P or ← Arrow</code>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Flag / Bookmark Question</strong>
+                    <code style="color: #fbbf24; font-weight: bold;">F</code>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Clear Selected Choice</strong>
+                    <code style="color: #ef4444; font-weight: bold;">R</code>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <strong>Final Submit Exam</strong>
+                    <code style="color: #10b981; font-weight: bold;">S</code>
+                </div>
+            </div>
+
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="toggleShortcuts()">Got it</button>
+        </div>
+    </div>
+
+    <!-- 6. SUBMISSION CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="submitModal">
+        <div class="modal-card">
+            <div class="modal-header-icon">📋</div>
+            <h3 class="modal-title">Submit Examination?</h3>
+            <p class="modal-desc">Review your progress below before final submission. This action is irreversible.</p>
+
+            <div class="summary-stats-box">
+                <div>
+                    <div class="summary-stat-val" style="color: #10b981;" id="modalAnsweredCount">0</div>
+                    <div class="summary-stat-lbl">Answered</div>
+                </div>
+                <div>
+                    <div class="summary-stat-val" style="color: #cbd5e1;" id="modalUnansweredCount"><%= questions.length %></div>
+                    <div class="summary-stat-lbl">Unanswered</div>
+                </div>
+                <div>
+                    <div class="summary-stat-val" style="color: #fbbf24;" id="modalFlaggedCount">0</div>
+                    <div class="summary-stat-lbl">Flagged</div>
+                </div>
+            </div>
+
+            <div class="modal-warning-alert" id="unansweredWarning" style="display: none;">
+                <span style="font-size: 1.2rem;">⚠️</span>
+                <span>You have <strong id="warnCount">0</strong> unanswered question(s). Are you sure you want to proceed?</span>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeSubmitModal()">Return to Exam</button>
+                <form id="submitForm" action="/cbt/submit" method="POST" style="flex: 1; margin: 0;">
+                    <input type="hidden" name="session_id" value="<%= session.id %>">
+                    <button type="submit" class="modal-btn modal-btn-confirm" id="confirmSubmitBtn" style="width: 100%;">Confirm & Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. ANTI-CHEAT TOAST -->
+    <div class="toast-warning" id="cheatToast">
+        ⚠️ Warning: Tab switch detected! Exam violations are logged.
+    </div>
+
+    <!-- -------------------------------------------------------------
+       CLIENT-SIDE EXAMINATION ENGINE LOGIC
+       ------------------------------------------------------------- -->
     <script>
         const sessionId = "<%= session.id %>";
-        const total = <%= questions.length %>;
+        const totalQuestions = <%= questions.length %>;
         let currentIdx = 0;
-        
-        // Timer Logic
+        const flaggedQuestions = new Set();
+        let fontSizeLevel = 0; // 0: normal, 1: large, 2: extra-large
+
+        // 1. COUNTDOWN TIMER
         const startTime = new Date("<%= session.start_time %>").getTime();
-        const durationMs = <%= session.duration_minutes %> * 60000;
-        const endTime = startTime + durationMs;
+        const durationMinutes = <%= session.duration_minutes || 60 %>;
+        const endTime = startTime + (durationMinutes * 60 * 1000);
         const timerEl = document.getElementById('timer');
+        const timerBox = document.getElementById('timerBox');
 
         const timerInterval = setInterval(() => {
-            const now = new Date().getTime();
+            const now = Date.now();
             const distance = endTime - now;
 
             if (distance <= 0) {
                 clearInterval(timerInterval);
-                timerEl.innerHTML = "00:00";
+                timerEl.textContent = "00:00";
+                timerBox.classList.add('danger');
                 document.getElementById('submitForm').submit();
                 return;
             }
 
+            const hours = Math.floor(distance / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            timerEl.innerHTML = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-            
-            if (minutes < 5) {
-                timerEl.classList.add('timer-danger');
+            let timeStr = "";
+            if (hours > 0) {
+                timeStr = (hours < 10 ? "0" + hours : hours) + ":";
+            }
+            timeStr += (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            timerEl.textContent = timeStr;
+
+            if (distance < 5 * 60 * 1000) {
+                timerBox.classList.add('danger');
+                timerBox.classList.remove('warning');
+            } else if (distance < 10 * 60 * 1000) {
+                timerBox.classList.add('warning');
             }
         }, 1000);
 
-        // Fullscreen Logic
-        const overlay = document.getElementById('fsOverlay');
-        
-        function enterFullscreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) elem.requestFullscreen();
-            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                overlay.style.display = 'flex';
-                logViolation();
-            } else {
-                overlay.style.display = 'none';
-            }
-        });
-
-        // Tab Switching Logic
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) logViolation();
-        });
-
-        window.onblur = () => logViolation();
-
-        function logViolation() {
-            fetch('/api/cbt/engine/violation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: sessionId })
-            });
-        }
-
-        // Navigation
+        // 2. NAVIGATION: JUMP, NEXT, PREV
         function jumpTo(idx) {
+            if (idx < 0 || idx >= totalQuestions) return;
+
             document.getElementById(`q-${currentIdx}`).classList.remove('active');
             document.getElementById(`nav-${currentIdx}`).classList.remove('current');
-            
+
             currentIdx = idx;
-            
-            document.getElementById(`q-${currentIdx}`).classList.add('active');
-            document.getElementById(`nav-${currentIdx}`).classList.add('current');
+
+            const newQ = document.getElementById(`q-${currentIdx}`);
+            const newNav = document.getElementById(`nav-${currentIdx}`);
+            newQ.classList.add('active');
+            newNav.classList.add('current');
+
+            // Update prev/next button state
+            document.getElementById('btnPrev').disabled = (currentIdx === 0);
+            document.getElementById('btnNext').disabled = (currentIdx === totalQuestions - 1);
+
+            // Sync Subject tab
+            const subId = newQ.getAttribute('data-subid');
+            document.querySelectorAll('.subject-tab-btn').forEach(b => b.classList.remove('active'));
+            const activeTab = document.getElementById(`subtab-${subId}`);
+            if (activeTab) activeTab.classList.add('active');
+
+            // Scroll palette tile into view if needed
+            newNav.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        function nextQ() { if(currentIdx < total - 1) jumpTo(currentIdx + 1); }
-        function prevQ() { if(currentIdx > 0) jumpTo(currentIdx - 1); }
+        function nextQ() {
+            if (currentIdx < totalQuestions - 1) jumpTo(currentIdx + 1);
+        }
 
-        // Answering & Auto-save
+        function prevQ() {
+            if (currentIdx > 0) jumpTo(currentIdx - 1);
+        }
+
+        function switchSubject(subId, startIndex) {
+            document.querySelectorAll('.subject-tab-btn').forEach(b => b.classList.remove('active'));
+            const tab = document.getElementById(`subtab-${subId}`);
+            if (tab) tab.classList.add('active');
+            jumpTo(startIndex);
+        }
+
+        // 3. ANSWERING & AUTOSAVE
         async function selectOption(idx, option) {
             const qCard = document.getElementById(`q-${idx}`);
             const qId = qCard.dataset.qid;
-            
-            // UI Update
-            const labels = qCard.querySelectorAll('.option-label');
-            labels.forEach(l => l.classList.remove('selected'));
-            document.getElementById(`lbl-${idx}-${option}`).classList.add('selected');
-            document.getElementById(`nav-${idx}`).classList.add('answered');
 
-            // AJAX Save
+            // UI update
+            const labels = qCard.querySelectorAll('.opt-item');
+            labels.forEach(l => l.classList.remove('selected'));
+            const selectedItem = document.getElementById(`lbl-${idx}-${option}`);
+            if (selectedItem) selectedItem.classList.add('selected');
+
+            const navTile = document.getElementById(`nav-${idx}`);
+            navTile.classList.add('answered');
+
+            updateStats();
+            showSaveFeedback(idx);
+
+            // Background Autosave
             try {
                 await fetch('/api/cbt/engine/autosave', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sessionId, question_id: qId, selected_option: option })
                 });
-            } catch(e) { console.error("Autosave failed"); }
+            } catch(e) {
+                console.error("Autosave error:", e);
+            }
         }
 
-        function confirmSubmit() {
-            if(confirm("Are you sure you want to submit? You cannot undo this action.")) {
-                document.getElementById('submitForm').submit();
+        async function clearCurrentChoice() {
+            const qCard = document.getElementById(`q-${currentIdx}`);
+            const qId = qCard.dataset.qid;
+
+            const labels = qCard.querySelectorAll('.opt-item');
+            labels.forEach(l => l.classList.remove('selected'));
+
+            const navTile = document.getElementById(`nav-${currentIdx}`);
+            navTile.classList.remove('answered');
+
+            updateStats();
+            showSaveFeedback(currentIdx, "Cleared");
+
+            try {
+                await fetch('/api/cbt/engine/autosave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, question_id: qId, selected_option: null })
+                });
+            } catch(e) {
+                console.error("Autosave error:", e);
+            }
+        }
+
+        function showSaveFeedback(idx, msg = "✓ Saved") {
+            const statusEl = document.getElementById(`save-status-${idx}`);
+            if (statusEl) {
+                statusEl.textContent = msg;
+                statusEl.classList.add('visible');
+                setTimeout(() => {
+                    statusEl.classList.remove('visible');
+                }, 2000);
+            }
+        }
+
+        // 4. FLAGGING / BOOKMARKING
+        function toggleFlag(idx) {
+            const btn = document.getElementById(`flag-btn-${idx}`);
+            const txt = document.getElementById(`flag-txt-${idx}`);
+            const navTile = document.getElementById(`nav-${idx}`);
+
+            if (flaggedQuestions.has(idx)) {
+                flaggedQuestions.delete(idx);
+                btn.classList.remove('flagged');
+                txt.textContent = "Flag for Review";
+                navTile.classList.remove('flagged');
+            } else {
+                flaggedQuestions.add(idx);
+                btn.classList.add('flagged');
+                txt.textContent = "★ Flagged";
+                navTile.classList.add('flagged');
+            }
+            updateStats();
+        }
+
+        // 5. STATS & PROGRESS TRACKING
+        function updateStats() {
+            let answered = 0;
+            for (let i = 0; i < totalQuestions; i++) {
+                if (document.getElementById(`nav-${i}`).classList.contains('answered')) {
+                    answered++;
+                }
+            }
+            const unanswered = totalQuestions - answered;
+            const flagged = flaggedQuestions.size;
+            const percentage = Math.round((answered / totalQuestions) * 100);
+
+            document.getElementById('statAnsweredCount').textContent = answered;
+            document.getElementById('statUnansweredCount').textContent = unanswered;
+            document.getElementById('statFlaggedCount').textContent = flagged;
+            document.getElementById('answeredPercentage').textContent = percentage + "%";
+            document.getElementById('progressFill').style.width = percentage + "%";
+
+            // Mobile badge
+            const mobBadge = document.getElementById('mobileAnsweredBadge');
+            if (mobBadge) mobBadge.textContent = answered;
+
+            // Modal values
+            document.getElementById('modalAnsweredCount').textContent = answered;
+            document.getElementById('modalUnansweredCount').textContent = unanswered;
+            document.getElementById('modalFlaggedCount').textContent = flagged;
+
+            const warnBox = document.getElementById('unansweredWarning');
+            if (unanswered > 0) {
+                warnBox.style.display = 'flex';
+                document.getElementById('warnCount').textContent = unanswered;
+            } else {
+                warnBox.style.display = 'none';
+            }
+        }
+
+        // Initial stats check on load
+        updateStats();
+
+        // 6. PALETTE FILTERING
+        function setPaletteFilter(filterType, btnElem) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btnElem.classList.add('active');
+
+            for (let i = 0; i < totalQuestions; i++) {
+                const tile = document.getElementById(`nav-${i}`);
+                const isAnswered = tile.classList.contains('answered');
+                const isFlagged = tile.classList.contains('flagged');
+
+                if (filterType === 'all') {
+                    tile.style.display = 'flex';
+                } else if (filterType === 'answered') {
+                    tile.style.display = isAnswered ? 'flex' : 'none';
+                } else if (filterType === 'unanswered') {
+                    tile.style.display = !isAnswered ? 'flex' : 'none';
+                } else if (filterType === 'flagged') {
+                    tile.style.display = isFlagged ? 'flex' : 'none';
+                }
+            }
+        }
+
+        // 7. FONT SIZE ADJUSTMENT
+        function adjustFontSize(delta) {
+            fontSizeLevel = Math.max(-1, Math.min(2, fontSizeLevel + delta));
+            const sizes = ['0.95rem', '1.12rem', '1.25rem', '1.4rem'];
+            const targetSize = sizes[fontSizeLevel + 1];
+            document.querySelectorAll('.q-text-body').forEach(el => {
+                el.style.fontSize = targetSize;
+            });
+        }
+
+        // 8. MOBILE PALETTE TOGGLE
+        function toggleMobilePalette() {
+            document.getElementById('paletteSidebar').classList.toggle('open');
+        }
+
+        // 9. SUBMISSION MODAL
+        function openSubmitModal() {
+            updateStats();
+            document.getElementById('submitModal').style.display = 'flex';
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').style.display = 'none';
+        }
+
+        // 10. SHORTCUTS MODAL
+        function toggleShortcuts() {
+            const m = document.getElementById('shortcutsModal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        // 11. ON-SCREEN CALCULATOR
+        let calcVal = "0";
+        let calcWaitNext = false;
+
+        function toggleCalc() {
+            const c = document.getElementById('calcWidget');
+            c.style.display = (c.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function calcNum(n) {
+            const disp = document.getElementById('calcDisplay');
+            if (calcVal === "0" || calcWaitNext) {
+                calcVal = n;
+                calcWaitNext = false;
+            } else {
+                calcVal += n;
+            }
+            disp.textContent = calcVal;
+        }
+
+        function calcDot() {
+            const disp = document.getElementById('calcDisplay');
+            if (calcWaitNext) {
+                calcVal = "0.";
+                calcWaitNext = false;
+            } else if (!calcVal.includes('.')) {
+                calcVal += '.';
+            }
+            disp.textContent = calcVal;
+        }
+
+        function calcOp(op) {
+            try {
+                calcVal = eval(calcVal) + " " + op + " ";
+                document.getElementById('calcDisplay').textContent = calcVal;
+            } catch(e) {
+                calcVal += " " + op + " ";
+            }
+        }
+
+        function calcEqual() {
+            const disp = document.getElementById('calcDisplay');
+            try {
+                const res = Function('"use strict";return (' + calcVal + ')')();
+                calcVal = String(Number(res.toFixed(6)));
+                disp.textContent = calcVal;
+                calcWaitNext = true;
+            } catch(e) {
+                disp.textContent = "Error";
+                calcVal = "0";
+            }
+        }
+
+        function calcClear() {
+            calcVal = "0";
+            document.getElementById('calcDisplay').textContent = "0";
+            calcWaitNext = false;
+        }
+
+        function calcBackspace() {
+            const disp = document.getElementById('calcDisplay');
+            calcVal = calcVal.trim();
+            calcVal = calcVal.slice(0, -1);
+            if (!calcVal) calcVal = "0";
+            disp.textContent = calcVal;
+        }
+
+        // 12. KEYBOARD SHORTCUTS LISTENER (JAMB 8-KEY SYSTEM)
+        document.addEventListener('keydown', (e) => {
+            // Ignore if active element is an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            const key = e.key.toUpperCase();
+
+            if (['A', 'B', 'C', 'D', 'E'].includes(key)) {
+                // If user presses C while holding Alt/Ctrl or calculator open
+                if (key === 'C' && (e.ctrlKey || e.altKey)) {
+                    toggleCalc();
+                    return;
+                }
+                selectOption(currentIdx, key);
+            } else if (key === 'N' || e.key === 'ArrowRight') {
+                nextQ();
+            } else if (key === 'P' || e.key === 'ArrowLeft') {
+                prevQ();
+            } else if (key === 'F') {
+                toggleFlag(currentIdx);
+            } else if (key === 'R') {
+                clearCurrentChoice();
+            } else if (key === 'S') {
+                openSubmitModal();
+            } else if (e.key === 'Escape') {
+                closeSubmitModal();
+                const m = document.getElementById('shortcutsModal');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        // 13. ANTI-CHEAT & TAB SWITCH TRACKING
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                logViolation();
+                showToastWarning();
+            }
+        });
+
+        window.onblur = () => {
+            logViolation();
+            showToastWarning();
+        };
+
+        function logViolation() {
+            try {
+                fetch('/api/cbt/engine/violation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+            } catch(e) {}
+        }
+
+        function showToastWarning() {
+            const toast = document.getElementById('cheatToast');
+            if (toast) {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3500);
             }
         }
     </script>

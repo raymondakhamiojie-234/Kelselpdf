@@ -1,4 +1,4 @@
-﻿const pool = require('../config/db');
+const pool = require('../config/db');
 const crypto = require('crypto');
 
 // 0. Unified Hub Landing Page
@@ -180,15 +180,18 @@ exports.getEngine = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
         const userId = req.session.user_id;
+        const isAdmin = req.session.user && req.session.user.role === 'admin';
 
         const [session] = await pool.query(`
-            SELECT s.*, m.title as mock_title, e.name as exam_name, b.code as body_code
+            SELECT s.*, m.title as mock_title, e.name as exam_name, b.name as body_name, b.code as body_code,
+                   u.full_name as candidate_name, u.email as candidate_email
             FROM cbt_exam_sessions s
             JOIN cbt_mocks m ON s.mock_id = m.id
             JOIN cbt_exams e ON s.exam_id = e.id
             JOIN cbt_exam_bodies b ON s.exam_body_id = b.id
-            WHERE s.id = ? AND s.user_id = ?
-        `, [sessionId, userId]);
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE s.id = ? AND (s.user_id = ? OR ? = true)
+        `, [sessionId, userId, isAdmin]);
 
         if (session.length === 0) return res.status(404).send("Session not found.");
         
@@ -197,21 +200,46 @@ exports.getEngine = async (req, res) => {
         }
 
         const [questions] = await pool.query(`
-            SELECT sq.question_number, sq.selected_option, q.id as q_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.option_e 
+            SELECT sq.question_number, sq.selected_option, q.id as q_id, q.subject_id,
+                   s.name as subject_name, s.code as subject_code,
+                   q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.option_e 
             FROM cbt_session_questions sq
             JOIN cbt_questions q ON sq.question_id = q.id
+            LEFT JOIN cbt_subjects s ON q.subject_id = s.id
             WHERE sq.session_id = ?
             ORDER BY sq.question_number ASC
         `, [sessionId]);
 
+        // Group subjects for multi-subject switcher tabs
+        const subjectsMap = new Map();
+        questions.forEach((q, idx) => {
+            const subId = q.subject_id || 0;
+            const subName = q.subject_name || 'General';
+            if (!subjectsMap.has(subId)) {
+                subjectsMap.set(subId, {
+                    id: subId,
+                    name: subName,
+                    code: q.subject_code || '',
+                    startIndex: idx,
+                    count: 0
+                });
+            }
+            subjectsMap.get(subId).count++;
+        });
+
         res.render('cbt/engine', {
             active_page: 'cbt_mock',
             session: session[0],
-            questions
+            questions,
+            subjects: Array.from(subjectsMap.values()),
+            candidate: {
+                name: session[0].candidate_name || (req.session.user ? req.session.user.full_name : 'Candidate'),
+                initial: (session[0].candidate_name || 'C').charAt(0).toUpperCase()
+            }
         });
     } catch(err) {
-        console.error(err);
-        res.status(500).send("Database Error");
+        console.error("Error in getEngine:", err);
+        res.status(500).send("Database Error: " + err.message);
     }
 };
 
@@ -219,17 +247,26 @@ exports.getEngine = async (req, res) => {
 exports.postAutoSave = async (req, res) => {
     try {
         const { session_id, question_id, selected_option } = req.body;
+        const isAdmin = req.session.user && req.session.user.role === 'admin';
         
-        const [session] = await pool.query('SELECT status FROM cbt_exam_sessions WHERE id = ? AND user_id = ?', [session_id, req.session.user_id]);
+        const [session] = await pool.query(
+            'SELECT status FROM cbt_exam_sessions WHERE id = ? AND (user_id = ? OR ? = true)',
+            [session_id, req.session.user_id, isAdmin]
+        );
         if (session.length === 0 || session[0].status !== 'IN_PROGRESS') {
             return res.status(403).json({ error: "Session expired or invalid" });
         }
 
-        await pool.query('UPDATE cbt_session_questions SET selected_option = ? WHERE session_id = ? AND question_id = ?', [selected_option, session_id, question_id]);
+        const optionVal = (selected_option && selected_option.trim() !== '') ? selected_option.trim().toUpperCase() : null;
+
+        await pool.query(
+            'UPDATE cbt_session_questions SET selected_option = ? WHERE session_id = ? AND question_id = ?',
+            [optionVal, session_id, question_id]
+        );
         
-        res.json({ success: true });
+        res.json({ success: true, saved_option: optionVal });
     } catch(err) {
-        console.error(err);
+        console.error("Error in postAutoSave:", err);
         res.status(500).json({ error: err.message });
     }
 };
