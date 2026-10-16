@@ -944,6 +944,228 @@
                 padding: 1rem;
             }
         }
+
+        /* -------------------------------------------------------------
+           ANTI-CHEAT & SECURITY SYSTEM STYLES
+           ------------------------------------------------------------- */
+        .integrity-pill-btn {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 5px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .integrity-pill-btn:hover {
+            transform: translateY(-1px);
+            border-color: #475569;
+        }
+        .integrity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        /* Status: Secure (0 strikes) */
+        .integrity-pill-btn.status-secure {
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .integrity-pill-btn.status-secure .integrity-indicator {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        /* Status: Warning (1-2 strikes) */
+        .integrity-pill-btn.status-warning {
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.45);
+            background: rgba(245, 158, 11, 0.12);
+        }
+        .integrity-pill-btn.status-warning .integrity-indicator {
+            background: #f59e0b;
+            box-shadow: 0 0 10px #f59e0b;
+            animation: pulseWarning 1.5s infinite;
+        }
+
+        /* Status: Critical (3-4 strikes) */
+        .integrity-pill-btn.status-critical {
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .integrity-pill-btn.status-critical .integrity-indicator {
+            background: #ef4444;
+            box-shadow: 0 0 12px #ef4444;
+            animation: pulseCritical 0.8s infinite;
+        }
+
+        /* Status: Disqualified (5 strikes) */
+        .integrity-pill-btn.status-disqualified {
+            color: #ffffff;
+            border-color: #ef4444;
+            background: #ef4444;
+        }
+        .integrity-pill-btn.status-disqualified .integrity-indicator {
+            background: #ffffff;
+        }
+
+        @keyframes pulseWarning {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        @keyframes pulseCritical {
+            0%, 100% { opacity: 1; transform: scale(1.1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        /* Fullscreen Lockout Overlay */
+        .fs-lock-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: fadeInLock 0.25s ease-out;
+        }
+        @keyframes fadeInLock {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fs-lock-card {
+            background: #1e293b;
+            border: 2px solid #ef4444;
+            border-radius: 16px;
+            padding: 36px 32px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 60px -15px rgba(239, 68, 68, 0.35), 0 0 40px rgba(0,0,0,0.8);
+        }
+        .fs-lock-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #ef4444;
+            animation: pulseCritical 1s infinite;
+        }
+        .fs-lock-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.3px;
+        }
+        .fs-lock-desc {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+        .fs-strikes-banner {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 26px;
+        }
+        .fs-btn-resume {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .fs-btn-resume:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+        }
+
+        /* Anti-Cheat Warning Toast */
+        .anticheat-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid #ef4444;
+            color: #fecaca;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.7), 0 0 15px rgba(239, 68, 68, 0.2);
+            z-index: 100000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        .anticheat-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Anti-Cheat Rules List */
+        .rules-list {
+            text-align: left;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-size: 0.88rem;
+            color: var(--text-color);
+            line-height: 1.6;
+            list-style-type: none;
+            margin-top: 0;
+        }
+        .rules-list li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .rules-list li:last-child {
+            margin-bottom: 0;
+        }
+
     </style>
 </head>
 <body class="cbt-engine-body">
@@ -960,9 +1182,17 @@
                 <span class="timer-icon">⏱</span>
                 <span class="timer-text" id="timer">--:--</span>
             </div>
+            <button type="button" class="integrity-pill-btn status-secure" id="integrityBadge" onclick="openAntiCheatRules()" title="Exam Integrity Shield — Click to view anti-cheat rules">
+                <span class="integrity-indicator" id="integrityIndicator"></span>
+                <span class="integrity-text" id="integrityText">100% Secure</span>
+            </button>
         </div>
 
         <div class="header-actions">
+            <button type="button" class="tool-btn hide-mobile" onclick="toggleFullscreen()" title="Toggle Fullscreen Mode [F11]">
+                <span>⛶</span>
+                <span>Full</span>
+            </button>
             <button type="button" class="tool-btn hide-mobile" onclick="toggleCalc()" title="Open CBT Calculator [C]">
                 <span>🖩</span>
                 <span>Calc</span>
@@ -1223,9 +1453,122 @@
         </div>
     </div>
 
-    <!-- 7. ANTI-CHEAT TOAST -->
-    <div class="toast-warning" id="cheatToast">
-        ⚠️ Warning: Tab switch detected! Exam violations are logged.
+    <!-- 7. ANTI-CHEAT MODALS & NOTIFICATIONS -->
+
+    <!-- Initial Full-Screen Required Modal -->
+    <div class="submit-modal-overlay" id="initialFullscreenModal" style="display: none; z-index: 99998;">
+        <div class="modal-card" style="max-width: 480px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">🛡️</div>
+            <h2 class="modal-title">Exam Integrity Protocol</h2>
+            <p class="modal-desc">
+                For security and fairness, this CBT exam must be taken in <strong>Full-Screen Mode</strong>.
+                Switching tabs, minimizing the window, or exiting full-screen records an <strong>Integrity Strike</strong>.
+            </p>
+            <ul class="rules-list" style="margin-bottom: 22px;">
+                <li><span>🖥️</span><span><strong>Full-Screen Required:</strong> Must stay in full-screen during testing.</span></li>
+                <li><span>⚠️</span><span><strong>Tab Switch Tracking:</strong> Tab switches and blur events are logged.</span></li>
+                <li><span>⛔</span><span><strong>5 Strikes Policy:</strong> Exceeding 5 strikes triggers auto-submission.</span></li>
+                <li><span>🔒</span><span><strong>Lockdown:</strong> Right-click, copy, paste, and DevTools are blocked.</span></li>
+            </ul>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-confirm" onclick="enterExamFullscreen()" style="width: 100%; padding: 14px; font-size: 1.05rem; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);">
+                    ⛶ Enter Full-Screen & Start Exam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-Screen Exit Lockout Overlay -->
+    <div class="fs-lock-overlay" id="fullscreenLockOverlay">
+        <div class="fs-lock-card">
+            <div class="fs-lock-icon">⚠️</div>
+            <h2 class="fs-lock-title">FULL-SCREEN VIOLATION</h2>
+            <p class="fs-lock-desc">
+                You exited full-screen mode. This violation has been recorded in your examination integrity log.
+                Exam questions are frozen until full-screen is restored.
+            </p>
+            <div class="fs-strikes-banner">
+                <span style="color: #94a3b8; font-size: 0.9rem; font-weight: 600;">Recorded Strikes</span>
+                <span style="color: #f87171; font-size: 1.15rem; font-weight: 800;"><span id="fsStrikeCount"><%= locals.initialViolations || session.tab_switches || 0 %></span> / 5 Strikes</span>
+            </div>
+            <button type="button" class="fs-btn-resume" onclick="enterExamFullscreen()">
+                <span>⛶</span>
+                <span>Re-enter Full-Screen & Resume Exam</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Strike Warning Modal (Tab Switch / Window Blur) -->
+    <div class="submit-modal-overlay" id="strikeModal" style="display: none; z-index: 99990;">
+        <div class="modal-card" style="max-width: 480px; text-align: center; border-color: rgba(245, 158, 11, 0.45);">
+            <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+            <h2 class="modal-title" style="color: #fbbf24;">Integrity Strike Recorded</h2>
+            <p class="modal-desc" id="strikeModalReason">
+                A browser tab switch or window minimization was detected.
+            </p>
+            <div class="summary-stats-box" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+                <div>
+                    <div class="summary-stat-val" style="color: #fbbf24;" id="strikeModalVal">1 / 5</div>
+                    <div class="summary-stat-lbl">Current Strikes</div>
+                </div>
+                <div>
+                    <div class="summary-stat-val" style="color: #ef4444;" id="strikeModalRemaining">4</div>
+                    <div class="summary-stat-lbl">Strikes Remaining</div>
+                </div>
+            </div>
+            <div class="modal-warning-alert" style="margin-bottom: 22px;">
+                <span>⚠️</span>
+                <span>Accumulating <strong>5 strikes</strong> results in immediate disqualification and forced exam submission.</span>
+            </div>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="acknowledgeStrikeModal()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none;">
+                I Understand & Resume Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- Terminal Disqualification Modal -->
+    <div class="submit-modal-overlay" id="disqualificationModal" style="display: none; z-index: 100001; background: rgba(15, 23, 42, 0.98);">
+        <div class="modal-card" style="max-width: 500px; text-align: center; border-color: #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.45);">
+            <div style="font-size: 3.5rem; margin-bottom: 12px;">🚨</div>
+            <h2 class="modal-title" style="color: #ef4444; font-size: 1.6rem;">EXAM DISQUALIFIED</h2>
+            <p class="modal-desc" style="color: #fca5a5; font-size: 1rem;">
+                Maximum integrity strikes (5/5) exceeded. Your examination session has been terminated.
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 16px; margin-bottom: 20px; color: #f87171; font-weight: 700;">
+                Submitting exam paper in <span id="disqualifyCountdown" style="font-size: 1.4rem; color: #ffffff;">3</span> seconds...
+            </div>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin: 0;">Your answers have been locked and flagged for administrative inspection.</p>
+        </div>
+    </div>
+
+    <!-- Anti-Cheat Rules Dialog Modal -->
+    <div class="submit-modal-overlay" id="antiCheatRulesModal" style="display: none; z-index: 99990;">
+        <div class="modal-card" style="max-width: 520px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.5rem;">🛡️</span>
+                    <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-color);">Anti-Cheat Regulations</h3>
+                </div>
+                <button type="button" onclick="closeAntiCheatRules()" style="background: transparent; border: none; color: var(--ntxt-color); font-size: 1.4rem; cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--ntxt-color); margin-bottom: 16px;">
+                To guarantee fairness and academic honesty, this mock session operates under strict integrity protocols:
+            </p>
+            <ul class="rules-list">
+                <li><span>🖥️</span><span><strong>Full-Screen Lock:</strong> The test must be completed in full-screen. Exiting causes a lockout overlay.</span></li>
+                <li><span>⚠️</span><span><strong>Tab Switching & Blur:</strong> Switching tabs or opening external windows is prohibited and logged.</span></li>
+                <li><span>⛔</span><span><strong>5 Strikes Limit:</strong> Accumulating 5 strikes causes automatic session termination.</span></li>
+                <li><span>🔒</span><span><strong>Content Security:</strong> Text copying, cut/paste, right-clicking, and text selection are prohibited.</span></li>
+                <li><span>⚙️</span><span><strong>DevTools Block:</strong> Developer keys (F12, Ctrl+Shift+I, Ctrl+U) are intercepted and logged.</span></li>
+            </ul>
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeAntiCheatRules()" style="width: 100%; padding: 12px;">Close Rules</button>
+        </div>
+    </div>
+
+    <!-- Anti-Cheat Warning Toast -->
+    <div class="anticheat-toast" id="antiCheatToast">
+        <span>🛡️</span>
+        <span id="antiCheatToastMsg">Security violation detected.</span>
     </div>
 
     <!-- -------------------------------------------------------------
@@ -1593,36 +1936,279 @@
             }
         });
 
-        // 13. ANTI-CHEAT & TAB SWITCH TRACKING
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                logViolation();
-                showToastWarning();
+        // 13. COMPREHENSIVE ANTI-CHEAT & INTEGRITY SECURITY SUITE
+        let totalViolations = Number("<%= locals.initialViolations || session.tab_switches || 0 %>");
+        const MAX_VIOLATIONS = Number("<%= locals.maxViolations || 5 %>");
+        let isSubmitting = false;
+        let examEngaged = false;
+        let lastViolationTime = 0;
+        let pendingStrikeNotice = null;
+
+        function isFullscreenActive() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        }
+
+        function updateIntegrityBadge() {
+            const badge = document.getElementById('integrityBadge');
+            const text = document.getElementById('integrityText');
+            if (!badge || !text) return;
+
+            badge.classList.remove('status-secure', 'status-warning', 'status-critical', 'status-disqualified');
+
+            if (totalViolations === 0) {
+                badge.classList.add('status-secure');
+                text.textContent = '100% Secure';
+            } else if (totalViolations < 3) {
+                badge.classList.add('status-warning');
+                text.textContent = `Strike ${totalViolations}/${MAX_VIOLATIONS}`;
+            } else if (totalViolations < MAX_VIOLATIONS) {
+                badge.classList.add('status-critical');
+                text.textContent = `Strike ${totalViolations}/${MAX_VIOLATIONS}`;
+            } else {
+                badge.classList.add('status-disqualified');
+                text.textContent = `${totalViolations}/${MAX_VIOLATIONS} Disqualified`;
             }
+
+            const fsStrike = document.getElementById('fsStrikeCount');
+            if (fsStrike) fsStrike.textContent = Math.min(totalViolations, MAX_VIOLATIONS);
+        }
+
+        updateIntegrityBadge();
+
+        // Check full-screen on load
+        if (!isFullscreenActive()) {
+            const initModal = document.getElementById('initialFullscreenModal');
+            if (initModal) initModal.style.display = 'flex';
+        } else {
+            examEngaged = true;
+        }
+
+        function enterExamFullscreen() {
+            examEngaged = true;
+            const initModal = document.getElementById('initialFullscreenModal');
+            if (initModal) initModal.style.display = 'none';
+
+            const lockOverlay = document.getElementById('fullscreenLockOverlay');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+
+            const el = document.documentElement;
+            const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (rfs) {
+                rfs.call(el).catch(() => {});
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!isFullscreenActive()) {
+                enterExamFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        // Fullscreen Change Interceptor
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (!isFullscreenActive()) {
+                    if (examEngaged && !isSubmitting) {
+                        handleViolation('FULLSCREEN_EXIT');
+                        const lockOverlay = document.getElementById('fullscreenLockOverlay');
+                        if (lockOverlay) {
+                            const fsStrike = document.getElementById('fsStrikeCount');
+                            if (fsStrike) fsStrike.textContent = Math.min(totalViolations, MAX_VIOLATIONS);
+                            lockOverlay.style.display = 'flex';
+                        }
+                    }
+                } else {
+                    const lockOverlay = document.getElementById('fullscreenLockOverlay');
+                    if (lockOverlay) lockOverlay.style.display = 'none';
+                    const initModal = document.getElementById('initialFullscreenModal');
+                    if (initModal) initModal.style.display = 'none';
+                }
+            });
         });
 
-        window.onblur = () => {
-            logViolation();
-            showToastWarning();
-        };
+        // Violation Handler with Debouncing
+        function handleViolation(type) {
+            if (isSubmitting) return;
 
-        function logViolation() {
+            const now = Date.now();
+            if (now - lastViolationTime < 2000) return; // 2s debounce cooldown
+            lastViolationTime = now;
+
+            totalViolations++;
+            updateIntegrityBadge();
+
+            // Send to backend
             try {
                 fetch('/api/cbt/engine/violation', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId })
-                });
+                    body: JSON.stringify({ session_id: sessionId, violation_type: type })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && typeof data.strikes === 'number') {
+                        totalViolations = data.strikes;
+                        updateIntegrityBadge();
+                    }
+                })
+                .catch(() => {});
             } catch(e) {}
+
+            // Check if max violations reached
+            if (totalViolations >= MAX_VIOLATIONS) {
+                triggerDisqualification();
+                return;
+            }
+
+            // Queue strike notice modal
+            if (type === 'TAB_SWITCH' || type === 'WINDOW_BLUR') {
+                pendingStrikeNotice = {
+                    type,
+                    reason: type === 'TAB_SWITCH' ? 'Tab switch detected.' : 'Window lost focus / minimized.'
+                };
+            }
         }
 
-        function showToastWarning() {
-            const toast = document.getElementById('cheatToast');
+        // Tab Switch & Blur Tracking
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (examEngaged && !isSubmitting) {
+                    handleViolation('TAB_SWITCH');
+                }
+            } else {
+                if (pendingStrikeNotice) {
+                    showStrikeModal(pendingStrikeNotice.reason);
+                    pendingStrikeNotice = null;
+                }
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            if (examEngaged && !isSubmitting) {
+                handleViolation('WINDOW_BLUR');
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            if (pendingStrikeNotice) {
+                showStrikeModal(pendingStrikeNotice.reason);
+                pendingStrikeNotice = null;
+            }
+        });
+
+        function showStrikeModal(reason) {
+            if (totalViolations >= MAX_VIOLATIONS || isSubmitting) return;
+            const modal = document.getElementById('strikeModal');
+            const val = document.getElementById('strikeModalVal');
+            const remaining = document.getElementById('strikeModalRemaining');
+            const reasonEl = document.getElementById('strikeModalReason');
+
+            if (modal) {
+                if (val) val.textContent = `${totalViolations} / ${MAX_VIOLATIONS}`;
+                if (remaining) remaining.textContent = Math.max(0, MAX_VIOLATIONS - totalViolations);
+                if (reasonEl && reason) reasonEl.textContent = reason;
+                modal.style.display = 'flex';
+            }
+        }
+
+        function acknowledgeStrikeModal() {
+            const modal = document.getElementById('strikeModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function triggerDisqualification() {
+            isSubmitting = true;
+            const dqModal = document.getElementById('disqualificationModal');
+            if (dqModal) dqModal.style.display = 'flex';
+
+            let countdown = 3;
+            const cdEl = document.getElementById('disqualifyCountdown');
+            const cdInterval = setInterval(() => {
+                countdown--;
+                if (cdEl) cdEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(cdInterval);
+                    document.getElementById('submitForm').submit();
+                }
+            }, 1000);
+        }
+
+        function openAntiCheatRules() {
+            const modal = document.getElementById('antiCheatRulesModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAntiCheatRules() {
+            const modal = document.getElementById('antiCheatRulesModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function showAntiCheatToast(msg) {
+            const toast = document.getElementById('antiCheatToast');
+            const toastMsg = document.getElementById('antiCheatToastMsg');
             if (toast) {
+                if (toastMsg) toastMsg.textContent = msg;
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3500);
             }
         }
+
+        // Security Lockdown: Context Menu, Copy, Cut, Paste, Drag
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showAntiCheatToast('Right-click is disabled for exam integrity.');
+        });
+
+        document.addEventListener('copy', (e) => {
+            e.preventDefault();
+            showAntiCheatToast('Copying exam questions is strictly prohibited.');
+        });
+
+        document.addEventListener('cut', (e) => { e.preventDefault(); });
+        document.addEventListener('paste', (e) => { e.preventDefault(); });
+        document.addEventListener('dragstart', (e) => { e.preventDefault(); });
+
+        // Restricted Keyboard Shortcuts (DevTools, Inspect, Print, View Source)
+        window.addEventListener('keydown', (e) => {
+            const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+            const key = (e.key || '').toUpperCase();
+
+            // Block F12 (DevTools)
+            if (e.key === 'F12') {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('Developer tools (F12) are disabled.');
+                handleViolation('DEVTOOLS_KEY');
+                return;
+            }
+
+            // Block Ctrl+Shift+I / J / C (DevTools)
+            if (isCtrlOrMeta && e.shiftKey && ['I', 'J', 'C'].includes(key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast('Developer inspection shortcuts are disabled.');
+                handleViolation('DEVTOOLS_KEY');
+                return;
+            }
+
+            // Block Ctrl+U, Ctrl+S, Ctrl+P
+            if (isCtrlOrMeta && ['U', 'S', 'P'].includes(key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                showAntiCheatToast(`Shortcut Ctrl+${key} is disabled during testing.`);
+                return;
+            }
+        }, true);
+
+        // Prevent accidental page departure
+        window.addEventListener('beforeunload', (e) => {
+            if (!isSubmitting) {
+                e.preventDefault();
+                e.returnValue = 'Your exam is still active. Leaving this page will record an integrity strike.';
+            }
+        });
     </script>
 </body>
 </html>

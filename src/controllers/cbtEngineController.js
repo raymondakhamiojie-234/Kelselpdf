@@ -235,7 +235,9 @@ exports.getEngine = async (req, res) => {
             candidate: {
                 name: session[0].candidate_name || (req.session.user ? req.session.user.full_name : 'Candidate'),
                 initial: (session[0].candidate_name || 'C').charAt(0).toUpperCase()
-            }
+            },
+            initialViolations: session[0].tab_switches || 0,
+            maxViolations: 5
         });
     } catch(err) {
         console.error("Error in getEngine:", err);
@@ -271,14 +273,30 @@ exports.postAutoSave = async (req, res) => {
     }
 };
 
-// 5. Log Violation (Tab Switch)
+// 5. Log Violation (Anti-Cheat)
 exports.postLogViolation = async (req, res) => {
     try {
-        const { session_id } = req.body;
-        await pool.query('UPDATE cbt_exam_sessions SET tab_switches = tab_switches + 1 WHERE id = ? AND user_id = ?', [session_id, req.session.user_id]);
-        res.json({ success: true });
+        const { session_id, violation_type } = req.body;
+        const isAdmin = req.session.user && req.session.user.role === 'admin';
+
+        await pool.query(
+            'UPDATE cbt_exam_sessions SET tab_switches = COALESCE(tab_switches, 0) + 1 WHERE id = ? AND (user_id = ? OR ? = true)',
+            [session_id, req.session.user_id, isAdmin]
+        );
+
+        const [rows] = await pool.query('SELECT tab_switches, status FROM cbt_exam_sessions WHERE id = ?', [session_id]);
+        const currentSwitches = (rows[0] && rows[0].tab_switches) ? Number(rows[0].tab_switches) : 1;
+        const maxViolations = 5;
+
+        res.json({
+            success: true,
+            violation_type: violation_type || 'TAB_SWITCH',
+            strikes: currentSwitches,
+            max_strikes: maxViolations,
+            disqualified: currentSwitches >= maxViolations
+        });
     } catch(err) {
-        console.error(err);
+        console.error("Error in postLogViolation:", err);
         res.status(500).json({ error: err.message });
     }
 };
