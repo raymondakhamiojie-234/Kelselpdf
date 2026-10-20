@@ -166,6 +166,27 @@
     }
 }
 
+/* Instant Page Navigation Loading Bar */
+#kelsel-page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #00f2fe, #10b981);
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.75);
+    z-index: 999999;
+    opacity: 0;
+    pointer-events: none;
+    transition: width 0.3s ease, opacity 0.2s ease;
+}
+
+#kelsel-page-loader.loading {
+    opacity: 1;
+    width: 82%;
+    transition: width 0.85s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.2s ease;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;

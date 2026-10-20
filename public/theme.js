@@ -64,4 +64,31 @@ document.addEventListener("DOMContentLoaded", function() {
     toggleBtns.forEach(btn => {
         btn.addEventListener('click', window.toggleTheme);
     });
+
+    // --- Instant Page Navigation Feedback ---
+    let topBar = document.getElementById('kelsel-page-loader');
+    if (!topBar) {
+        topBar = document.createElement('div');
+        topBar.id = 'kelsel-page-loader';
+        document.body.appendChild(topBar);
+    }
+
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        const target = link.getAttribute('target');
+        const isDownload = link.hasAttribute('download');
+
+        if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !isDownload && target !== '_blank') {
+            const isInternal = href.startsWith('/') || href.startsWith(window.location.origin);
+            if (isInternal && href !== window.location.pathname) {
+                topBar.classList.add('loading');
+            }
+        }
+    });
+
+    window.addEventListener('pageshow', function() {
+        if (topBar) topBar.classList.remove('loading');
+    });
 });
