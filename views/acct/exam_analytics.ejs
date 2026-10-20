@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -76,6 +76,22 @@
         table.styled-table th { color: var(--ntxt-color); font-weight: 600; }
         table.styled-table td { color: var(--txt-color); }
         table.styled-table tr:hover { background: rgba(255,255,255,0.02); }
+
+        @media (max-width: 768px) {
+            .glass-panel {
+                padding: 1.25rem 1rem !important;
+                border-radius: 14px !important;
+                margin-bottom: 1.25rem !important;
+            }
+            .metric-card {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+            }
+            table.styled-table th, table.styled-table td {
+                padding: 8px 10px !important;
+                font-size: 0.85rem !important;
+            }
+        }
     </style>
 </head>
 <body class="dashboard-body">

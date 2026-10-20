@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -56,6 +56,17 @@
             color: var(--txt-color); border-radius: 8px; padding: 12px;
         }
         .form-group select option { background: var(--nav-bg); color: var(--txt-color); }
+
+        @media (max-width: 768px) {
+            .glass-panel {
+                margin: 1rem auto 2.5rem !important;
+                padding: 1.5rem 1.1rem !important;
+                border-radius: 14px !important;
+            }
+            .glass-panel h1 {
+                font-size: 1.6rem !important;
+            }
+        }
     </style>
 </head>
 <body class="dashboard-body">

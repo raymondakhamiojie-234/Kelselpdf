@@ -17,9 +17,13 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-top: 1rem;
+            margin: 1rem 1.5rem;
             border: 1px solid var(--cbg-color-2);
             position: relative;
+        }
+
+        .chat-sidebar-backdrop {
+            display: none;
         }
 
         .chat-sidebar {
@@ -286,25 +290,89 @@
         }
 
         @media (max-width: 768px) {
+            .chat-intro-header {
+                padding: 0 0.5rem !important;
+            }
+            .chat-intro-header h2 {
+                font-size: 1.3rem !important;
+            }
+            .chat-intro-header p {
+                font-size: 0.85rem !important;
+                margin-top: 0.25rem !important;
+            }
             .chat-container {
-                flex-direction: column;
-                height: calc(100vh - 80px);
-                margin-top: 0;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
+                margin: 0.75rem 0 !important;
+                height: calc(100dvh - 220px);
+                min-height: 480px;
+                border-radius: 12px;
+                flex-direction: row;
             }
             .chat-sidebar {
-                width: 100%;
-                height: 150px;
-                border-right: none;
-                border-bottom: 1px solid var(--cbg-color-2);
+                width: 82% !important;
+                max-width: 320px !important;
+                height: 100% !important;
+                position: absolute !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                z-index: 50 !important;
+                border-right: 1px solid var(--cbg-color-2) !important;
+                border-bottom: none !important;
+                box-shadow: 10px 0 25px rgba(0,0,0,0.3) !important;
+            }
+            .chat-sidebar-backdrop {
+                display: none;
+                position: absolute;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: 40;
+                backdrop-filter: blur(2px);
+            }
+            .chat-sidebar-backdrop.active {
+                display: block;
+            }
+            .chat-header-bar {
+                padding: 0.75rem 1rem !important;
             }
             .chat-messages {
-                padding: 1rem;
+                padding: 0.85rem 0.75rem !important;
+                gap: 1rem !important;
             }
             .ai-msg {
-                max-width: 95%;
+                gap: 0.6rem !important;
+                max-width: 100% !important;
+            }
+            .ai-msg-avatar {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.85rem !important;
+            }
+            .ai-msg-content {
+                max-width: 88% !important;
+                padding: 0.75rem 0.9rem !important;
+                font-size: 0.92rem !important;
+            }
+            .chat-input-area {
+                padding: 0.6rem 0.75rem !important;
+            }
+            .input-wrapper {
+                padding: 0.4rem 0.6rem !important;
+                gap: 0.5rem !important;
+                border-radius: 10px !important;
+            }
+            #messageInput {
+                font-size: 16px !important;
+                padding: 0.5rem 0 !important;
+            }
+            #sendBtn {
+                width: 36px !important;
+                height: 36px !important;
+                margin-bottom: 0.25rem !important;
+                flex-shrink: 0 !important;
+            }
+            #sendBtn svg {
+                width: 18px !important;
+                height: 18px !important;
             }
         }
     </style>
@@ -315,12 +383,13 @@
     <main class="main-content">
         <%- include('partials/app_header') %>
 
-        <div style="padding: 0 1.5rem;">
+        <div class="chat-intro-header" style="padding: 0 1.5rem;">
             <h2 style="margin: 0; font-size: 1.5rem; color: var(--ntxt-color);">AI Tutor</h2>
             <p style="color: var(--text-color); opacity: 0.7; margin-top: 0.5rem;">Your personalized AI assistant knows your exam progress and study materials.</p>
         </div>
 
-        <div class="chat-container" style="margin: 1rem 1.5rem;">
+        <div class="chat-container">
+            <div class="chat-sidebar-backdrop" id="chatBackdrop" onclick="toggleSidebar()"></div>
             <!-- Sidebar -->
             <div class="chat-sidebar" id="chatSidebar">
                 <div class="chat-sidebar-header">
@@ -344,7 +413,7 @@
 
             <!-- Main Chat Area -->
             <div class="chat-main">
-                <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--cbg-color-2); display: flex; align-items: center; background: var(--cbg-color);">
+                <div class="chat-header-bar" style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--cbg-color-2); display: flex; align-items: center; background: var(--cbg-color);">
                     <button class="close-sidebar-btn" onclick="toggleSidebar()" title="Chat History" style="margin-left: -0.5rem;">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -391,6 +460,8 @@
             try {
                 // Close sidebar if open
                 document.getElementById('chatSidebar').classList.remove('open');
+                const backdrop = document.getElementById('chatBackdrop');
+                if (backdrop) backdrop.classList.remove('active');
                 
                 const res = await fetch('/api/ai-chat/session', { method: 'POST' });
                 const data = await res.json();
@@ -428,6 +499,8 @@
 
             // Close sidebar if open
             document.getElementById('chatSidebar').classList.remove('open');
+            const backdrop = document.getElementById('chatBackdrop');
+            if (backdrop) backdrop.classList.remove('active');
 
             document.getElementById('chatBox').innerHTML = '<div class="empty-state"><div class="loading-dots">Loading</div></div>';
             document.getElementById('inputArea').style.display = 'block';
@@ -534,7 +607,9 @@
 
         function toggleSidebar() {
             const sidebar = document.getElementById('chatSidebar');
-            sidebar.classList.toggle('open');
+            const backdrop = document.getElementById('chatBackdrop');
+            const isOpen = sidebar.classList.toggle('open');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
         }
     </script>
 </body>

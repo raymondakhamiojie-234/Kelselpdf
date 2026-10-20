@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -29,6 +29,35 @@
         .mock-theme { border-top: 4px solid #ef4444; }
         .practice-theme { border-top: 4px solid #3b82f6; }
         .analytics-theme { border-top: 4px solid #10b981; }
+
+        @media (max-width: 768px) {
+            .hub-container {
+                margin: 1.5rem auto 2.5rem !important;
+                padding: 0 0.5rem;
+            }
+            .action-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+                margin-top: 1.25rem !important;
+            }
+            .action-card {
+                padding: 20px 16px !important;
+                border-radius: 14px !important;
+            }
+            .action-title {
+                font-size: 1.25rem !important;
+                margin-bottom: 6px !important;
+            }
+            .action-desc {
+                font-size: 0.88rem !important;
+            }
+            .analytics-theme {
+                grid-column: span 1 !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+        }
     </style>
 </head>
 <body class="dashboard-body">

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -102,16 +102,56 @@
             max-width: 600px;
             position: relative;
             max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+        .material-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--ntxt-color);
+        .btn-explain {
+            background: linear-gradient(135deg, #00bcd4, #1976d2) !important;
+        }
+
+        @media (max-width: 768px) {
+            .materials-page-container {
+                padding: 10px 0 !important;
+            }
+            .glass-panel {
+                padding: 1.25rem 1rem !important;
+                border-radius: 14px !important;
+            }
+            .material-card {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 1.25rem !important;
+                gap: 1rem !important;
+                border-radius: 14px !important;
+            }
+            .material-info {
+                width: 100% !important;
+            }
+            .material-info h4 {
+                font-size: 1.05rem !important;
+            }
+            .material-actions {
+                flex-direction: column !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+            .material-actions .btn-3d,
+            .material-actions .btn-ai-3d {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0.75rem 1rem !important;
+                font-size: 0.92rem !important;
+                border-radius: 10px !important;
+                display: block !important;
+            }
+            #upload-panel h3 {
+                font-size: 1.25rem !important;
+            }
+            #upload-panel button {
+                width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -126,7 +166,7 @@
     <main class="main-content">
         <%- include('partials/app_header', { page_title: 'My Materials', page_desc: 'Upload and analyze your personal study files' }) %>
 
-        <div style="padding: 20px; max-width: 1000px; margin: 0 auto;">
+        <div class="materials-page-container" style="padding: 20px; max-width: 1000px; margin: 0 auto;">
             <% if (locals.limit_message) { %>
                 <div class="glass-panel" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3); padding: 1.5rem; opacity: 1; transform: none; margin-bottom: 2rem;">
                     <strong style="color: #ffc107;">Notice:</strong> <%= limit_message %>
@@ -151,13 +191,13 @@
                 <% if (materials && materials.length > 0) { %>
                     <% materials.forEach(m => { %>
                         <div class="material-card">
-                            <div>
-                                <h4 style="color: var(--sec-color); margin: 0 0 8px 0; font-size: 1.2rem;"><%= m.original_name %></h4>
+                            <div class="material-info">
+                                <h4 style="color: var(--sec-color); margin: 0 0 8px 0; font-size: 1.2rem; word-break: break-word;"><%= m.original_name %></h4>
                                 <small style="color: var(--ntxt-color); font-weight: 500;">Uploaded: <%= new Date(m.uploaded_at).toLocaleDateString() %></small>
                             </div>
-                            <div class="material-actions" style="display: flex; gap: 10px;">
-                                <button onclick="explainMaterial(<%= m.id %>)" class="btn-3d" style="background: linear-gradient(135deg, #00bcd4, #1976d2);"> AI Explain</button>
-                                <button onclick="promptExamType(<%= m.id %>)" class="btn-ai-3d"> Generate Mock Exam</button>
+                            <div class="material-actions">
+                                <button onclick="explainMaterial(<%= m.id %>)" class="btn-3d btn-explain">AI Explain</button>
+                                <button onclick="promptExamType(<%= m.id %>)" class="btn-ai-3d">Generate Mock Exam</button>
                             </div>
                         </div>
                     <% }) %>

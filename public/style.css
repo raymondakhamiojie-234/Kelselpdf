@@ -154,15 +154,41 @@
     background: var(--cbg-color-2);
 }
 
+.header-theme-toggle {
+    position: static !important;
+    width: 40px !important;
+    height: 40px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: white !important;
+    box-shadow: none !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease, transform 0.2s ease !important;
+}
+.header-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    transform: scale(1.05) !important;
+}
+.header-theme-toggle svg {
+    stroke: white !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
 @media (max-width: 768px) {
-    /* When theme button is a floating element on mobile, position it at bottom-right to never overlap top headers, burger menus, or navbars */
+    /* When theme button is a floating element on mobile, position it above the bottom navigation bar */
     body > .theme-toggle-btn {
         top: auto;
-        bottom: 24px;
-        right: 20px;
+        bottom: calc(75px + env(safe-area-inset-bottom));
+        right: 16px;
         width: 44px;
         height: 44px;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        z-index: 999;
     }
 }
 

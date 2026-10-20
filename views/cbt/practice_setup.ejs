@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,8 +8,15 @@
     <script src="/theme.js"></script>
     <style>
         .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
-        .form-group { margin-bottom: 1.5rem; }
         .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .setup-container {
+                margin: 1rem auto 2.5rem !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 12px !important;
+            }
+        }
     </style>
 </head>
 <body class="dashboard-body">

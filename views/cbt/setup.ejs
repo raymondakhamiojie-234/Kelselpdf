@@ -116,6 +116,50 @@
             display: inline-block;
             margin-right: 6px;
         }
+
+        @media (max-width: 768px) {
+            .setup-container {
+                margin: 1rem auto 2.5rem !important;
+                padding: 1.25rem 1rem !important;
+                border-radius: 12px !important;
+            }
+            .rules {
+                padding: 1rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+            .rules-title {
+                font-size: 0.92rem !important;
+            }
+            .rules ul {
+                margin-left: 1rem !important;
+                font-size: 0.85rem !important;
+            }
+            .mock-card {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 14px 14px !important;
+                gap: 10px !important;
+            }
+            .mock-card-info {
+                padding-right: 0 !important;
+                width: 100% !important;
+            }
+            .mock-card-header {
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+            }
+            .mock-card-badges {
+                text-align: left !important;
+                white-space: normal !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+                width: 100% !important;
+            }
+            .mock-card-badges span {
+                margin-left: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="dashboard-body">
@@ -165,8 +209,8 @@
                             <input type="radio" name="mock_id" value="<%= m.id %>" class="mock-input" <%= idx === 0 && !isLocked ? 'checked' : '' %> <%= isLocked ? 'disabled' : '' %> required>
                             
                             <div class="mock-card <%= isLocked ? 'locked' : '' %>">
-                                <div style="flex: 1; padding-right: 15px;">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <div class="mock-card-info" style="flex: 1; padding-right: 15px;">
+                                    <div class="mock-card-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                         <span class="exam-tag"><%= m.exam_code || m.exam_name %></span>
                                         <strong style="font-size: 1.05rem; color: var(--text-color);"><%= m.title %></strong>
                                     </div>
@@ -174,7 +218,7 @@
                                         <%= m.body_name || m.body_code %> &bull; <%= m.subject_count || 1 %> Subject<%= (m.subject_count == 1) ? '' : 's' %> &bull; <%= m.total_questions || 'Standard' %> Questions
                                     </small>
                                 </div>
-                                <div style="text-align: right; white-space: nowrap;">
+                                <div class="mock-card-badges" style="text-align: right; white-space: nowrap;">
                                     <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 0.85rem; font-weight: 600;">⏱ <%= m.time_limit_minutes %> mins</span>
                                     <% if (m.is_premium) { %>
                                         <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; background: rgba(168, 85, 247, 0.15); color: #c084fc; font-size: 0.8rem; font-weight: 700; margin-left: 6px;">★ Premium</span>
