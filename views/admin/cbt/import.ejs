@@ -1,124 +1,464 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>CBT Admin - import</title>
+    <title>AI Question Ingestion - CBT Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .import-layout-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1024px) {
+            .import-layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .drag-drop-box {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            background: var(--bg-color);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .drag-drop-box:hover, .drag-drop-box.dragover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.06);
+            transform: translateY(-1px);
+        }
+        .drag-drop-box input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .pdf-file-badge {
+            display: none;
+            margin-top: 12px;
+            padding: 8px 14px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+        .step-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+    </style>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_import' }) %>
-    <main class="main-content">
-            <h2 style="margin-bottom: 1rem;">Import & Extract Questions</h2>
-            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Upload Past Question PDFs. The Gemini AI will extract text, detect questions, and push them to the Review Queue.</p>
-            
-            <% if (success) { %>
-                <div class="alert alert-success" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 14px 18px; border-radius: 8px;">
-                    <div style="flex: 1; min-width: 250px; font-weight: 500;"><%= success %></div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <a href="/cbt/setup" target="_blank" class="btn btn-primary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; border-radius: 6px;">View Mock Page ↗</a>
-                        <a href="/admin/cbt/mocks" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; border-radius: 6px;">Manage Blueprints</a>
-                        <a href="/admin/cbt/review" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; border-radius: 6px;">Review Queue</a>
+
+    <main class="admin-main-content">
+        <!-- Executive Topbar -->
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">AI PDF Question Ingestion</h1>
+                    <p class="admin-subtitle">Extract question items, choices, and explanations from past examination papers using Gemini AI.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="/admin/cbt" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    &larr; CBT Hub
+                </a>
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    Overview
+                </a>
+            </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Extraction Model</div>
+                        <div class="kpi-value" style="font-size: 1.5rem;">Gemini AI</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                     </div>
                 </div>
-            <% } %>
-            <% if (error) { %>
-                <div class="alert alert-danger"><%= error %></div>
-            <% } %>
-
-            <div class="alert alert-warning">
-                ?? SECURITY WARNING: Verify ownership, licensing, or permission before publishing externally sourced examination material. All AI-extracted questions are placed in PENDING REVIEW status.
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">Multimodal OCR</span>
+                    <span>&bull; High Accuracy</span>
+                </div>
             </div>
 
-            <div class="glass-panel">
-                <h3>PDF Upload (Gemini AI Extraction)</h3>
-                <form method="POST" action="/admin/cbt/import/pdf" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
-                    
-                    <div class="form-group">
-                        <label>Exam Body</label>
-                        <select name="exam_body_id" id="bodySelect" class="form-control" required>
-                            <option value="">Select Exam Body</option>
-                            <% bodies.forEach(b => { %>
-                                <option value="<%= b.id %>"><%= b.code %> - <%= b.name %></option>
-                            <% }) %>
-                        </select>
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Supported Formats</div>
+                        <div class="kpi-value" style="font-size: 1.5rem;">PDF Documents</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;">Standard & Scanned</span>
+                    <span>&bull; Up to 25MB</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Ingestion Target</div>
+                        <div class="kpi-value" style="font-size: 1.5rem;">Live or Queue</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Optional Direct Publish</span>
+                    <span>&bull; Review Queue</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Mock Generation</div>
+                        <div class="kpi-value" style="font-size: 1.5rem;">Auto Blueprint</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;">Instant Student Access</span>
+                    <span>&bull; Zero manual config</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Feedback Alerts -->
+        <% if (locals.success) { %>
+            <div class="alert alert-success" style="border-radius: 10px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 16px 20px;">
+                <div style="display: flex; align-items: center; gap: 12px; font-weight: 500;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span><%= success %></span>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="/cbt/setup" target="_blank" class="btn btn-outline" style="border-radius: 6px; font-size: 0.82rem; padding: 6px 12px; text-decoration: none;">View Student Mock ↗</a>
+                    <a href="/admin/cbt/mocks" class="btn btn-outline" style="border-radius: 6px; font-size: 0.82rem; padding: 6px 12px; text-decoration: none;">Manage Blueprints</a>
+                    <a href="/admin/cbt/review" class="btn btn-ai" style="border-radius: 6px; font-size: 0.82rem; padding: 6px 12px; text-decoration: none;">Review Queue &rarr;</a>
+                </div>
+            </div>
+        <% } %>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-error" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <!-- Two-Column Workspace -->
+        <div class="import-layout-grid">
+            <!-- Left Column: Ingestion Form -->
+            <div class="admin-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-color);">Upload Past Question PDF</h2>
+                        <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 4px 0 0 0;">Select curriculum context and attach official examination PDF.</p>
+                    </div>
+                    <span class="badge-pill purple">AI Automated</span>
+                </div>
+
+                <form method="POST" action="/admin/cbt/import/pdf" enctype="multipart/form-data" id="importForm">
+                    <!-- Cascading Context Selectors -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Examination Body</label>
+                            <select name="exam_body_id" id="bodySelect" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                                <option value="">Select Exam Body</option>
+                                <% bodies.forEach(b => { %>
+                                    <option value="<%= b.id %>"><%= b.code %> &ndash; <%= b.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Exam Series</label>
+                            <select name="exam_id" id="examSelect" class="admin-select" style="width: 100%; box-sizing: border-box;" required disabled>
+                                <option value="">Select Body First</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Subject</label>
+                            <select name="subject_id" id="subjectSelect" class="admin-select" style="width: 100%; box-sizing: border-box;" required disabled>
+                                <option value="">Select Exam First</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Examination Year</label>
+                            <input type="number" name="year" placeholder="e.g. 2024" class="admin-select" style="width: 100%; box-sizing: border-box;">
+                        </div>
                     </div>
 
+                    <!-- PDF Drag-and-Drop Zone -->
                     <div class="form-group">
-                        <label>Exam</label>
-                        <select name="exam_id" id="examSelect" class="form-control" required disabled>
-                            <option value="">Select Exam</option>
-                        </select>
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Select Past Question PDF</label>
+                        <div class="drag-drop-box" id="pdfDropZone">
+                            <input type="file" name="pdf_file" id="pdfFileInput" accept=".pdf" required>
+                            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--primary-color); margin-bottom: 10px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-color);">Drag & Drop question PDF here</div>
+                            <p style="color: var(--ntxt-color); font-size: 0.82rem; margin: 4px 0 0 0;">or click to browse from device (.pdf format, max 25MB)</p>
+                            
+                            <div class="pdf-file-badge" id="pdfFileBadge">
+                                <span id="fileNameText">paper.pdf</span>
+                                <span id="fileSizeText" style="font-size: 0.75rem; opacity: 0.8; margin-left: 6px;">(0 MB)</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Subject</label>
-                        <select name="subject_id" id="subjectSelect" class="form-control" required disabled>
-                            <option value="">Select Subject</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Year (Optional)</label>
-                        <input type="number" name="year" class="form-control" placeholder="e.g. 2019">
-                    </div>
-                    
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Select PDF File</label>
-                        <input type="file" name="pdf_file" accept=".pdf" class="form-control" required style="padding: 10px; background: rgba(0,0,0,0.1);">
-                    </div>
-
-                    <div class="form-group" style="grid-column: 1 / -1; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 14px 16px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 8px;">
-                            <input type="checkbox" name="direct_publish" checked>
-                            <span style="color: var(--text-color); font-weight: 600;">Directly Publish to Live Bank</span>
-                            <span style="font-size: 0.82rem; color: #10b981;">(Questions immediately become available for student mocks)</span>
+                    <!-- Automation Options Card -->
+                    <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 10px;">
+                            <input type="checkbox" name="direct_publish" checked style="width: 16px; height: 16px; cursor: pointer;">
+                            <div>
+                                <span style="color: var(--text-color); font-weight: 600; font-size: 0.88rem;">Directly Publish to Live Bank</span>
+                                <div style="font-size: 0.78rem; color: #10b981;">Questions immediately become available for student mock simulations.</div>
+                            </div>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 0;">
-                            <input type="checkbox" name="auto_create_mock" checked>
-                            <span style="color: var(--text-color); font-weight: 600;">Automatically Create/Update Mock Examination</span>
-                            <span style="font-size: 0.82rem; color: var(--ntxt-color);">(Instantly adds this mock to the student Mock Exam page)</span>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" name="auto_create_mock" checked style="width: 16px; height: 16px; cursor: pointer;">
+                            <div>
+                                <span style="color: var(--text-color); font-weight: 600; font-size: 0.88rem;">Automatically Create / Sync Mock Blueprint</span>
+                                <div style="font-size: 0.78rem; color: var(--ntxt-color);">Instantly attaches extracted questions to the student Mock Exam portal.</div>
+                            </div>
                         </label>
                     </div>
 
-                    <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
-                        <button type="submit" class="btn btn-primary" onclick="this.innerHTML='Extracting... Please wait (up to 30s) '; this.style.opacity=0.7;">Upload & Extract</button>
-                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-ai" style="width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <span id="btnText">Start AI Extraction & Ingestion</span>
+                    </button>
                 </form>
             </div>
-        <script>
+
+            <!-- Right Column: Architecture & Security -->
+            <div>
+                <!-- Architecture Card -->
+                <div class="admin-panel">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                        <div style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; padding: 8px; border-radius: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-color);">Extraction Pipeline</h3>
+                            <p style="font-size: 0.8rem; color: var(--ntxt-color); margin: 2px 0 0 0;">How Gemini processes your exam document</p>
+                        </div>
+                    </div>
+
+                    <div class="step-timeline">
+                        <div class="step-item">
+                            <div class="step-num">1</div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--text-color);">OCR & Layout Segmentation</strong>
+                                <p style="font-size: 0.78rem; color: var(--ntxt-color); margin: 2px 0 0 0;">Extracts text from multi-column PDFs, tables, and mathematical formulas.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">2</div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--text-color);">Stem & Option Isolation</strong>
+                                <p style="font-size: 0.78rem; color: var(--ntxt-color); margin: 2px 0 0 0;">Splits text into discrete question stems and options (A, B, C, D, E).</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">3</div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--text-color);">Answer Detection & Verification</strong>
+                                <p style="font-size: 0.78rem; color: var(--ntxt-color); margin: 2px 0 0 0;">Detects answer keys or synthesizes reasoning explanations.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">4</div>
+                            <div>
+                                <strong style="font-size: 0.85rem; color: var(--text-color);">Live Bank Ingestion</strong>
+                                <p style="font-size: 0.78rem; color: var(--ntxt-color); margin: 2px 0 0 0;">Questions are stored and indexed into the central CBT database.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security & Notice Card -->
+                <div class="admin-panel" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <div style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; padding: 8px; border-radius: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 0.92rem; font-weight: 700; margin: 0; color: #f59e0b;">Compliance & Licensing</h4>
+                            <p style="font-size: 0.8rem; color: var(--ntxt-color); margin: 4px 0 0 0; line-height: 1.45;">
+                                Ensure proper educational usage rights before publishing examination materials. When unchecked, questions are routed to the Review Queue for human audit.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Cascading selects
         const bodySelect = document.getElementById('bodySelect');
         const examSelect = document.getElementById('examSelect');
         const subjectSelect = document.getElementById('subjectSelect');
 
         bodySelect.addEventListener('change', async () => {
-            examSelect.innerHTML = '<option value="">Select Exam</option>';
-            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            examSelect.innerHTML = '<option value="">Loading Exams...</option>';
+            subjectSelect.innerHTML = '<option value="">Select Exam First</option>';
             examSelect.disabled = true;
             subjectSelect.disabled = true;
 
             if (bodySelect.value) {
-                const res = await fetch('/api/cbt/exams/' + bodySelect.value);
-                const exams = await res.json();
-                exams.forEach(e => {
-                    examSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-                });
-                examSelect.disabled = false;
+                try {
+                    const res = await fetch('/api/cbt/exams/' + bodySelect.value);
+                    const exams = await res.json();
+                    examSelect.innerHTML = '<option value="">Select Exam</option>';
+                    exams.forEach(e => {
+                        examSelect.innerHTML += `<option value="${e.id}">${e.name} (${e.code})</option>`;
+                    });
+                    examSelect.disabled = false;
+                } catch(e) {
+                    examSelect.innerHTML = '<option value="">Failed to load exams</option>';
+                }
+            } else {
+                examSelect.innerHTML = '<option value="">Select Body First</option>';
             }
         });
 
         examSelect.addEventListener('change', async () => {
-            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            subjectSelect.innerHTML = '<option value="">Loading Subjects...</option>';
             subjectSelect.disabled = true;
 
             if (examSelect.value) {
-                const res = await fetch('/api/cbt/subjects/' + examSelect.value);
-                const subjects = await res.json();
-                subjects.forEach(s => {
-                    subjectSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-                });
-                subjectSelect.disabled = false;
+                try {
+                    const res = await fetch('/api/cbt/subjects/' + examSelect.value);
+                    const subjects = await res.json();
+                    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    subjects.forEach(s => {
+                        subjectSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                    });
+                    subjectSelect.disabled = false;
+                } catch(e) {
+                    subjectSelect.innerHTML = '<option value="">Failed to load subjects</option>';
+                }
+            } else {
+                subjectSelect.innerHTML = '<option value="">Select Exam First</option>';
             }
+        });
+
+        // Drag and drop handling
+        const dropZone = document.getElementById('pdfDropZone');
+        const fileInput = document.getElementById('pdfFileInput');
+        const fileBadge = document.getElementById('pdfFileBadge');
+        const fileNameText = document.getElementById('fileNameText');
+        const fileSizeText = document.getElementById('fileSizeText');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateFileDisplay();
+            }
+        });
+
+        fileInput.addEventListener('change', updateFileDisplay);
+
+        function updateFileDisplay() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileNameText.innerText = file.name;
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                fileSizeText.innerText = `(${sizeMB} MB)`;
+                fileBadge.style.display = 'inline-flex';
+            } else {
+                fileBadge.style.display = 'none';
+            }
+        }
+
+        // Form submit state
+        const importForm = document.getElementById('importForm');
+        importForm.addEventListener('submit', () => {
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            submitBtn.style.opacity = '0.75';
+            submitBtn.style.pointerEvents = 'none';
+            btnText.innerText = 'Extracting Questions via Gemini AI (up to 30s)...';
         });
     </script>
 </body>

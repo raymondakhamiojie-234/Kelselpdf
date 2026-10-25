@@ -1,86 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>CBT Admin - questions</title>
+    <title>Central Question Bank - CBT Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .questions-layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1024px) {
+            .questions-layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .opt-input-wrapper {
+            position: relative;
+        }
+        .opt-marker {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            pointer-events: none;
+        }
+        .opt-input-wrapper input {
+            padding-left: 42px !important;
+        }
+    </style>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_questions' }) %>
-    <main class="main-content">
-            <h2 style="margin-bottom: 1rem;">Central Question Bank</h2>
-            <p style="color: var(--ntxt-color); margin-bottom: 2rem;">Manage questions across all exams. (Phase 1: Basic Creation)</p>
-            
-            <div class="glass-panel">
-                <h3>Add New Question</h3>
-                <form method="POST" action="/admin/cbt/questions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Subject</label>
-                        <select name="subject_id" class="form-control" required>
+
+    <main class="admin-main-content">
+        <!-- Executive Topbar -->
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">Central Question Bank</h1>
+                    <p class="admin-subtitle">Author, index, and organize multiple-choice examination questions across registered subjects.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="/admin/cbt" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    &larr; CBT Hub
+                </a>
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    Overview
+                </a>
+            </div>
+        </header>
+
+        <%
+            const qCount = (locals.questions && questions.length) ? questions.length : 0;
+            const subCount = (locals.subjects && subjects.length) ? subjects.length : 0;
+        %>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Bank Question Count</div>
+                        <div class="kpi-value"><%= qCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;">Indexed Items</span>
+                    <span>&bull; Ready for Mocks</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Active Subjects</div>
+                        <div class="kpi-value"><%= subCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Subject Matrices</span>
+                    <span>&bull; Curricular</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Assessment Standard</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">4 Choices (A&ndash;D)</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">Single Correct Key</span>
+                    <span>&bull; Explanation ready</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Deployment Tier</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">Live Simulated</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;">Realtime Practice</span>
+                    <span>&bull; Instant Grading</span>
+                </div>
+            </div>
+        </div>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-error" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <!-- Two-Column Workspace -->
+        <div class="questions-layout-grid">
+            <!-- Left Column: Author Question Form -->
+            <div class="admin-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-color);">Author Question Item</h2>
+                        <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 4px 0 0 0;">Create a single multiple choice question with options and correct key.</p>
+                    </div>
+                    <span class="badge-pill info">Manual Entry</span>
+                </div>
+
+                <form method="POST" action="/admin/cbt/questions">
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Subject Target</label>
+                        <select name="subject_id" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
                             <option value="">Select Subject</option>
                             <% subjects.forEach(s => { %>
                                 <option value="<%= s.id %>"><%= s.name %></option>
                             <% }) %>
                         </select>
                     </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Question Text</label>
-                        <textarea name="question_text" class="form-control" rows="3" required></textarea>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Question Stem</label>
+                        <textarea name="question_text" class="admin-select" rows="3" placeholder="Enter the complete question statement or scenario..." style="width: 100%; box-sizing: border-box; resize: vertical;" required></textarea>
                     </div>
-                    <div class="form-group"><label>Option A</label><input type="text" name="option_a" class="form-control"></div>
-                    <div class="form-group"><label>Option B</label><input type="text" name="option_b" class="form-control"></div>
-                    <div class="form-group"><label>Option C</label><input type="text" name="option_c" class="form-control"></div>
-                    <div class="form-group"><label>Option D</label><input type="text" name="option_d" class="form-control"></div>
-                    
-                    <div class="form-group">
-                        <label>Correct Answer (A, B, C, D)</label>
-                        <select name="correct_answer" class="form-control">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                        </select>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div class="form-group opt-input-wrapper">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Option A</label>
+                            <span class="opt-marker">A</span>
+                            <input type="text" name="option_a" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                        </div>
+                        <div class="form-group opt-input-wrapper">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Option B</label>
+                            <span class="opt-marker">B</span>
+                            <input type="text" name="option_b" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                        </div>
+                        <div class="form-group opt-input-wrapper">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Option C</label>
+                            <span class="opt-marker">C</span>
+                            <input type="text" name="option_c" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                        </div>
+                        <div class="form-group opt-input-wrapper">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Option D</label>
+                            <span class="opt-marker">D</span>
+                            <input type="text" name="option_d" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Explanation (Optional)</label>
-                        <input type="text" name="explanation" class="form-control">
+
+                    <div style="display: grid; grid-template-columns: 1.2fr 2fr; gap: 12px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Correct Answer Key</label>
+                            <select name="correct_answer" class="admin-select" style="width: 100%; box-sizing: border-box;">
+                                <option value="A">Option A</option>
+                                <option value="B">Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Explanation / Solution (Optional)</label>
+                            <input type="text" name="explanation" placeholder="e.g. Formula derived using..." class="admin-select" style="width: 100%; box-sizing: border-box;">
+                        </div>
                     </div>
-                    
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <button type="submit" class="btn btn-primary">Add Question</button>
-                    </div>
+
+                    <button type="submit" class="btn btn-ai" style="width: 100%; padding: 12px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Add Question to Central Bank</span>
+                    </button>
                 </form>
             </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Subject</th>
-                        <th>Question</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (questions && questions.length > 0) { %>
-                        <% questions.forEach(q => { %>
+            <!-- Right Column: Question Bank Table -->
+            <div class="admin-panel">
+                <div class="admin-filter-bar">
+                    <div class="admin-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="qSearchInput" placeholder="Search question text or subject..." onkeyup="filterQuestionsTable()">
+                    </div>
+
+                    <div class="admin-filter-group">
+                        <select id="qSubjectFilter" class="admin-select" onchange="filterQuestionsTable()">
+                            <option value="all">All Subjects</option>
+                            <% subjects.forEach(s => { %>
+                                <option value="<%= s.name.toLowerCase() %>"><%= s.name %></option>
+                            <% }) %>
+                        </select>
+
+                        <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                            Showing <strong id="qVisibleCount" style="color: var(--text-color);"><%= qCount %></strong> of <%= qCount %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="questionsTable">
+                        <thead>
                             <tr>
-                                <td><%= q.id %></td>
-                                <td><%= q.subject_name %></td>
-                                <td><%= q.question_text.substring(0, 50) %>...</td>
-                                <td><span class="badge <%= q.status === 'PUBLISHED' ? 'badge-success' : (q.status === 'DRAFT' ? 'badge-warning' : 'badge-gray') %>"><%= q.status %></span></td>
-                                <td><button class="btn btn-sm btn-outline">Edit</button></td>
+                                <th>Subject & ID</th>
+                                <th>Question Preview</th>
+                                <th>Status</th>
                             </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="5" style="text-align: center;">No questions found.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-            </main>
+                        </thead>
+                        <tbody>
+                            <% if (questions && questions.length > 0) { %>
+                                <% questions.forEach(q => { %>
+                                    <tr class="q-row" data-text="<%= (q.question_text || '').toLowerCase() %>" data-subject="<%= (q.subject_name || '').toLowerCase() %>">
+                                        <td style="white-space: nowrap;">
+                                            <span class="badge-pill info" style="font-size: 0.76rem; font-weight: 700;"><%= q.subject_name %></span>
+                                            <div style="font-size: 0.75rem; color: var(--ntxt-color); margin-top: 4px;">#<%= q.id %></div>
+                                        </td>
+                                        <td>
+                                            <div style="font-size: 0.88rem; color: var(--text-color); line-height: 1.4; max-width: 280px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                                <%= q.question_text %>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge-pill <%= q.status === 'PUBLISHED' ? 'success' : (q.status === 'DRAFT' ? 'warning' : 'gray') %>">
+                                                <%= q.status || 'PUBLISHED' %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="3" style="text-align: center; padding: 3rem 1rem; color: var(--ntxt-color);">
+                                        No questions authored yet.
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterQuestionsTable() {
+            const query = document.getElementById('qSearchInput').value.toLowerCase().trim();
+            const subjectFilter = document.getElementById('qSubjectFilter').value;
+            const rows = document.querySelectorAll('.q-row');
+            let visible = 0;
+
+            rows.forEach(r => {
+                const text = r.getAttribute('data-text');
+                const subject = r.getAttribute('data-subject');
+
+                const matchesQuery = !query || text.includes(query) || subject.includes(query);
+                const matchesSubject = (subjectFilter === 'all') || subject === subjectFilter;
+
+                if (matchesQuery && matchesSubject) {
+                    r.style.display = '';
+                    visible++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('qVisibleCount').innerText = visible;
+        }
+    </script>
 </body>
 </html>

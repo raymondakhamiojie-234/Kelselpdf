@@ -1,84 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBT Admin - Exam Bodies</title>
+    <title>Examination Bodies - CBT Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .bodies-layout-grid {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1024px) {
+            .bodies-layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_exam_bodies' }) %>
-    <main class="main-content">
-        <div class="page-header">
-            <h2>Examination Bodies</h2>
-            <p>Manage top-level examination authorities (e.g. JAMB, WAEC, NECO, NABTEB, BECE).</p>
-        </div>
-        
-        <div class="glass-panel">
-            <h3>Add New Exam Body</h3>
-            <form method="POST" action="/admin/cbt/exam_bodies" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1rem;">
-                <div class="form-group">
-                    <label>Official Name (e.g., Joint Admissions and Matriculation Board)</label>
-                    <input type="text" name="name" class="form-control" placeholder="e.g. West African Examinations Council" required>
+
+    <main class="admin-main-content">
+        <!-- Executive Topbar -->
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">Examination Bodies & Authorities</h1>
+                    <p class="admin-subtitle">Manage top-level examination authorities (e.g. JAMB, WAEC, NECO, NABTEB, BECE).</p>
                 </div>
-                <div class="form-group">
-                    <label>Acronym / Code (e.g., JAMB, WAEC)</label>
-                    <input type="text" name="code" class="form-control" placeholder="e.g. WAEC" required>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="/admin/cbt" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    &larr; CBT Hub
+                </a>
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    Overview
+                </a>
+            </div>
+        </header>
+
+        <% const bodyCount = (locals.bodies && bodies.length) ? bodies.length : 0; %>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Governing Bodies</div>
+                        <div class="kpi-value"><%= bodyCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"></path></svg>
+                    </div>
                 </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label>Description</label>
-                    <textarea name="description" class="form-control" rows="2" placeholder="Mandate, jurisdiction, and official details..."></textarea>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;">Accredited Boards</span>
+                    <span>&bull; Registered</span>
                 </div>
-                <div class="form-group">
-                    <label>Official Portal / Website URL</label>
-                    <input type="url" name="website" class="form-control" placeholder="https://example.gov.ng">
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Jurisdiction</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">National / Reg.</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
                 </div>
-                <div class="form-group" style="display: flex; align-items: flex-end;">
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;">Create Exam Body</button>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Official Curricula</span>
+                    <span>&bull; Validated</span>
                 </div>
-            </form>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Digital Mapping</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">CBT Connected</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">Full Mock Coverage</span>
+                    <span>&bull; Instant sync</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Operational State</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">Active Service</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;">100% Operational</span>
+                    <span>&bull; Verified</span>
+                </div>
+            </div>
         </div>
 
-        <h3 style="margin-bottom: 15px; color: var(--text-color); font-size: 1.2rem;">Registered Bodies</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Code</th>
-                    <th>Full Official Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (bodies && bodies.length > 0) { %>
-                    <% bodies.forEach(body => { %>
-                        <tr>
-                            <td>#<%= body.id %></td>
-                            <td><strong style="color: var(--text-color); font-size: 1rem;"><%= body.code %></strong></td>
-                            <td><%= body.name %></td>
-                            <td><span class="badge <%= body.status === 'ACTIVE' ? 'badge-success' : 'badge-gray' %>"><%= body.status || 'ACTIVE' %></span></td>
-                            <td>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <button type="button" class="btn btn-sm btn-primary" onclick='openEditBodyModal(<%- JSON.stringify(body) %>)' style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-weight: 600;">
-                                        <span>✏️</span>
-                                        <span>Edit</span>
-                                    </button>
-                                    <a href="/admin/cbt/exams?body_id=<%= body.id %>" class="btn btn-sm btn-outline" style="padding: 6px 12px;">
-                                        Exams &rarr;
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">No exam bodies found.</td>
-                    </tr>
-                <% } %>
-            </tbody>
-        </table>
+        <% if (locals.error) { %>
+            <div class="alert alert-error" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <!-- Two-Column Workspace -->
+        <div class="bodies-layout-grid">
+            <!-- Left Column: Add Exam Body Form -->
+            <div class="admin-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-color);">Add Examination Authority</h2>
+                        <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 4px 0 0 0;">Register a new governing exam board or body.</p>
+                    </div>
+                    <span class="badge-pill info">Board</span>
+                </div>
+
+                <form method="POST" action="/admin/cbt/exam_bodies">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Official Authority Name</label>
+                            <input type="text" name="name" placeholder="e.g. West African Examinations Council" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Acronym / Code</label>
+                            <input type="text" name="code" placeholder="e.g. WAEC" class="admin-select" style="width: 100%; box-sizing: border-box; text-transform: uppercase;" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Official Website URL (Optional)</label>
+                        <input type="url" name="website" placeholder="https://example.gov.ng" class="admin-select" style="width: 100%; box-sizing: border-box;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Description (Optional)</label>
+                        <textarea name="description" rows="2" placeholder="Mandate, jurisdiction, and official details..." class="admin-select" style="width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-ai" style="width: 100%; padding: 12px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Create Examination Authority</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Exam Bodies Table -->
+            <div class="admin-panel">
+                <div class="admin-filter-bar">
+                    <div class="admin-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="bodySearchInput" placeholder="Search body name or acronym..." onkeyup="filterBodiesTable()">
+                    </div>
+
+                    <div class="admin-filter-group">
+                        <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                            Showing <strong id="bodyVisibleCount" style="color: var(--text-color);"><%= bodyCount %></strong> of <%= bodyCount %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="bodiesTable">
+                        <thead>
+                            <tr>
+                                <th>Authority & Code</th>
+                                <th>Status</th>
+                                <th style="text-align: right; min-width: 130px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (bodies && bodies.length > 0) { %>
+                                <% bodies.forEach(body => { %>
+                                    <tr class="body-row" data-name="<%= (body.name || '').toLowerCase() %>" data-code="<%= (body.code || '').toLowerCase() %>">
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="badge-pill info" style="font-weight: 700; font-family: monospace; font-size: 0.82rem;"><%= body.code %></span>
+                                                <strong style="color: var(--text-color); font-size: 0.92rem;"><%= body.name %></strong>
+                                            </div>
+                                            <% if (body.website) { %>
+                                                <div style="margin-top: 4px;">
+                                                    <a href="<%= body.website %>" target="_blank" rel="noopener noreferrer" style="font-size: 0.75rem; color: var(--cta-color); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                        <span><%= body.website %></span>
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                                    </a>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <span class="badge-pill <%= body.status === 'ACTIVE' ? 'success' : 'gray' %>">
+                                                <%= body.status || 'ACTIVE' %>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                                <button type="button" class="btn btn-outline" onclick='openEditBodyModal(<%- JSON.stringify(body) %>)' style="padding: 5px 9px; font-size: 0.78rem; border-radius: 6px;">
+                                                    Edit
+                                                </button>
+                                                <a href="/admin/cbt/exams?body_id=<%= body.id %>" class="btn btn-outline" style="padding: 5px 9px; font-size: 0.78rem; border-radius: 6px; text-decoration: none;">
+                                                    Exams &rarr;
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="3" style="text-align: center; padding: 3.5rem 1rem; color: var(--ntxt-color);">
+                                        No exam bodies registered yet.
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Modal for Editing Exam Body -->
@@ -86,51 +250,76 @@
         <div class="modal-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
-                    <h3 id="modalBodyTitle" style="margin: 0; color: var(--text-color); font-size: 1.25rem;">Edit Exam Body</h3>
-                    <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 3px;">Update exam body details and official information</div>
+                    <h3 id="modalBodyTitle" style="margin: 0; color: var(--text-color); font-size: 1.2rem; font-weight: 700;">Edit Exam Body</h3>
+                    <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 3px;">Update authority details and official information</div>
                 </div>
                 <button type="button" onclick="closeEditBodyModal()" class="modal-close-btn" aria-label="Close dialog">&times;</button>
             </div>
             
             <form id="editBodyForm" method="POST" action="">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-group">
-                        <label>Official Name</label>
-                        <input type="text" name="name" id="edit_body_name" class="form-control" required>
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Official Authority Name</label>
+                        <input type="text" name="name" id="edit_body_name" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
                     </div>
                     <div class="form-group">
-                        <label>Acronym / Code</label>
-                        <input type="text" name="code" id="edit_body_code" class="form-control" required>
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Acronym / Code</label>
+                        <input type="text" name="code" id="edit_body_code" class="admin-select" style="width: 100%; box-sizing: border-box;" required>
                     </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-group">
-                        <label>Status</label>
-                        <select name="status" id="edit_body_status" class="form-control">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Status</label>
+                        <select name="status" id="edit_body_status" class="admin-select" style="width: 100%; box-sizing: border-box;">
                             <option value="ACTIVE">ACTIVE</option>
                             <option value="INACTIVE">INACTIVE</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Portal / Website URL</label>
-                        <input type="url" name="website" id="edit_body_website" class="form-control">
-                    </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Description</label>
-                        <textarea name="description" id="edit_body_description" class="form-control" rows="3"></textarea>
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Portal URL</label>
+                        <input type="url" name="website" id="edit_body_website" class="admin-select" style="width: 100%; box-sizing: border-box;">
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                    <button type="button" class="btn btn-secondary" onclick="closeEditBodyModal()" style="padding: 8px 18px;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 22px;">Save Changes</button>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Description</label>
+                    <textarea name="description" id="edit_body_description" class="admin-select" rows="3" style="width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline" onclick="closeEditBodyModal()" style="padding: 8px 18px; border-radius: 6px;">Cancel</button>
+                    <button type="submit" class="btn btn-ai" style="padding: 8px 22px; border-radius: 6px;">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        function filterBodiesTable() {
+            const query = document.getElementById('bodySearchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.body-row');
+            let visible = 0;
+
+            rows.forEach(r => {
+                const name = r.getAttribute('data-name');
+                const code = r.getAttribute('data-code');
+                const matches = !query || name.includes(query) || code.includes(query);
+
+                if (matches) {
+                    r.style.display = '';
+                    visible++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('bodyVisibleCount').innerText = visible;
+        }
+
         function openEditBodyModal(body) {
             document.getElementById('editBodyForm').action = '/admin/cbt/exam_bodies/' + body.id + '/edit';
-            document.getElementById('modalBodyTitle').innerText = 'Edit Exam Body: ' + body.code;
+            document.getElementById('modalBodyTitle').innerText = 'Edit Authority: ' + body.code;
             document.getElementById('edit_body_name').value = body.name || '';
             document.getElementById('edit_body_code').value = body.code || '';
             document.getElementById('edit_body_status').value = body.status || 'ACTIVE';
@@ -143,18 +332,12 @@
             document.getElementById('editBodyModal').style.display = 'none';
         }
 
-        window.addEventListener('click', function(e) {
+        window.onclick = function(e) {
             const modal = document.getElementById('editBodyModal');
             if (e.target === modal) {
                 closeEditBodyModal();
             }
-        });
-
-        window.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeEditBodyModal();
-            }
-        });
+        };
     </script>
 </body>
 </html>

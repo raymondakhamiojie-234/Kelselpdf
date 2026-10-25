@@ -1,143 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBT Admin - Content Review Queue</title>
+    <title>Review Queue - CBT Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .review-card-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+        .review-card-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.08);
+        }
+        .review-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .opt-box {
+            position: relative;
+        }
+        .opt-tag {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            pointer-events: none;
+        }
+        .opt-box input {
+            padding-left: 42px !important;
+        }
+        .opt-box.is-correct input {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.04);
+        }
+        .opt-box.is-correct .opt-tag {
+            background: #10b981;
+            color: white;
+        }
+    </style>
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/sidebar', { active_page: 'cbt_review' }) %>
-    <main class="main-content">
-        <div class="page-header">
-            <h2>Content Review Queue</h2>
-            <p>Verify and approve AI-extracted examination questions before releasing them into the live student bank.</p>
+
+    <main class="admin-main-content">
+        <!-- Executive Topbar -->
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">Content Review Queue</h1>
+                    <p class="admin-subtitle">Verify and approve AI-extracted examination questions before releasing them into the live student bank.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <% if (questions && questions.length > 0) { %>
+                    <form method="POST" action="/admin/cbt/questions/approve-all" onsubmit="return confirm('Approve and publish all <%= questions.length %> questions to live student banks?')" style="margin: 0;">
+                        <button type="submit" class="btn btn-ai" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>Approve All (<%= questions.length %>)</span>
+                        </button>
+                    </form>
+                <% } %>
+                <a href="/admin/cbt" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    &larr; CBT Hub
+                </a>
+            </div>
+        </header>
+
+        <% const reviewCount = (locals.questions && questions.length) ? questions.length : 0; %>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Awaiting Approval</div>
+                        <div class="kpi-value" style="color: #f59e0b;"><%= reviewCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;"><%= reviewCount %> Questions in Queue</span>
+                    <span>&bull; Staged</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Source Pipeline</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">Gemini OCR</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">AI Extracted</span>
+                    <span>&bull; Automated segmentation</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Quality Assurance</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">HITL Verified</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Human Oversight</span>
+                    <span>&bull; Zero Hallucinations</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Release Tier</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">Official Banks</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;">Authorized License</span>
+                    <span>&bull; Live Sync</span>
+                </div>
+            </div>
         </div>
 
-        <% if (questions && questions.length > 0) { %>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 14px 20px; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.3rem;">⚠️</span>
-                    <div>
-                        <strong style="color: #f59e0b; font-size: 1.05rem;"><%= questions.length %> question<%= questions.length > 1 ? 's' : '' %> awaiting review</strong>
-                        <div style="font-size: 0.82rem; color: var(--ntxt-color);">Status: DRAFT / PENDING_REVIEW</div>
-                    </div>
-                </div>
-                <form method="POST" action="/admin/cbt/questions/approve-all" onsubmit="return confirm('Are you sure you want to approve and publish all <%= questions.length %> questions live?')">
-                    <button type="submit" class="btn btn-primary" style="background: #10b981; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
-                        <span>⚡</span>
-                        <span>Approve & Publish All (<%= questions.length %>) Questions</span>
-                    </button>
-                </form>
+        <% if (locals.success) { %>
+            <div class="alert alert-success" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><%= success %></span>
             </div>
-            
-            <% questions.forEach(q => { %>
-                <div class="review-card">
-                    <div class="review-header">
-                        <div>
-                            <strong style="font-size: 1.05rem; color: var(--text-color);"><%= q.subject_name %></strong>
-                            <span style="color: var(--ntxt-color); font-size: 0.9rem;"> &mdash; Year: <%= q.year || 'N/A' %></span>
-                            <% if (q.topic) { %>
-                                <span class="badge badge-info" style="margin-left: 8px; font-size: 0.72rem;">Topic: <%= q.topic %></span>
-                            <% } %>
-                            <div style="font-size: 0.8rem; color: var(--ntxt-color); margin-top: 4px;">
-                                Source: <%= q.source || 'Uploaded Document' %> &bull; Difficulty: <%= q.difficulty || 'MEDIUM' %>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="badge badge-warning">PENDING REVIEW</span>
-                        </div>
-                    </div>
+        <% } %>
 
-                    <form id="approve-form-<%= q.id %>" method="POST" action="/admin/cbt/questions/<%= q.id %>/approve">
-                        <div class="form-group">
-                            <label style="color: var(--primary-color); font-weight: 700;">Question Text</label>
-                            <textarea name="question_text" class="form-control" rows="3" required><%= q.question_text %></textarea>
-                        </div>
-                        
-                        <div class="opt-grid">
-                            <div class="form-group">
-                                <label>Option A</label>
-                                <input type="text" name="option_a" class="form-control" value="<%= q.option_a %>" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Option B</label>
-                                <input type="text" name="option_b" class="form-control" value="<%= q.option_b %>" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Option C</label>
-                                <input type="text" name="option_c" class="form-control" value="<%= q.option_c %>" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Option D</label>
-                                <input type="text" name="option_d" class="form-control" value="<%= q.option_d %>" required>
-                            </div>
-                            <% if (q.option_e) { %>
-                                <div class="form-group" style="grid-column: 1 / -1;">
-                                    <label>Option E</label>
-                                    <input type="text" name="option_e" class="form-control" value="<%= q.option_e %>">
-                                </div>
-                            <% } %>
-                        </div>
-                        
-                        <!-- Review Action Toolbar -->
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 15px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
-                            <div style="display: flex; gap: 15px; flex: 1; min-width: 280px; flex-wrap: wrap;">
-                                <div class="form-group" style="flex: 1; min-width: 130px; margin-bottom: 0;">
-                                    <label>Correct Answer</label>
-                                    <select name="correct_answer" class="form-control">
-                                        <option value="A" <%= q.correct_answer === 'A' ? 'selected' : '' %>>A</option>
-                                        <option value="B" <%= q.correct_answer === 'B' ? 'selected' : '' %>>B</option>
-                                        <option value="C" <%= q.correct_answer === 'C' ? 'selected' : '' %>>C</option>
-                                        <option value="D" <%= q.correct_answer === 'D' ? 'selected' : '' %>>D</option>
-                                        <option value="E" <%= q.correct_answer === 'E' ? 'selected' : '' %>>E</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="flex: 2; min-width: 180px; margin-bottom: 0;">
-                                    <label>License & Distribution</label>
-                                    <select name="license_status" class="form-control">
-                                        <option value="AUTHORIZED" <%= q.license_status === 'AUTHORIZED' ? 'selected' : '' %>>Authorized (Safe to Publish)</option>
-                                        <option value="RESTRICTED" <%= q.license_status === 'RESTRICTED' ? 'selected' : '' %>>Restricted (Internal Only)</option>
-                                    </select>
-                                </div>
-                            </div>
+        <% if (locals.error) { %>
+            <div class="alert alert-error" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><%= error %></span>
+            </div>
+        <% } %>
 
-                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-                                <button type="button" class="btn btn-outline" onclick="confirmReject(<%= q.id %>)" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); padding: 9px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                                    <span>✕</span>
-                                    <span>Reject & Delete</span>
-                                </button>
-                                <button type="submit" class="btn btn-primary" style="background: #10b981; border: none; padding: 9px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
-                                    <span>✓</span>
-                                    <span>Approve & Publish</span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <!-- Separate Hidden Reject Form -->
-                    <form id="reject-form-<%= q.id %>" method="POST" action="/admin/cbt/questions/<%= q.id %>/reject" style="display: none;"></form>
+        <!-- Filter Bar -->
+        <div class="admin-panel" style="padding: 16px 20px; margin-bottom: 20px;">
+            <div class="admin-filter-bar" style="margin: 0;">
+                <div class="admin-search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="reviewSearchInput" placeholder="Filter questions by text or subject..." onkeyup="filterReviewCards()">
                 </div>
-            <% }) %>
+                <div class="admin-filter-group">
+                    <span style="font-size: 0.85rem; color: var(--ntxt-color);">
+                        Showing <strong id="reviewVisibleCount" style="color: var(--text-color);"><%= reviewCount %></strong> of <%= reviewCount %> items
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Cards List -->
+        <% if (!questions || questions.length === 0) { %>
+            <div class="admin-panel" style="text-align: center; padding: 4rem 1rem; color: var(--ntxt-color);">
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.4;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin: 0 0 4px 0;">Review Queue is Empty</h3>
+                <p style="font-size: 0.85rem; margin: 0;">All extracted examination questions have been approved and published to live student banks.</p>
+            </div>
         <% } else { %>
-            <div style="padding: 3.5rem 1.5rem; text-align: center; background: var(--card-bg); border-radius: 14px; border: 1px dashed var(--border-color); max-width: 600px; margin: 2rem auto;">
-                <div style="font-size: 3rem; margin-bottom: 12px;">🎉</div>
-                <h3 style="color: #10b981; margin: 0 0 6px 0; font-size: 1.4rem;">Queue is Empty!</h3>
-                <p style="color: var(--ntxt-color); margin: 0 0 20px 0;">All extracted examination questions have been reviewed and published.</p>
-                <a href="/admin/cbt/import" class="btn btn-primary" style="padding: 9px 20px; font-weight: 600; border-radius: 8px; text-decoration: none;">+ Upload Another PDF</a>
+            <div id="reviewCardsList">
+                <% questions.forEach(q => { %>
+                    <div class="review-card-item" data-text="<%= (q.question_text || '').toLowerCase() %>" data-subject="<%= (q.subject_name || '').toLowerCase() %>">
+                        <div class="review-card-header">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="badge-pill info" style="font-size: 0.82rem; font-weight: 700;"><%= q.subject_name %></span>
+                                    <% if (q.year) { %>
+                                        <span class="badge-pill gray">Year <%= q.year %></span>
+                                    <% } %>
+                                    <% if (q.topic) { %>
+                                        <span class="badge-pill purple">Topic: <%= q.topic %></span>
+                                    <% } %>
+                                    <span class="badge-pill warning">Pending Review</span>
+                                </div>
+                                <div style="font-size: 0.76rem; color: var(--ntxt-color); margin-top: 6px;">
+                                    Source: <%= q.source || 'Uploaded Document' %> &bull; Difficulty: <%= q.difficulty || 'MEDIUM' %> &bull; ID: #<%= q.id %>
+                                </div>
+                            </div>
+
+                            <!-- Reject Single Form -->
+                            <form method="POST" action="/admin/cbt/questions/<%= q.id %>/reject" onsubmit="return confirm('Reject and permanently discard question #<%= q.id %>?');" style="margin: 0;">
+                                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span>Discard</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Approve Form -->
+                        <form method="POST" action="/admin/cbt/questions/<%= q.id %>/approve">
+                            <div class="form-group" style="margin-bottom: 14px;">
+                                <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Question Stem</label>
+                                <textarea name="question_text" class="admin-select" rows="3" style="width: 100%; box-sizing: border-box; resize: vertical;" required><%= q.question_text %></textarea>
+                            </div>
+
+                            <div class="options-grid">
+                                <div class="opt-box <%= q.correct_answer === 'A' ? 'is-correct' : '' %>">
+                                    <span class="opt-tag">A</span>
+                                    <input type="text" name="option_a" class="admin-select" value="<%= q.option_a %>" style="width: 100%; box-sizing: border-box;" required>
+                                </div>
+                                <div class="opt-box <%= q.correct_answer === 'B' ? 'is-correct' : '' %>">
+                                    <span class="opt-tag">B</span>
+                                    <input type="text" name="option_b" class="admin-select" value="<%= q.option_b %>" style="width: 100%; box-sizing: border-box;" required>
+                                </div>
+                                <div class="opt-box <%= q.correct_answer === 'C' ? 'is-correct' : '' %>">
+                                    <span class="opt-tag">C</span>
+                                    <input type="text" name="option_c" class="admin-select" value="<%= q.option_c %>" style="width: 100%; box-sizing: border-box;" required>
+                                </div>
+                                <div class="opt-box <%= q.correct_answer === 'D' ? 'is-correct' : '' %>">
+                                    <span class="opt-tag">D</span>
+                                    <input type="text" name="option_d" class="admin-select" value="<%= q.option_d %>" style="width: 100%; box-sizing: border-box;" required>
+                                </div>
+                                <% if (q.option_e) { %>
+                                    <div class="opt-box <%= q.correct_answer === 'E' ? 'is-correct' : '' %>" style="grid-column: 1 / -1;">
+                                        <span class="opt-tag">E</span>
+                                        <input type="text" name="option_e" class="admin-select" value="<%= q.option_e %>" style="width: 100%; box-sizing: border-box;">
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <!-- Action Toolbar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <div>
+                                        <label style="font-weight: 600; font-size: 0.8rem; margin-right: 6px;">Correct Answer:</label>
+                                        <select name="correct_answer" class="admin-select" style="padding: 6px 12px; font-weight: 700;">
+                                            <option value="A" <%= q.correct_answer === 'A' ? 'selected' : '' %>>A</option>
+                                            <option value="B" <%= q.correct_answer === 'B' ? 'selected' : '' %>>B</option>
+                                            <option value="C" <%= q.correct_answer === 'C' ? 'selected' : '' %>>C</option>
+                                            <option value="D" <%= q.correct_answer === 'D' ? 'selected' : '' %>>D</option>
+                                            <% if (q.option_e) { %>
+                                                <option value="E" <%= q.correct_answer === 'E' ? 'selected' : '' %>>E</option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label style="font-weight: 600; font-size: 0.8rem; margin-right: 6px;">License:</label>
+                                        <select name="license_status" class="admin-select" style="padding: 6px 12px;">
+                                            <option value="AUTHORIZED" <%= q.license_status === 'AUTHORIZED' ? 'selected' : '' %>>Authorized</option>
+                                            <option value="PUBLIC_DOMAIN" <%= q.license_status === 'PUBLIC_DOMAIN' ? 'selected' : '' %>>Public Domain</option>
+                                            <option value="FAIR_USE" <%= q.license_status === 'FAIR_USE' ? 'selected' : '' %>>Fair Use (Edu)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-ai" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    <span>Approve & Release Live</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                <% }) %>
             </div>
         <% } %>
     </main>
 
     <script>
-        function confirmReject(questionId) {
-            if (confirm('Are you sure you want to permanently delete and reject this question?')) {
-                const form = document.getElementById('reject-form-' + questionId);
-                if (form) {
-                    form.submit();
+        function filterReviewCards() {
+            const query = document.getElementById('reviewSearchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.review-card-item');
+            let visible = 0;
+
+            cards.forEach(c => {
+                const text = c.getAttribute('data-text');
+                const subject = c.getAttribute('data-subject');
+                const matches = !query || text.includes(query) || subject.includes(query);
+
+                if (matches) {
+                    c.style.display = '';
+                    visible++;
+                } else {
+                    c.style.display = 'none';
                 }
-            }
+            });
+
+            document.getElementById('reviewVisibleCount').innerText = visible;
         }
     </script>
 </body>
