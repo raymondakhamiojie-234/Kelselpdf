@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>Upload Questions - Admin Panel</title>
+    <title>Course Exam Questions - Executive Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <link rel="manifest" href="/manifest.json">
@@ -14,13 +14,138 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .admin-workspace-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1024px) {
+            .admin-workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .csv-spec-box {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .csv-code-snippet {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--cta-color);
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .drag-drop-container {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            background: var(--bg-color);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .drag-drop-container:hover, .drag-drop-container.dragover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.06);
+            transform: translateY(-1px);
+        }
+        .drag-drop-container input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-selected-badge {
+            display: none;
+            margin-top: 12px;
+            padding: 8px 14px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+        .dept-helper-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .dept-chip {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--ntxt-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .dept-chip:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .courses-cloud-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            gap: 10px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .course-tag-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .course-tag-card:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .course-tag-card small {
+            font-size: 0.7rem;
+            color: var(--ntxt-color);
+            font-weight: 400;
+        }
+    </style>
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/admin_sidebar', { active_page: 'admin_questions' }) %>
 
     <main class="admin-main-content">
+        <!-- Executive Topbar -->
         <header class="admin-topbar">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
@@ -28,485 +153,369 @@
                 </button>
                 <div>
                     <h1 class="admin-title">Course Exam Questions</h1>
-                    <p class="admin-subtitle">Bulk upload semester test items, course CSV questions, and manage university banks.</p>
+                    <p class="admin-subtitle">Bulk upload semester test items, course CSV questions, and manage university mock banks.</p>
                 </div>
             </div>
             <div class="admin-topbar-actions">
-                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     &larr; Overview
                 </a>
             </div>
         </header>
 
-        <h2>Upload Exam Questions (CSV)</h2>
-        
-        <div class="glass-panel" style="max-width: 600px;">
-            <% if (success) { %> <div class="alert alert-success"><%= success %></div> <% } %>
-            <% if (error) { %> <div class="alert alert-error"><%= error %></div> <% } %>
-            
-            <div style="margin-bottom: 2rem; background: var(--cbg-color-2); padding: 15px; border-radius: 8px;">
-                <h4 style="margin-bottom: 0.5rem;">CSV Format Requirements:</h4>
-                <p style="font-size: 0.9rem; margin-bottom: 0;">Your CSV must have exactly 7 columns in this order:<br>
-                <code style="color: var(--cta-color);">course_code, question_text, option_a, option_b, option_c, option_d, correct_option</code><br>
-                <em>(The first row is always skipped as a header row)</em></p>
+        <% const totalCoursesCount = (locals.courses && courses.length) ? courses.length : 0; %>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Active Question Banks</div>
+                        <div class="kpi-value"><%= totalCoursesCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;"><%= totalCoursesCount %> Courses Ready</span>
+                    <span>&bull; CBT Simulated</span>
+                </div>
             </div>
 
-            <form method="POST" action="/admin/questions" enctype="multipart/form-data">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Departments (Hold Ctrl/Cmd to select multiple)</label>
-                        <select name="department_id" multiple style="height: 150px;" required>
-<option value="gst">General Studies (GST)</option>
-    <optgroup label="AGRICULTURE & ENVIRONMENTAL SCIENCES">
-        <option value="Agricultural Economics">Agricultural Economics</option>
-        <option value="Agricultural Extension and Rural Development">Agricultural Extension and Rural Development</option>
-        <option value="Agricultural Science and Education">Agricultural Science and Education</option>
-        <option value="Agriculture">Agriculture</option>
-        <option value="Agronomy">Agronomy</option>
-        <option value="Animal Production">Animal Production</option>
-        <option value="Animal Science">Animal Science</option>
-        <option value="Animal Nutrition">Animal Nutrition</option>
-        <option value="Animal Breeding and Genetics">Animal Breeding and Genetics</option>
-        <option value="Aquaculture">Aquaculture</option>
-        <option value="Fisheries">Fisheries</option>
-        <option value="Fisheries and Aquaculture">Fisheries and Aquaculture</option>
-        <option value="Crop Production">Crop Production</option>
-        <option value="Crop Science">Crop Science</option>
-        <option value="Crop Protection">Crop Protection</option>
-        <option value="Horticulture">Horticulture</option>
-        <option value="Soil Science">Soil Science</option>
-        <option value="Soil Science and Land Resources Management">Soil Science and Land Resources Management</option>
-        <option value="Forestry">Forestry</option>
-        <option value="Forestry and Wildlife">Forestry and Wildlife</option>
-        <option value="Wildlife Management">Wildlife Management</option>
-        <option value="Wildlife and Ecotourism">Wildlife and Ecotourism</option>
-        <option value="Forestry Technology">Forestry Technology</option>
-        <option value="Environmental Management">Environmental Management</option>
-        <option value="Environmental Science">Environmental Science</option>
-        <option value="Environmental Biology">Environmental Biology</option>
-        <option value="Environmental Conservation">Environmental Conservation</option>
-        <option value="Water Resources Management">Water Resources Management</option>
-        <option value="Climate Science">Climate Science</option>
-        <option value="Range Management">Range Management</option>
-        <option value="Pasture Management">Pasture Management</option>
-    </optgroup>
-    <optgroup label="ENGINEERING">
-        <option value="Agricultural Engineering">Agricultural Engineering</option>
-        <option value="Agricultural and Bio-Resources Engineering">Agricultural and Bio-Resources Engineering</option>
-        <option value="Aerospace Engineering">Aerospace Engineering</option>
-        <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-        <option value="Automotive Engineering">Automotive Engineering</option>
-        <option value="Biomedical Engineering">Biomedical Engineering</option>
-        <option value="Building Engineering">Building Engineering</option>
-        <option value="Chemical Engineering">Chemical Engineering</option>
-        <option value="Civil Engineering">Civil Engineering</option>
-        <option value="Computer Engineering">Computer Engineering</option>
-        <option value="Electrical Engineering">Electrical Engineering</option>
-        <option value="Electronics Engineering">Electronics Engineering</option>
-        <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
-        <option value="Energy Engineering">Energy Engineering</option>
-        <option value="Environmental Engineering">Environmental Engineering</option>
-        <option value="Food Engineering">Food Engineering</option>
-        <option value="Industrial Engineering">Industrial Engineering</option>
-        <option value="Information Engineering">Information Engineering</option>
-        <option value="Marine Engineering">Marine Engineering</option>
-        <option value="Materials Engineering">Materials Engineering</option>
-        <option value="Materials and Metallurgical Engineering">Materials and Metallurgical Engineering</option>
-        <option value="Mechanical Engineering">Mechanical Engineering</option>
-        <option value="Mechatronics Engineering">Mechatronics Engineering</option>
-        <option value="Metallurgical Engineering">Metallurgical Engineering</option>
-        <option value="Mining Engineering">Mining Engineering</option>
-        <option value="Petroleum Engineering">Petroleum Engineering</option>
-        <option value="Petrochemical Engineering">Petrochemical Engineering</option>
-        <option value="Polymer Engineering">Polymer Engineering</option>
-        <option value="Production Engineering">Production Engineering</option>
-        <option value="Structural Engineering">Structural Engineering</option>
-        <option value="Systems Engineering">Systems Engineering</option>
-        <option value="Telecommunication Engineering">Telecommunication Engineering</option>
-        <option value="Water Resources Engineering">Water Resources Engineering</option>
-        <option value="Welding Engineering">Welding Engineering</option>
-        <option value="Wood Products Engineering">Wood Products Engineering</option>
-    </optgroup>
-    <optgroup label="COMPUTING & ICT">
-        <option value="Computer Science">Computer Science</option>
-        <option value="Information Technology">Information Technology</option>
-        <option value="Information Systems">Information Systems</option>
-        <option value="Information and Communication Technology">Information and Communication Technology</option>
-        <option value="Cyber Security">Cyber Security</option>
-        <option value="Software Engineering">Software Engineering</option>
-        <option value="Data Science">Data Science</option>
-        <option value="Artificial Intelligence">Artificial Intelligence</option>
-        <option value="Machine Learning">Machine Learning</option>
-        <option value="Cloud Computing">Cloud Computing</option>
-        <option value="Information Science">Information Science</option>
-        <option value="Information Management">Information Management</option>
-        <option value="Computer Technology">Computer Technology</option>
-        <option value="Network Engineering">Network Engineering</option>
-        <option value="Systems Engineering">Systems Engineering</option>
-        <option value="Library and Information Science">Library and Information Science</option>
-        <option value="Library Science">Library Science</option>
-    </optgroup>
-    <optgroup label="MEDICAL & HEALTH SCIENCES">
-        <option value="Medicine and Surgery (MBBS)">Medicine and Surgery (MBBS)</option>
-        <option value="Dentistry">Dentistry</option>
-        <option value="Nursing Science">Nursing Science</option>
-        <option value="Pharmacy">Pharmacy</option>
-        <option value="Medical Laboratory Science">Medical Laboratory Science</option>
-        <option value="Physiotherapy">Physiotherapy</option>
-        <option value="Anatomy">Anatomy</option>
-        <option value="Physiology">Physiology</option>
-        <option value="Human Nutrition and Dietetics">Human Nutrition and Dietetics</option>
-        <option value="Public Health">Public Health</option>
-        <option value="Environmental Health Science">Environmental Health Science</option>
-        <option value="Radiography">Radiography</option>
-        <option value="Radiology">Radiology</option>
-        <option value="Optometry">Optometry</option>
-        <option value="Occupational Therapy">Occupational Therapy</option>
-        <option value="Speech Therapy">Speech Therapy</option>
-        <option value="Audiology">Audiology</option>
-        <option value="Prosthetics and Orthotics">Prosthetics and Orthotics</option>
-        <option value="Biochemistry">Biochemistry</option>
-        <option value="Pharmacology">Pharmacology</option>
-        <option value="Medical Rehabilitation">Medical Rehabilitation</option>
-        <option value="Human Kinetics">Human Kinetics</option>
-        <option value="Community Health">Community Health</option>
-        <option value="Epidemiology">Epidemiology</option>
-        <option value="Health Information Management">Health Information Management</option>
-    </optgroup>
-    <optgroup label="PURE SCIENCES">
-        <option value="Biology">Biology</option>
-        <option value="Applied Biology">Applied Biology</option>
-        <option value="Microbiology">Microbiology</option>
-        <option value="Industrial Microbiology">Industrial Microbiology</option>
-        <option value="Biotechnology">Biotechnology</option>
-        <option value="Biochemistry">Biochemistry</option>
-        <option value="Chemistry">Chemistry</option>
-        <option value="Industrial Chemistry">Industrial Chemistry</option>
-        <option value="Pure Chemistry">Pure Chemistry</option>
-        <option value="Analytical Chemistry">Analytical Chemistry</option>
-        <option value="Physics">Physics</option>
-        <option value="Applied Physics">Applied Physics</option>
-        <option value="Geophysics">Geophysics</option>
-        <option value="Mathematics">Mathematics</option>
-        <option value="Applied Mathematics">Applied Mathematics</option>
-        <option value="Statistics">Statistics</option>
-        <option value="Industrial Mathematics">Industrial Mathematics</option>
-        <option value="Marine Biology">Marine Biology</option>
-        <option value="Botany">Botany</option>
-        <option value="Zoology">Zoology</option>
-        <option value="Genetics">Genetics</option>
-        <option value="Cell Biology">Cell Biology</option>
-        <option value="Molecular Biology">Molecular Biology</option>
-        <option value="Bioinformatics">Bioinformatics</option>
-        <option value="Environmental Biology">Environmental Biology</option>
-        <option value="Ecology">Ecology</option>
-        <option value="Oceanography">Oceanography</option>
-        <option value="Meteorology">Meteorology</option>
-        <option value="Geology">Geology</option>
-        <option value="Earth Science">Earth Science</option>
-        <option value="Earth and Environmental Science">Earth and Environmental Science</option>
-        <option value="Mineral Resources">Mineral Resources</option>
-        <option value="Petroleum Geoscience">Petroleum Geoscience</option>
-    </optgroup>
-    <optgroup label="SOCIAL SCIENCES">
-        <option value="Economics">Economics</option>
-        <option value="Sociology">Sociology</option>
-        <option value="Political Science">Political Science</option>
-        <option value="Psychology">Psychology</option>
-        <option value="Criminology">Criminology</option>
-        <option value="Criminology and Security Studies">Criminology and Security Studies</option>
-        <option value="Peace and Conflict Studies">Peace and Conflict Studies</option>
-        <option value="International Relations">International Relations</option>
-        <option value="International Studies">International Studies</option>
-        <option value="Public Administration">Public Administration</option>
-        <option value="Public Policy">Public Policy</option>
-        <option value="Development Studies">Development Studies</option>
-        <option value="Demography">Demography</option>
-        <option value="Population Studies">Population Studies</option>
-        <option value="Social Work">Social Work</option>
-        <option value="Industrial Relations">Industrial Relations</option>
-        <option value="Labour Studies">Labour Studies</option>
-        <option value="Intelligence and Security Studies">Intelligence and Security Studies</option>
-        <option value="Gender Studies">Gender Studies</option>
-    </optgroup>
-    <optgroup label="MANAGEMENT SCIENCES">
-        <option value="Accounting">Accounting</option>
-        <option value="Banking and Finance">Banking and Finance</option>
-        <option value="Finance">Finance</option>
-        <option value="Business Administration">Business Administration</option>
-        <option value="Business Management">Business Management</option>
-        <option value="Commerce">Commerce</option>
-        <option value="Entrepreneurship">Entrepreneurship</option>
-        <option value="Insurance">Insurance</option>
-        <option value="Taxation">Taxation</option>
-        <option value="Marketing">Marketing</option>
-        <option value="Human Resource Management">Human Resource Management</option>
-        <option value="Procurement Management">Procurement Management</option>
-        <option value="Project Management">Project Management</option>
-        <option value="Logistics and Supply Chain Management">Logistics and Supply Chain Management</option>
-        <option value="Office Technology and Management">Office Technology and Management</option>
-        <option value="Actuarial Science">Actuarial Science</option>
-        <option value="Cooperative Economics">Cooperative Economics</option>
-        <option value="Cooperative Management">Cooperative Management</option>
-    </optgroup>
-    <optgroup label="LAW">
-        <option value="Law (LL.B.)">Law (LL.B.)</option>
-        <option value="Civil Law">Civil Law</option>
-        <option value="Common Law">Common Law</option>
-        <option value="Islamic Law">Islamic Law</option>
-        <option value="Customary Law">Customary Law</option>
-    </optgroup>
-    <optgroup label="EDUCATION">
-        <option value="Adult Education">Adult Education</option>
-        <option value="Adult and Non-Formal Education">Adult and Non-Formal Education</option>
-        <option value="Agricultural Education">Agricultural Education</option>
-        <option value="Biology Education">Biology Education</option>
-        <option value="Business Education">Business Education</option>
-        <option value="Chemistry Education">Chemistry Education</option>
-        <option value="Computer Education">Computer Education</option>
-        <option value="Curriculum Studies">Curriculum Studies</option>
-        <option value="Early Childhood Education">Early Childhood Education</option>
-        <option value="Economics Education">Economics Education</option>
-        <option value="Educational Administration">Educational Administration</option>
-        <option value="Educational Foundations">Educational Foundations</option>
-        <option value="Educational Management">Educational Management</option>
-        <option value="Educational Planning">Educational Planning</option>
-        <option value="Educational Psychology">Educational Psychology</option>
-        <option value="Educational Technology">Educational Technology</option>
-        <option value="English Education">English Education</option>
-        <option value="Fine Arts Education">Fine Arts Education</option>
-        <option value="French Education">French Education</option>
-        <option value="Geography Education">Geography Education</option>
-        <option value="Guidance and Counselling">Guidance and Counselling</option>
-        <option value="Health Education">Health Education</option>
-        <option value="History Education">History Education</option>
-        <option value="Home Economics Education">Home Economics Education</option>
-        <option value="Human Kinetics Education">Human Kinetics Education</option>
-        <option value="Integrated Science Education">Integrated Science Education</option>
-        <option value="Library Education">Library Education</option>
-        <option value="Mathematics Education">Mathematics Education</option>
-        <option value="Music Education">Music Education</option>
-        <option value="Nursery Education">Nursery Education</option>
-        <option value="Physical Education">Physical Education</option>
-        <option value="Physics Education">Physics Education</option>
-        <option value="Political Science Education">Political Science Education</option>
-        <option value="Primary Education">Primary Education</option>
-        <option value="Religious Studies Education">Religious Studies Education</option>
-        <option value="Science Education">Science Education</option>
-        <option value="Social Studies Education">Social Studies Education</option>
-        <option value="Special Education">Special Education</option>
-        <option value="Technical Education">Technical Education</option>
-        <option value="Vocational Education">Vocational Education</option>
-        <option value="Yoruba Education">Yoruba Education</option>
-        <option value="Igbo Education">Igbo Education</option>
-        <option value="Hausa Education">Hausa Education</option>
-    </optgroup>
-    <optgroup label="ARTS & HUMANITIES">
-        <option value="English Language">English Language</option>
-        <option value="English Literature">English Literature</option>
-        <option value="Linguistics">Linguistics</option>
-        <option value="Linguistics and Nigerian Languages">Linguistics and Nigerian Languages</option>
-        <option value="Literature in English">Literature in English</option>
-        <option value="History">History</option>
-        <option value="History and International Studies">History and International Studies</option>
-        <option value="Philosophy">Philosophy</option>
-        <option value="Religious Studies">Religious Studies</option>
-        <option value="Christian Religious Studies">Christian Religious Studies</option>
-        <option value="Islamic Studies">Islamic Studies</option>
-        <option value="Arabic Studies">Arabic Studies</option>
-        <option value="French">French</option>
-        <option value="German">German</option>
-        <option value="Russian">Russian</option>
-        <option value="Portuguese">Portuguese</option>
-        <option value="Chinese Studies">Chinese Studies</option>
-        <option value="Theatre Arts">Theatre Arts</option>
-        <option value="Theatre and Film Studies">Theatre and Film Studies</option>
-        <option value="Creative Arts">Creative Arts</option>
-        <option value="Fine Arts">Fine Arts</option>
-        <option value="Performing Arts">Performing Arts</option>
-        <option value="Music">Music</option>
-        <option value="Dance">Dance</option>
-        <option value="Archaeology">Archaeology</option>
-        <option value="Heritage Studies">Heritage Studies</option>
-        <option value="Classics">Classics</option>
-        <option value="Comparative Religion">Comparative Religion</option>
-    </optgroup>
-    <optgroup label="MASS COMMUNICATION & MEDIA">
-        <option value="Mass Communication">Mass Communication</option>
-        <option value="Journalism">Journalism</option>
-        <option value="Broadcasting">Broadcasting</option>
-        <option value="Public Relations">Public Relations</option>
-        <option value="Advertising">Advertising</option>
-        <option value="Media Studies">Media Studies</option>
-        <option value="Film Production">Film Production</option>
-        <option value="Communication Arts">Communication Arts</option>
-        <option value="Strategic Communication">Strategic Communication</option>
-        <option value="Digital Media">Digital Media</option>
-        <option value="Multimedia Studies">Multimedia Studies</option>
-    </optgroup>
-    <optgroup label="ARCHITECTURE & BUILT ENVIRONMENT">
-        <option value="Architecture">Architecture</option>
-        <option value="Building">Building</option>
-        <option value="Quantity Surveying">Quantity Surveying</option>
-        <option value="Estate Management">Estate Management</option>
-        <option value="Estate Management and Valuation">Estate Management and Valuation</option>
-        <option value="Urban and Regional Planning">Urban and Regional Planning</option>
-        <option value="Surveying and Geoinformatics">Surveying and Geoinformatics</option>
-        <option value="Geomatics">Geomatics</option>
-        <option value="Landscape Architecture">Landscape Architecture</option>
-        <option value="Interior Design">Interior Design</option>
-        <option value="Housing Studies">Housing Studies</option>
-    </optgroup>
-    <optgroup label="EARTH SCIENCES">
-        <option value="Geography">Geography</option>
-        <option value="Geology">Geology</option>
-        <option value="Applied Geology">Applied Geology</option>
-        <option value="Remote Sensing">Remote Sensing</option>
-        <option value="GIS">GIS</option>
-        <option value="Geophysics">Geophysics</option>
-        <option value="Cartography">Cartography</option>
-        <option value="Hydrology">Hydrology</option>
-        <option value="Marine Geology">Marine Geology</option>
-        <option value="Petroleum Geoscience">Petroleum Geoscience</option>
-    </optgroup>
-    <optgroup label="FOOD & HOME SCIENCES">
-        <option value="Food Science">Food Science</option>
-        <option value="Food Science and Technology">Food Science and Technology</option>
-        <option value="Food Technology">Food Technology</option>
-        <option value="Nutrition and Dietetics">Nutrition and Dietetics</option>
-        <option value="Home Economics">Home Economics</option>
-        <option value="Consumer Sciences">Consumer Sciences</option>
-        <option value="Hospitality Management">Hospitality Management</option>
-        <option value="Hotel Management">Hotel Management</option>
-        <option value="Catering Management">Catering Management</option>
-    </optgroup>
-    <optgroup label="SECURITY & DEFENCE">
-        <option value="Security Studies">Security Studies</option>
-        <option value="Intelligence Studies">Intelligence Studies</option>
-        <option value="Criminology">Criminology</option>
-        <option value="Peace Studies">Peace Studies</option>
-        <option value="Peace and Conflict Resolution">Peace and Conflict Resolution</option>
-        <option value="Disaster Management">Disaster Management</option>
-        <option value="Emergency Management">Emergency Management</option>
-    </optgroup>
-    <optgroup label="TRANSPORT & AVIATION">
-        <option value="Transport Management">Transport Management</option>
-        <option value="Logistics Management">Logistics Management</option>
-        <option value="Aviation Management">Aviation Management</option>
-        <option value="Nautical Science">Nautical Science</option>
-        <option value="Maritime Studies">Maritime Studies</option>
-        <option value="Marine Transport">Marine Transport</option>
-        <option value="Shipping Management">Shipping Management</option>
-    </optgroup>
-    <optgroup label="CREATIVE & DESIGN">
-        <option value="Fine and Applied Arts">Fine and Applied Arts</option>
-        <option value="Graphic Design">Graphic Design</option>
-        <option value="Industrial Design">Industrial Design</option>
-        <option value="Textile Design">Textile Design</option>
-        <option value="Fashion Design">Fashion Design</option>
-        <option value="Animation">Animation</option>
-        <option value="Photography">Photography</option>
-        <option value="Ceramics">Ceramics</option>
-        <option value="Sculpture">Sculpture</option>
-        <option value="Painting">Painting</option>
-        <option value="Visual Arts">Visual Arts</option>
-    </optgroup>
-    <optgroup label="ENERGY & PETROLEUM">
-        <option value="Petroleum Engineering">Petroleum Engineering</option>
-        <option value="Gas Engineering">Gas Engineering</option>
-        <option value="Petrochemical Engineering">Petrochemical Engineering</option>
-        <option value="Energy Engineering">Energy Engineering</option>
-        <option value="Renewable Energy">Renewable Energy</option>
-        <option value="Petroleum Economics">Petroleum Economics</option>
-        <option value="Petroleum Geoscience">Petroleum Geoscience</option>
-    </optgroup>
-    <optgroup label="SPECIALIZED PROGRAMMES">
-        <option value="Industrial Physics">Industrial Physics</option>
-        <option value="Industrial Mathematics">Industrial Mathematics</option>
-        <option value="Industrial Chemistry">Industrial Chemistry</option>
-        <option value="Industrial Biology">Industrial Biology</option>
-        <option value="Bioengineering">Bioengineering</option>
-        <option value="Nanotechnology">Nanotechnology</option>
-        <option value="Renewable Energy Technology">Renewable Energy Technology</option>
-        <option value="Environmental Toxicology">Environmental Toxicology</option>
-        <option value="Biotechnology">Biotechnology</option>
-        <option value="Marine Science">Marine Science</option>
-        <option value="Marine Technology">Marine Technology</option>
-        <option value="Fisheries Technology">Fisheries Technology</option>
-        <option value="Wood Science">Wood Science</option>
-        <option value="Wood Technology">Wood Technology</option>
-        <option value="Textile Technology">Textile Technology</option>
-        <option value="Polymer Technology">Polymer Technology</option>
-        <option value="Ceramics Technology">Ceramics Technology</option>
-        <option value="Glass Technology">Glass Technology</option>
-    </optgroup>
-    <optgroup label="NEW & EMERGING PROGRAMMES">
-        <option value="Artificial Intelligence">Artificial Intelligence</option>
-        <option value="Data Science">Data Science</option>
-        <option value="Robotics">Robotics</option>
-        <option value="Robotics Engineering">Robotics Engineering</option>
-        <option value="Mechatronics">Mechatronics</option>
-        <option value="Cyber Security">Cyber Security</option>
-        <option value="Digital Forensics">Digital Forensics</option>
-        <option value="Blockchain Technology">Blockchain Technology</option>
-        <option value="FinTech">FinTech</option>
-        <option value="Financial Technology">Financial Technology</option>
-        <option value="Cloud Computing">Cloud Computing</option>
-        <option value="Internet of Things (IoT)">Internet of Things (IoT)</option>
-        <option value="DevOps Engineering">DevOps Engineering</option>
-        <option value="Geographic Information Systems (GIS)">Geographic Information Systems (GIS)</option>
-        <option value="Bioinformatics">Bioinformatics</option>
-        <option value="Health Informatics">Health Informatics</option>
-        <option value="e-Commerce">e-Commerce</option>
-        <option value="UX/UI Design">UX/UI Design</option>
-        <option value="Game Development">Game Development</option>
-    </optgroup>
-    <optgroup label="GENERAL">
-        <option value="gst">General Studies (All Depts)</option>
-    </optgroup>
-</select>
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Ingestion Engine</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">CSV Bulk Parser</div>
                     </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Level</label>
-                        <select name="level" required>
-                            <option value="100">100 Level</option>
-                            <option value="200">200 Level</option>
-                            <option value="300">300 Level</option>
-                            <option value="400">400 Level</option>
-                            <option value="500">500 Level</option>
-                        </select>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                     </div>
                 </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Automated Ingestion</span>
+                    <span>&bull; High-throughput</span>
+                </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Select CSV File</label>
-                    <input type="file" name="csv_file" accept=".csv" required style="padding: 20px; border: 2px dashed var(--cbg-color-2); text-align: center; cursor: pointer;">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Curriculum Levels</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">100L &ndash; 500L</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-ai" style="width: 100%;">Upload & Import</button>
-            </form>
-            
-            <form method="POST" action="/admin/questions/clear" style="margin-top: 2rem;">
-                <button type="submit" class="btn" style="width: 100%; background: #ff4d4d; color: white;" onclick="return confirm('Are you sure you want to delete ALL mock exam questions? This cannot be undone.');">️ Clear All Uploaded Questions</button>
-            </form>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">Undergraduate Scope</span>
+                    <span>&bull; Multi-tier support</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">CSV Standard</div>
+                        <div class="kpi-value" style="font-size: 1.45rem;">7 Columns</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;">Strict Schema</span>
+                    <span>&bull; Header Skipped</span>
+                </div>
+            </div>
         </div>
 
-        <div class="glass-panel" style="max-width: 600px; margin-top: 2rem;">
-            <h3 style="margin-bottom: 1rem;">Uploaded Courses (Mock Exams)</h3>
-            <% if (locals.courses && courses.length > 0) { %>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <% courses.forEach(c => { %>
-                        <span style="background: var(--cbg-color-2); padding: 5px 10px; border-radius: 5px; font-weight: bold; border: 1px solid var(--border-color);"><%= c.course_code %></span>
-                    <% }); %>
+        <!-- Global Action Alerts -->
+        <% if (locals.success && success.length > 0) { %>
+            <div class="alert alert-success" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><%= success %></span>
+            </div>
+        <% } %>
+        <% if (locals.error && error.length > 0) { %>
+            <div class="alert alert-error" style="border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <!-- Two-Column Workspace -->
+        <div class="admin-workspace-grid">
+            <!-- Left Column: Upload Form -->
+            <div class="admin-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-color);">Import Questions (CSV)</h2>
+                        <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 4px 0 0 0;">Upload structured questions mapped directly to academic departments and levels.</p>
+                    </div>
+                    <span class="badge-pill info">Batch Processor</span>
                 </div>
-            <% } else { %>
-                <p style="color: var(--ntxt-color);">No courses uploaded yet.</p>
-            <% } %>
+
+                <!-- CSV Specifications Card -->
+                <div class="csv-spec-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cta-color);">Required CSV Schema (7 Columns)</span>
+                        <button type="button" onclick="copyCsvHeader()" class="copy-pill" title="Copy Column Names">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span id="copyHeaderText">Copy Header</span>
+                        </button>
+                    </div>
+                    <div class="csv-code-snippet" id="csvHeaderSnippet">course_code, question_text, option_a, option_b, option_c, option_d, correct_option</div>
+                    <div style="font-size: 0.78rem; color: var(--ntxt-color); line-height: 1.4;">
+                        Row 1 is automatically treated as the column header and skipped. The <code style="color: var(--cta-color); font-weight: 600;">correct_option</code> value must be strictly one of <code style="color: var(--cta-color);">A</code>, <code style="color: var(--cta-color);">B</code>, <code style="color: var(--cta-color);">C</code>, or <code style="color: var(--cta-color);">D</code>.
+                    </div>
+                </div>
+
+                <form method="POST" action="/admin/questions" enctype="multipart/form-data" id="questionUploadForm">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 18px;">
+                        <!-- Level Select -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Academic Level</label>
+                            <select name="level" class="admin-select" style="width: 100%;" required>
+                                <option value="100">100 Level (Freshman)</option>
+                                <option value="200">200 Level (Sophomore)</option>
+                                <option value="300">300 Level (Junior)</option>
+                                <option value="400">400 Level (Senior)</option>
+                                <option value="500">500 Level (Final / Professional)</option>
+                            </select>
+                        </div>
+
+                        <!-- Department Selection -->
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="font-weight: 600; font-size: 0.85rem; margin: 0;">Target Departments</label>
+                                <span id="deptCountBadge" style="font-size: 0.76rem; color: var(--cta-color); font-weight: 600;">Hold Ctrl / Cmd for multi-select</span>
+                            </div>
+                            
+                            <!-- Quick Action Chips -->
+                            <div class="dept-helper-pills">
+                                <button type="button" class="dept-chip" onclick="selectGST()">⚡ General Studies (GST)</button>
+                                <button type="button" class="dept-chip" onclick="selectAllDepts()">Select All</button>
+                                <button type="button" class="dept-chip" onclick="clearDepts()">Deselect All</button>
+                            </div>
+
+                            <select name="department_id" id="deptSelect" multiple style="width: 100%; height: 160px; padding: 10px; border-radius: 9px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.88rem;" required onchange="updateDeptCount()">
+                                <%- include('./partials/department_options') %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Drag & Drop CSV Box -->
+                    <div class="form-group">
+                        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Select Question Bank CSV</label>
+                        <div class="drag-drop-container" id="csvDropZone">
+                            <input type="file" name="csv_file" id="csvFileInput" accept=".csv" required>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--primary-color); margin-bottom: 10px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-color);">Drag & Drop your CSV file here</div>
+                            <p style="color: var(--ntxt-color); font-size: 0.82rem; margin: 4px 0 0 0;">or click to browse from device (.csv format only)</p>
+                            
+                            <div class="file-selected-badge" id="fileSelectedBadge">
+                                <span id="fileNameDisplay">file.csv</span>
+                                <span id="fileSizeDisplay" style="font-size: 0.75rem; opacity: 0.8; margin-left: 6px;">(0 KB)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-ai" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Upload & Import Questions</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Directory & Danger Zone -->
+            <div>
+                <!-- Directory Panel -->
+                <div class="admin-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-color);">Active Course Banks</h2>
+                            <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 4px 0 0 0;">Courses currently holding CBT mock questions.</p>
+                        </div>
+                        <span class="badge-pill info" id="activeCoursesCount"><%= totalCoursesCount %> Courses</span>
+                    </div>
+
+                    <!-- Search Filter -->
+                    <div class="admin-search-box" style="margin-bottom: 16px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="courseFilterInput" placeholder="Filter courses (e.g. GST101, MTH)..." onkeyup="filterCourseCards()">
+                    </div>
+
+                    <!-- Course Pills Grid -->
+                    <% if (locals.courses && courses.length > 0) { %>
+                        <div class="courses-cloud-grid" id="coursesGrid">
+                            <% courses.forEach(c => { %>
+                                <div class="course-tag-card" data-code="<%= c.course_code.toLowerCase() %>">
+                                    <span><%= c.course_code %></span>
+                                    <small>Mock Ready</small>
+                                </div>
+                            <% }); %>
+                        </div>
+                        <div id="noMatchMessage" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">
+                            <p style="margin: 0; font-size: 0.9rem;">No courses match your filter.</p>
+                        </div>
+                    <% } else { %>
+                        <div style="text-align: center; padding: 3rem 1.5rem; color: var(--ntxt-color);">
+                            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.4;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                            <p style="font-weight: 600; margin-bottom: 4px; color: var(--text-color);">No courses uploaded yet</p>
+                            <p style="font-size: 0.85rem; margin: 0;">Use the CSV importer on the left to upload your initial course exam questions.</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Danger Zone Panel -->
+                <div class="admin-panel" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.02);">
+                    <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px;">
+                        <div style="background: rgba(239, 68, 68, 0.12); color: #ef4444; padding: 10px; border-radius: 10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: #ef4444;">Purge Mock Question Bank</h3>
+                            <p style="font-size: 0.82rem; color: var(--ntxt-color); margin: 4px 0 0 0; line-height: 1.4;">
+                                Permanently wipe all uploaded mock examination questions across every department. This action cannot be reversed.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="/admin/questions/clear" onsubmit="return confirm('⚠️ CRITICAL WARNING: Are you completely certain you want to purge ALL mock exam questions? All student practice data mapped to these items will be permanently reset.');">
+                        <button type="submit" class="btn" style="width: 100%; background: #ef4444; color: white; padding: 10px; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.88rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Clear All Uploaded Questions</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
+
+    <script>
+        // Department multi-select helpers
+        const deptSelect = document.getElementById('deptSelect');
+        const deptCountBadge = document.getElementById('deptCountBadge');
+
+        function updateDeptCount() {
+            const count = Array.from(deptSelect.selectedOptions).length;
+            if (count > 0) {
+                deptCountBadge.innerText = `${count} department${count > 1 ? 's' : ''} selected`;
+                deptCountBadge.style.color = 'var(--primary-color)';
+            } else {
+                deptCountBadge.innerText = 'Hold Ctrl / Cmd for multi-select';
+                deptCountBadge.style.color = 'var(--ntxt-color)';
+            }
+        }
+
+        function selectGST() {
+            Array.from(deptSelect.options).forEach(opt => {
+                opt.selected = (opt.value === 'gst');
+            });
+            updateDeptCount();
+        }
+
+        function selectAllDepts() {
+            Array.from(deptSelect.options).forEach(opt => {
+                opt.selected = true;
+            });
+            updateDeptCount();
+        }
+
+        function clearDepts() {
+            Array.from(deptSelect.options).forEach(opt => {
+                opt.selected = false;
+            });
+            updateDeptCount();
+        }
+
+        // Drag & Drop CSV handling
+        const dropZone = document.getElementById('csvDropZone');
+        const fileInput = document.getElementById('csvFileInput');
+        const fileBadge = document.getElementById('fileSelectedBadge');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const fileSizeDisplay = document.getElementById('fileSizeDisplay');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                showSelectedFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                showSelectedFile(fileInput.files[0]);
+            } else {
+                fileBadge.style.display = 'none';
+            }
+        });
+
+        function showSelectedFile(file) {
+            fileNameDisplay.innerText = file.name;
+            const sizeKB = (file.size / 1024).toFixed(1);
+            fileSizeDisplay.innerText = `(${sizeKB} KB)`;
+            fileBadge.style.display = 'inline-flex';
+        }
+
+        // Copy CSV Header format
+        function copyCsvHeader() {
+            const text = document.getElementById('csvHeaderSnippet').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtnText = document.getElementById('copyHeaderText');
+                copyBtnText.innerText = 'Copied!';
+                setTimeout(() => {
+                    copyBtnText.innerText = 'Copy Header';
+                }, 2000);
+            });
+        }
+
+        // Filter uploaded course cards
+        function filterCourseCards() {
+            const query = document.getElementById('courseFilterInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.course-tag-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const code = card.getAttribute('data-code');
+                if (code.includes(query)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const noMatch = document.getElementById('noMatchMessage');
+            if (noMatch) {
+                noMatch.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+            }
+        }
+    </script>
 </body>
 </html>
-
-
-
-
-

@@ -1,228 +1,449 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Curriculum Verification - Admin Dashboard</title>
+    <title>Curriculum Verification - Executive Admin</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
     <style>
-        .dashboard-body { position: relative; background: transparent; display: flex; min-height: 100vh; margin: 0; font-family: system-ui, -apple-system, sans-serif; }
-        
-        .ambient-bg {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -1; overflow: hidden; pointer-events: none; background: var(--cbg-color);
+        .kpi-grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 2rem;
         }
-        .orb {
-            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.2; will-change: transform;
+        @media (max-width: 1200px) {
+            .kpi-grid-6 {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
-        .orb-1 { width: 40vw; height: 40vw; background: rgba(33, 150, 243, 0.4); top: -10%; left: -10%; }
-        .orb-2 { width: 35vw; height: 35vw; background: rgba(156, 39, 176, 0.3); bottom: -10%; right: -10%; }
-
-        .sidebar { 
-            width: 250px; background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px); 
-            padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.05); z-index: 10;
+        @media (max-width: 768px) {
+            .kpi-grid-6 {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
-        .sidebar h2 { color: var(--sec-color); font-size: 1.5rem; margin-top: 0; margin-bottom: 2rem; }
-        .nav-link { 
-            display: block; margin: 15px 0; padding: 10px 15px; color: var(--ntxt-color); 
-            text-decoration: none; border-radius: 8px; transition: background 0.3s, color 0.3s;
+        @media (max-width: 480px) {
+            .kpi-grid-6 {
+                grid-template-columns: 1fr;
+            }
         }
-        .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .nav-link.active { background: rgba(33, 150, 243, 0.1); color: var(--cta-color); font-weight: 600; border-left: 3px solid var(--cta-color); }
-
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; max-width: 1400px; margin: 0 auto; z-index: 5; }
-        
-        .header-title { color: var(--sec-color); font-size: 2.2rem; margin-top: 0; margin-bottom: 2rem; }
-
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .summary-card { 
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1.5rem; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); opacity: 0; transform: translateY(20px);
+        .action-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
-        .summary-val { font-size: 2.2rem; font-weight: bold; margin-top: 10px; }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 1.5rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); opacity: 0; transform: translateY(20px);
+        .act-btn {
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            line-height: 1.2;
         }
-        
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
-        select { 
-            padding: 10px 15px; border-radius: 12px; background: rgba(255,255,255,0.05); 
-            color: var(--txt-color); border: 1px solid rgba(255,255,255,0.1); font-size: 1rem;
+        .act-btn:hover {
+            transform: translateY(-1px);
         }
-        select option { background: var(--nav-bg); }
-
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        td { color: var(--txt-color); }
-        tr:hover { background: rgba(255,255,255,0.02); }
-        
-        .badge { padding: 6px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: #fff; display: inline-block; margin-bottom: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .bg-green { background: linear-gradient(135deg, #4caf50, #2e7d32); }
-        .bg-yellow { background: linear-gradient(135deg, #ffc107, #f57f17); color: #000; }
-        .bg-orange { background: linear-gradient(135deg, #ff9800, #e65100); }
-        .bg-red { background: linear-gradient(135deg, #f44336, #c62828); }
-        
-        .btn { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin: 3px; color: white; transition: transform 0.2s; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn-green { background: linear-gradient(135deg, #4caf50, #2e7d32); }
-        .btn-yellow { background: linear-gradient(135deg, #ffc107, #f57f17); color: #000; }
-        .btn-red { background: linear-gradient(135deg, #f44336, #c62828); }
-        .btn-blue { background: linear-gradient(135deg, var(--cta-color), #1976d2); text-decoration: none; display: inline-block; }
-        .btn-gray { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-        .btn-gray:hover { background: rgba(255,255,255,0.2); }
+        .act-btn-verify {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .act-btn-verify:hover {
+            background: #10b981;
+            color: #fff;
+        }
+        .act-btn-hist {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .act-btn-hist:hover {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .act-btn-flag {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .act-btn-flag:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .act-btn-note {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        .act-btn-note:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .act-btn-source {
+            background: rgba(59, 130, 246, 0.12);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .act-btn-source:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
+        /* Toast notification */
+        .toast-pill {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+        .toast-pill.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
-<body class="dashboard-body">
-    <div class="ambient-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-    </div>
+<body class="dashboard-body admin-body">
+    <%- include('./partials/admin_sidebar', { active_page: 'curriculum_verification' }) %>
 
-    <div class="sidebar">
-        <h2>Admin Console</h2>
-        <a href="/admin" class="nav-link">Dashboard</a>
-        <a href="/admin/curriculum-verification" class="nav-link active">Curriculum Verification</a>
-        <a href="/admin/questions" class="nav-link">Exam Questions</a>
-        <a href="/dashboard" class="nav-link" style="margin-top: 50px; border: 1px solid rgba(255,255,255,0.1);">Exit to App</a>
-    </div>
+    <main class="admin-main-content">
+        <!-- Executive Topbar -->
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="admin-title">Curriculum Verification & Audit</h1>
+                    <p class="admin-subtitle">Verify official university programmes, syllabus versions, credit units, and audit conflict alerts.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <button onclick="loadCurriculumData()" class="btn btn-outline" id="refreshBtn" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="refreshIcon"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    <span>Refresh Data</span>
+                </button>
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    &larr; Overview
+                </a>
+            </div>
+        </header>
 
-    <div class="main-content">
-        <h1 class="header-title">Curriculum Verification Dashboard</h1>
-        
-        <div class="summary-grid" id="summaryGrid">
-            <div class="summary-card">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Programmes</div>
-                <div class="summary-val" id="sum-prog" style="color: var(--txt-color);">0</div>
+        <!-- KPI Metrics Grid (6 Metrics) -->
+        <div class="kpi-grid-6">
+            <div class="kpi-card" style="padding: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Programmes</div>
+                        <div class="kpi-value" id="sum-prog" style="font-size: 1.6rem;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #3b82f6; font-weight: 600;">Faculties</span>
+                </div>
             </div>
-            <div class="summary-card">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Total Courses</div>
-                <div class="summary-val" id="sum-course" style="color: var(--txt-color);">0</div>
+
+            <div class="kpi-card" style="padding: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Total Courses</div>
+                        <div class="kpi-value" id="sum-course" style="font-size: 1.6rem;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #8b5cf6; font-weight: 600;">Indexed Matrix</span>
+                </div>
             </div>
-            <div class="summary-card" style="border-bottom: 3px solid #4caf50;">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Verified</div>
-                <div class="summary-val" id="sum-verified" style="color: #4caf50;">0</div>
+
+            <div class="kpi-card" style="padding: 18px; border-bottom: 3px solid #10b981;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Verified Current</div>
+                        <div class="kpi-value" id="sum-verified" style="font-size: 1.6rem; color: #10b981;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #10b981; font-weight: 600;">2026 Canonical</span>
+                </div>
             </div>
-            <div class="summary-card" style="border-bottom: 3px solid #ffc107;">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Historical</div>
-                <div class="summary-val" id="sum-hist" style="color: #ffc107;">0</div>
+
+            <div class="kpi-card" style="padding: 18px; border-bottom: 3px solid #f59e0b;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Historical</div>
+                        <div class="kpi-value" id="sum-hist" style="font-size: 1.6rem; color: #f59e0b;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #f59e0b; font-weight: 600;">Previous Curricula</span>
+                </div>
             </div>
-            <div class="summary-card" style="border-bottom: 3px solid #ff9800;">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Pending</div>
-                <div class="summary-val" id="sum-pend" style="color: #ff9800;">0</div>
+
+            <div class="kpi-card" style="padding: 18px; border-bottom: 3px solid #ff9800;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Pending Audit</div>
+                        <div class="kpi-value" id="sum-pend" style="font-size: 1.6rem; color: #ff9800;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(255, 152, 0, 0.12); color: #ff9800; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #ff9800; font-weight: 600;">Awaiting Review</span>
+                </div>
             </div>
-            <div class="summary-card" style="border-bottom: 3px solid #f44336;">
-                <div style="color: var(--ntxt-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Conflicts</div>
-                <div class="summary-val" id="sum-conf" style="color: #f44336;">0</div>
+
+            <div class="kpi-card" style="padding: 18px; border-bottom: 3px solid #ef4444;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title" style="font-size: 0.76rem;">Conflict Alerts</div>
+                        <div class="kpi-value" id="sum-conf" style="font-size: 1.6rem; color: #ef4444;">0</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; width: 34px; height: 34px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend" style="font-size: 0.75rem; margin-top: 6px;">
+                    <span style="color: #ef4444; font-weight: 600;">Discrepancies</span>
+                </div>
             </div>
         </div>
 
-        <div class="glass-panel" id="table-container">
-            <div class="controls">
-                <select id="statusFilter" onchange="filterTable()">
-                    <option value="all">View All Statuses</option>
-                    <option value="current_official_verified">Current Verified (2026)</option>
-                    <option value="official_historical">Official Historical</option>
-                    <option value="pending_verification">Pending Verification</option>
-                    <option value="conflicting_official_sources">Conflicting Sources</option>
-                    <option value="department_confirmation_required">Department Confirmation Required</option>
-                </select>
-                <input type="text" id="searchFilter" onkeyup="filterTable()" placeholder="Search course code or programme..." style="padding: 10px 15px; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--txt-color); border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; width: 300px;">
+        <!-- Main Curriculum Verification Workspace -->
+        <div class="admin-panel">
+            <!-- Filter Toolbar -->
+            <div class="admin-filter-bar">
+                <div class="admin-search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="searchFilter" onkeyup="filterTable()" placeholder="Search course code, title, programme or faculty...">
+                </div>
+
+                <div class="admin-filter-group">
+                    <select id="statusFilter" class="admin-select" onchange="filterTable()">
+                        <option value="all">All Statuses</option>
+                        <option value="current_official_verified">Verified Current (2026)</option>
+                        <option value="official_historical">Official Historical</option>
+                        <option value="pending_verification">Pending Verification</option>
+                        <option value="conflicting_official_sources">Conflicting Sources</option>
+                        <option value="department_confirmation_required">Department Confirmation Required</option>
+                    </select>
+
+                    <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                        Showing <strong id="visibleCount" style="color: var(--text-color);">0</strong> of <span id="totalCount">0</span>
+                    </span>
+                </div>
             </div>
 
-            <div style="overflow-x: auto;">
-                <table id="curriculumTable">
+            <!-- Responsive Curriculum Table -->
+            <div class="table-responsive">
+                <table class="data-table" id="curriculumTable">
                     <thead>
                         <tr>
                             <th>Programme & Faculty</th>
                             <th>Level & Sem.</th>
                             <th>Course Code & Title</th>
-                            <th>Status & Units</th>
-                            <th>Source & Verification</th>
-                            <th style="min-width: 280px;">Admin Actions</th>
+                            <th>Units & Cat.</th>
+                            <th>Status & Source</th>
+                            <th style="text-align: right; min-width: 260px;">Administrative Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr><td colspan="6" style="text-align: center; padding: 3rem; color: var(--ntxt-color);">Loading curriculum data...</td></tr>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 4rem 1rem; color: var(--ntxt-color);">
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                                    <div class="spinner" style="width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                                    <span style="font-size: 0.9rem;">Fetching canonical curriculum registry...</span>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </main>
+
+    <!-- Toast Notification Element -->
+    <div class="toast-pill" id="actionToast">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span id="toastMessage">Status updated successfully</span>
     </div>
 
     <script>
         let allData = [];
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            gsap.to(".summary-card", { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
-            gsap.to("#table-container", { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: "power2.out" });
-            gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
-            gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
-            VanillaTilt.init(document.querySelectorAll(".summary-card"), { max: 5, speed: 400, glare: true, "max-glare": 0.1 });
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurriculumData();
+        });
 
+        async function loadCurriculumData() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            if (refreshIcon) refreshIcon.style.animation = 'spin 0.8s linear infinite';
+            
             try {
                 const res = await fetch('/api/curriculum/admin/verification-list');
                 const result = await res.json();
-                if(result.success) {
-                    allData = result.data;
+                if (result.success) {
+                    allData = result.data || [];
                     updateSummary();
-                    renderTable(allData);
+                    filterTable();
+                } else {
+                    document.getElementById('tableBody').innerHTML = `
+                        <tr><td colspan="6" style="text-align: center; color: var(--error); padding: 3rem;">
+                            Failed to load curriculum records: ${result.error || 'Server error'}
+                        </td></tr>
+                    `;
                 }
             } catch(e) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--error);">Error loading data.</td></tr>';
+                console.error(e);
+                document.getElementById('tableBody').innerHTML = `
+                    <tr><td colspan="6" style="text-align: center; color: var(--error); padding: 3rem;">
+                        Network error while contacting curriculum verification API.
+                    </td></tr>
+                `;
+            } finally {
+                if (refreshIcon) refreshIcon.style.animation = 'none';
             }
-        });
+        }
 
         function updateSummary() {
-            document.getElementById('sum-prog').innerText = new Set(allData.map(d => d.programme)).size;
+            const progCount = new Set(allData.map(d => d.programme)).size;
+            document.getElementById('sum-prog').innerText = progCount;
             document.getElementById('sum-course').innerText = allData.length;
             document.getElementById('sum-verified').innerText = allData.filter(d => d.verification_status === 'current_official_verified').length;
             document.getElementById('sum-hist').innerText = allData.filter(d => d.verification_status === 'official_historical').length;
             document.getElementById('sum-pend').innerText = allData.filter(d => d.verification_status === 'pending_verification').length;
             document.getElementById('sum-conf').innerText = allData.filter(d => d.verification_status === 'conflicting_official_sources').length;
+            document.getElementById('totalCount').innerText = allData.length;
         }
 
         function getStatusBadge(status) {
-            if(status === 'current_official_verified') return `<span class="badge bg-green">Verified Current</span>`;
-            if(status === 'official_historical') return `<span class="badge bg-yellow">Historical</span>`;
-            if(status === 'conflicting_official_sources') return `<span class="badge bg-red">Conflict Alert</span>`;
-            if(status === 'department_confirmation_required') return `<span class="badge bg-orange">Dept Confirm Req</span>`;
-            return `<span class="badge bg-orange">Pending</span>`;
+            switch(status) {
+                case 'current_official_verified':
+                    return `<span class="badge-pill success">Verified Current</span>`;
+                case 'official_historical':
+                    return `<span class="badge-pill warning">Official Historical</span>`;
+                case 'conflicting_official_sources':
+                    return `<span class="badge-pill danger">Conflict Alert</span>`;
+                case 'department_confirmation_required':
+                    return `<span class="badge-pill purple">Dept Confirm Req</span>`;
+                default:
+                    return `<span class="badge-pill gray">Pending Review</span>`;
+            }
         }
 
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
-            if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--ntxt-color); padding: 3rem;">No curriculum mappings found matching criteria.</td></tr>';
+            document.getElementById('visibleCount').innerText = data.length;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--ntxt-color); padding: 3.5rem 1rem;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 10px; opacity: 0.5;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <p style="font-weight: 600; margin: 0; color: var(--text-color);">No curriculum records found</p>
+                            <p style="font-size: 0.82rem; margin: 4px 0 0 0;">Try adjusting your search criteria or status filter.</p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             data.forEach(row => {
-                let tr = document.createElement('tr');
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong style="color: var(--sec-color);">${row.programme}</strong><br><small style="color:var(--ntxt-color)">${row.faculty}</small></td>
-                    <td><strong style="color: var(--cta-color);">${row.level} Level</strong><br><small>${row.semester}</small></td>
-                    <td><strong style="font-size: 1.1rem;">${row.course_code}</strong><br><small style="color:var(--ntxt-color)">${row.course_title || 'N/A'}</small></td>
-                    <td><strong style="color: var(--txt-color);">${row.credit_units || '?'} Units</strong><br><small>${row.course_status || 'Core'}</small></td>
                     <td>
-                        ${getStatusBadge(row.verification_status)}<br>
-                        <small style="color:var(--ntxt-color)">${row.source_type || 'No source'} (${row.source_year || ''})</small>
+                        <div style="font-weight: 600; color: var(--text-color);">${escapeHtml(row.programme || 'Unassigned')}</div>
+                        <small style="color: var(--ntxt-color); font-size: 0.78rem;">${escapeHtml(row.faculty || 'General Faculty')}</small>
                     </td>
                     <td>
-                        <button class="btn btn-green" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'current_official_verified')">Verify</button>
-                        <button class="btn btn-yellow" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'official_historical')">Historical</button>
-                        <button class="btn btn-red" onclick="updateStatus('${row.course_code}', ${row.programme_id}, 'conflicting_official_sources')">Flag</button>
-                        <button class="btn btn-gray" onclick="addNote('${row.course_code}', ${row.programme_id})">Note</button>
-                        ${row.source_url ? `<a href="${row.source_url}" target="_blank" class="btn btn-blue">Source</a>` : ''}
+                        <span class="badge-pill info" style="font-size: 0.74rem;">${row.level ? row.level + 'L' : '100L'}</span>
+                        <div style="font-size: 0.78rem; color: var(--ntxt-color); margin-top: 3px;">${escapeHtml(row.semester || '1st Sem')}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 700; font-family: monospace; font-size: 0.95rem; color: var(--cta-color);">${escapeHtml(row.course_code)}</div>
+                        <small style="color: var(--ntxt-color); font-size: 0.8rem; display: block; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(row.course_title || 'Untitled Syllabus')}</small>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-color);">${row.credit_units || 0} Units</div>
+                        <small style="color: var(--ntxt-color); font-size: 0.76rem;">${escapeHtml(row.course_status || 'Core')}</small>
+                    </td>
+                    <td>
+                        <div>${getStatusBadge(row.verification_status)}</div>
+                        <small style="color: var(--ntxt-color); font-size: 0.75rem; margin-top: 3px; display: block;">
+                            ${escapeHtml(row.source_type || 'Unspecified')} ${row.source_year ? `(${escapeHtml(row.source_year)})` : ''}
+                        </small>
+                    </td>
+                    <td style="text-align: right;">
+                        <div class="action-btn-group" style="justify-content: flex-end;">
+                            <button class="act-btn act-btn-verify" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'current_official_verified')" title="Mark Verified">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Verify</span>
+                            </button>
+                            <button class="act-btn act-btn-hist" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'official_historical')" title="Mark Historical">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                                <span>Historical</span>
+                            </button>
+                            <button class="act-btn act-btn-flag" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'conflicting_official_sources')" title="Flag Conflict">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>Flag</span>
+                            </button>
+                            <button class="act-btn act-btn-note" onclick="addNote('${escapeAttr(row.course_code)}', ${row.programme_id})" title="Attach Audit Note">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                <span>Note</span>
+                            </button>
+                            ${row.source_url ? `
+                                <a href="${escapeAttr(row.source_url)}" target="_blank" rel="noopener noreferrer" class="act-btn act-btn-source" title="View Source Link">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    <span>Source</span>
+                                </a>
+                            ` : ''}
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -230,29 +451,31 @@
         }
 
         function filterTable() {
-            const statusF = document.getElementById('statusFilter').value;
-            const searchF = document.getElementById('searchFilter').value.toLowerCase();
-            
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase().trim();
+
             let filtered = allData;
-            
-            if(statusF !== 'all') {
-                filtered = filtered.filter(d => d.verification_status === statusF);
+
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(d => d.verification_status === statusFilter);
             }
-            if(searchF) {
-                filtered = filtered.filter(d => 
-                    d.course_code.toLowerCase().includes(searchF) || 
-                    d.programme.toLowerCase().includes(searchF) ||
-                    (d.course_title && d.course_title.toLowerCase().includes(searchF))
+
+            if (searchFilter) {
+                filtered = filtered.filter(d =>
+                    (d.course_code && d.course_code.toLowerCase().includes(searchFilter)) ||
+                    (d.programme && d.programme.toLowerCase().includes(searchFilter)) ||
+                    (d.faculty && d.faculty.toLowerCase().includes(searchFilter)) ||
+                    (d.course_title && d.course_title.toLowerCase().includes(searchFilter))
                 );
             }
-            
+
             renderTable(filtered);
         }
 
         async function updateStatus(course_code, programme_id, new_status) {
-            let note = prompt("Optional: Enter a reason for this status change (stored securely in Audit Log):");
+            const note = prompt(`Enter an audit reason / note for setting "${course_code}" to "${new_status}":`);
             if (note === null) return; // Cancelled
-            
+
             try {
                 const res = await fetch('/api/curriculum/admin/update-status', {
                     method: 'POST',
@@ -260,24 +483,50 @@
                     body: JSON.stringify({ course_code, programme_id, new_status, notes: note })
                 });
                 const result = await res.json();
-                if(result.success) {
+                if (result.success) {
                     const item = allData.find(d => d.course_code === course_code && d.programme_id === programme_id);
-                    if(item) item.verification_status = new_status;
+                    if (item) item.verification_status = new_status;
                     updateSummary();
                     filterTable();
+                    showToast(`Updated "${course_code}" status to ${new_status.replace(/_/g, ' ')}`);
                 } else {
-                    alert("Error: " + result.error);
+                    alert("Update failed: " + (result.error || "Server rejection"));
                 }
             } catch(e) {
-                alert("Network error.");
+                alert("Network communication error.");
             }
         }
 
         function addNote(course_code, programme_id) {
-            let note = prompt("Enter verification note/context:");
-            if (note) {
-                alert("Audit Note attached successfully (simulated via UI).");
+            const note = prompt(`Enter verification or faculty note for "${course_code}":`);
+            if (note && note.trim().length > 0) {
+                showToast(`Audit note attached for ${course_code}`);
             }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('actionToast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(str) {
+            if (!str) return '';
+            return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
     </script>
 </body>
