@@ -3,22 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Activity Logs - Admin Panel</title>
-    <link rel="stylesheet" href="/style.css?v=4">
+    <title>Activity & Security Audit - Executive Admin</title>
+    <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup failed: ', err));
+            });
+        }
+    </script>
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
     <style>
-        .tabs { display: flex; border-bottom: 1px solid var(--cbg-color-2); margin-bottom: 20px; }
-        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1.1rem; color: var(--ntxt-color); cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
-        .tab-btn:hover { color: var(--text-color); }
-        .tab-btn.active { color: var(--cta-color); border-bottom-color: var(--cta-color); font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .activity-tab-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-color);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .activity-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ntxt-color);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .activity-tab-btn:hover {
+            color: var(--text-color);
+        }
+        .activity-tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-color: var(--border-color);
+        }
+        .activity-tab-btn .tab-count {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--ntxt-color);
+        }
+        .activity-tab-btn.active .tab-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-color);
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        .user-avatar-pill {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        .table-empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--ntxt-color);
+        }
     </style>
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/admin_sidebar', { active_page: 'activity' }) %>
 
     <main class="admin-main-content">
+        <!-- Executive Topbar -->
         <header class="admin-topbar">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
@@ -26,47 +102,234 @@
                 </button>
                 <div>
                     <h1 class="admin-title">Activity & Security Audit</h1>
-                    <p class="admin-subtitle">Track recent user actions, CBT exam attempts, and material downloads.</p>
+                    <p class="admin-subtitle">Live candidate session telemetry, CBT exam attempts, AI workload tracking, and digital asset downloads.</p>
                 </div>
             </div>
             <div class="admin-topbar-actions">
-                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
+                <button onclick="exportCurrentTabCSV()" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export Audit CSV</span>
+                </button>
+                <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     &larr; Overview
                 </a>
             </div>
         </header>
-        
-        <div style="padding: 20px;">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('exams')">Exam Attempts</button>
-                <button class="tab-btn" onclick="switchTab('ai')">AI Usage</button>
-                <button class="tab-btn" onclick="switchTab('downloads')">Material Downloads</button>
+
+        <%
+            const totalExams = (locals.exams && exams.length) ? exams.length : 0;
+            const totalAi = (locals.ai_usage && ai_usage.length) ? ai_usage.length : 0;
+            const totalDownloads = (locals.downloads && downloads.length) ? downloads.length : 0;
+
+            let totalScoreSum = 0;
+            let scoredExamsCount = 0;
+            if (locals.exams && exams.length > 0) {
+                exams.forEach(e => {
+                    const sc = parseFloat(e.score);
+                    if (!isNaN(sc)) {
+                        totalScoreSum += sc;
+                        scoredExamsCount++;
+                    }
+                });
+            }
+            const avgScore = scoredExamsCount > 0 ? Math.round(totalScoreSum / scoredExamsCount) : 0;
+
+            let totalAiExamsGen = 0;
+            if (locals.ai_usage && ai_usage.length > 0) {
+                ai_usage.forEach(a => {
+                    totalAiExamsGen += Number(a.exams_generated || 0);
+                });
+            }
+
+            const uniqueUsersSet = new Set();
+            if (locals.exams) exams.forEach(e => e.email && uniqueUsersSet.add(e.email.toLowerCase()));
+            if (locals.ai_usage) ai_usage.forEach(a => a.email && uniqueUsersSet.add(a.email.toLowerCase()));
+            if (locals.downloads) downloads.forEach(d => d.email && uniqueUsersSet.add(d.email.toLowerCase()));
+            const uniqueUsersCount = uniqueUsersSet.size;
+        %>
+
+        <!-- KPI Metrics Ribbon (4 Cards) -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Exam Attempts</div>
+                        <div class="kpi-value"><%= totalExams %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;"><%= avgScore %>% Avg Score</span>
+                    <span>&bull; Recent Sessions</span>
+                </div>
             </div>
 
-            <!-- EXAMS TAB -->
-            <div id="exams" class="tab-content active">
-                <div class="glass-panel" style="overflow-x: auto;">
-                    <table class="styled-table" style="width: 100%;">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">AI Questions Synthesized</div>
+                        <div class="kpi-value"><%= totalAiExamsGen %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;"><%= totalAi %> AI Batches</span>
+                    <span>&bull; On-demand</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Asset Downloads</div>
+                        <div class="kpi-value"><%= totalDownloads %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Past Questions</span>
+                    <span>&bull; Offline sync</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Active Candidates</div>
+                        <div class="kpi-value"><%= uniqueUsersCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #f59e0b; font-weight: 600;">Unique Students</span>
+                    <span>&bull; Telemetry active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segmented Tab Navigation -->
+        <div class="activity-tab-nav">
+            <button class="activity-tab-btn active" onclick="switchActivityTab('examsTab', this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span>CBT Exam Attempts</span>
+                <span class="tab-count"><%= totalExams %></span>
+            </button>
+            <button class="activity-tab-btn" onclick="switchActivityTab('aiTab', this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>AI Synthesis Logs</span>
+                <span class="tab-count"><%= totalAi %></span>
+            </button>
+            <button class="activity-tab-btn" onclick="switchActivityTab('downloadsTab', this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Material Downloads</span>
+                <span class="tab-count"><%= totalDownloads %></span>
+            </button>
+        </div>
+
+        <!-- TAB 1: EXAM ATTEMPTS -->
+        <div id="examsTab" class="tab-pane active">
+            <div class="admin-panel">
+                <div class="admin-filter-bar">
+                    <div class="admin-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="examsSearch" placeholder="Search candidate name, email, or course code..." onkeyup="filterExamsTable()">
+                    </div>
+
+                    <div class="admin-filter-group">
+                        <select id="scoreFilter" class="admin-select" onchange="filterExamsTable()">
+                            <option value="all">All Scores</option>
+                            <option value="distinction">Distinction (≥ 70%)</option>
+                            <option value="pass">Pass (50% – 69%)</option>
+                            <option value="remedial">Needs Review (&lt; 50%)</option>
+                        </select>
+
+                        <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                            Showing <strong id="examsVisibleCount" style="color: var(--text-color);"><%= totalExams %></strong> of <%= totalExams %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="examsTable">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Course</th>
-                                <th>Score</th>
-                                <th>Date</th>
+                                <th>Candidate</th>
+                                <th>Course Target</th>
+                                <th>Score & Performance</th>
+                                <th>Assessment Status</th>
+                                <th style="text-align: right;">Completion Time</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% if (exams.length === 0) { %>
-                                <tr><td colspan="5" class="text-center">No exam attempts found.</td></tr>
-                            <% } else { %>
-                                <% exams.forEach(e => { %>
                                 <tr>
-                                    <td><strong><%= e.full_name %></strong></td>
-                                    <td><%= e.email %></td>
-                                    <td><%= e.course_code %></td>
-                                    <td><%= e.score %></td>
-                                    <td><%= new Date(e.created_at).toLocaleString() %></td>
+                                    <td colspan="5" class="table-empty-state">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 10px; opacity: 0.4;">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                                        </svg>
+                                        <p style="font-weight: 600; margin: 0; color: var(--text-color);">No CBT exam attempts logged</p>
+                                        <p style="font-size: 0.82rem; margin: 4px 0 0 0;">Candidate practice and mock attempts will populate here automatically.</p>
+                                    </td>
+                                </tr>
+                            <% } else { %>
+                                <% exams.forEach(e => { 
+                                    const scoreNum = parseFloat(e.score);
+                                    let scoreBadge = 'info';
+                                    let scoreLabel = 'Satisfactory';
+                                    if (!isNaN(scoreNum)) {
+                                        if (scoreNum >= 70) {
+                                            scoreBadge = 'success';
+                                            scoreLabel = 'Distinction';
+                                        } else if (scoreNum >= 50) {
+                                            scoreBadge = 'info';
+                                            scoreLabel = 'Credit Pass';
+                                        } else {
+                                            scoreBadge = 'danger';
+                                            scoreLabel = 'Review Req.';
+                                        }
+                                    }
+                                    const d = new Date(e.created_at);
+                                    const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' &bull; ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                                %>
+                                <tr class="exam-row" data-name="<%= (e.full_name || '').toLowerCase() %>" data-email="<%= (e.email || '').toLowerCase() %>" data-course="<%= (e.course_code || '').toLowerCase() %>" data-score="<%= scoreNum %>">
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="user-avatar-pill">
+                                                <%= (e.full_name || 'C').charAt(0) %>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 600; color: var(--text-color);"><%= e.full_name || 'Anonymous Student' %></div>
+                                                <div style="font-size: 0.8rem; color: var(--ntxt-color);"><%= e.email %></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill info" style="font-family: monospace; font-size: 0.85rem; font-weight: 700;"><%= e.course_code %></span>
+                                    </td>
+                                    <td>
+                                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                            <span class="badge-pill <%= scoreBadge %>" style="font-size: 0.85rem; font-weight: 700;"><%= e.score %>%</span>
+                                            <span style="font-size: 0.78rem; color: var(--ntxt-color);"><%= scoreLabel %></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill success">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            <span>Completed</span>
+                                        </span>
+                                    </td>
+                                    <td style="text-align: right; font-size: 0.82rem; color: var(--ntxt-color);">
+                                        <%- dateStr %>
+                                    </td>
                                 </tr>
                                 <% }) %>
                             <% } %>
@@ -74,29 +337,84 @@
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- AI USAGE TAB -->
-            <div id="ai" class="tab-content">
-                <div class="glass-panel" style="overflow-x: auto;">
-                    <table class="styled-table" style="width: 100%;">
+        <!-- TAB 2: AI USAGE -->
+        <div id="aiTab" class="tab-pane">
+            <div class="admin-panel">
+                <div class="admin-filter-bar">
+                    <div class="admin-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="aiSearch" placeholder="Search candidate name or email..." onkeyup="filterAiTable()">
+                    </div>
+
+                    <div class="admin-filter-group">
+                        <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                            Showing <strong id="aiVisibleCount" style="color: var(--text-color);"><%= totalAi %></strong> of <%= totalAi %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="aiTable">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Date</th>
-                                <th>Exams Generated</th>
+                                <th>Candidate</th>
+                                <th>Activity Date</th>
+                                <th>Exams Synthesized</th>
+                                <th style="text-align: right;">Workload Tier</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% if (ai_usage.length === 0) { %>
-                                <tr><td colspan="4" class="text-center">No AI usage logged.</td></tr>
-                            <% } else { %>
-                                <% ai_usage.forEach(a => { %>
                                 <tr>
-                                    <td><strong><%= a.full_name %></strong></td>
-                                    <td><%= a.email %></td>
-                                    <td><%= new Date(a.usage_date).toLocaleDateString() %></td>
-                                    <td><%= a.exams_generated %></td>
+                                    <td colspan="4" class="table-empty-state">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 10px; opacity: 0.4;">
+                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                        </svg>
+                                        <p style="font-weight: 600; margin: 0; color: var(--text-color);">No AI generations logged</p>
+                                        <p style="font-size: 0.82rem; margin: 4px 0 0 0;">AI question engine requests will be recorded here.</p>
+                                    </td>
+                                </tr>
+                            <% } else { %>
+                                <% ai_usage.forEach(a => { 
+                                    const count = Number(a.exams_generated || 0);
+                                    let tierBadge = 'info';
+                                    let tierLabel = 'Standard';
+                                    if (count >= 10) {
+                                        tierBadge = 'purple';
+                                        tierLabel = 'Heavy Workload';
+                                    } else if (count >= 5) {
+                                        tierBadge = 'success';
+                                        tierLabel = 'Moderate';
+                                    }
+                                    const d = new Date(a.usage_date);
+                                    const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today';
+                                %>
+                                <tr class="ai-row" data-name="<%= (a.full_name || '').toLowerCase() %>" data-email="<%= (a.email || '').toLowerCase() %>">
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="user-avatar-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                                                <%= (a.full_name || 'C').charAt(0) %>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 600; color: var(--text-color);"><%= a.full_name || 'Candidate' %></div>
+                                                <div style="font-size: 0.8rem; color: var(--ntxt-color);"><%= a.email %></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill gray"><%= dateStr %></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill purple" style="font-weight: 700; font-size: 0.85rem;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                            <span><%= a.exams_generated %> Exams</span>
+                                        </span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span class="badge-pill <%= tierBadge %>"><%= tierLabel %></span>
+                                    </td>
                                 </tr>
                                 <% }) %>
                             <% } %>
@@ -104,33 +422,86 @@
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- DOWNLOADS TAB -->
-            <div id="downloads" class="tab-content">
-                <div class="glass-panel" style="overflow-x: auto;">
-                    <table class="styled-table" style="width: 100%;">
+        <!-- TAB 3: DOWNLOADS -->
+        <div id="downloadsTab" class="tab-pane">
+            <div class="admin-panel">
+                <div class="admin-filter-bar">
+                    <div class="admin-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="downloadsSearch" placeholder="Search candidate name, email, course or exam type..." onkeyup="filterDownloadsTable()">
+                    </div>
+
+                    <div class="admin-filter-group">
+                        <select id="typeFilter" class="admin-select" onchange="filterDownloadsTable()">
+                            <option value="all">All Material Types</option>
+                            <option value="final">Final Exam</option>
+                            <option value="midterm">Midterm (CA)</option>
+                            <option value="mock">Mock Exam</option>
+                        </select>
+
+                        <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                            Showing <strong id="downloadsVisibleCount" style="color: var(--text-color);"><%= totalDownloads %></strong> of <%= totalDownloads %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="downloadsTable">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Material Type</th>
-                                <th>Course</th>
-                                <th>Year</th>
-                                <th>Download Date</th>
+                                <th>Candidate</th>
+                                <th>Course Target</th>
+                                <th>Exam Material</th>
+                                <th>Session Year</th>
+                                <th style="text-align: right;">Download Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% if (downloads.length === 0) { %>
-                                <tr><td colspan="6" class="text-center">No materials downloaded yet.</td></tr>
-                            <% } else { %>
-                                <% downloads.forEach(d => { %>
                                 <tr>
-                                    <td><strong><%= d.full_name %></strong></td>
-                                    <td><%= d.email %></td>
-                                    <td><%= d.type %></td>
-                                    <td><%= d.course_code %></td>
-                                    <td><%= d.year %></td>
-                                    <td><%= new Date(d.downloaded_at).toLocaleString() %></td>
+                                    <td colspan="5" class="table-empty-state">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 10px; opacity: 0.4;">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        <p style="font-weight: 600; margin: 0; color: var(--text-color);">No material downloads logged</p>
+                                        <p style="font-size: 0.82rem; margin: 4px 0 0 0;">When candidates download PDF question papers, events will register here.</p>
+                                    </td>
+                                </tr>
+                            <% } else { %>
+                                <% downloads.forEach(d => { 
+                                    const dateObj = new Date(d.downloaded_at);
+                                    const dateStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' &bull; ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                                %>
+                                <tr class="download-row" data-name="<%= (d.full_name || '').toLowerCase() %>" data-email="<%= (d.email || '').toLowerCase() %>" data-course="<%= (d.course_code || '').toLowerCase() %>" data-type="<%= (d.type || '').toLowerCase() %>">
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="user-avatar-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                                                <%= (d.full_name || 'C').charAt(0) %>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 600; color: var(--text-color);"><%= d.full_name || 'Student' %></div>
+                                                <div style="font-size: 0.8rem; color: var(--ntxt-color);"><%= d.email %></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill info" style="font-family: monospace; font-size: 0.85rem; font-weight: 700;"><%= d.course_code %></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill <%= d.type === 'Final' ? 'success' : (d.type === 'Midterm' ? 'warning' : 'info') %>">
+                                            <%= d.type %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-pill gray"><%= d.year %></span>
+                                    </td>
+                                    <td style="text-align: right; font-size: 0.82rem; color: var(--ntxt-color);">
+                                        <%- dateStr %>
+                                    </td>
                                 </tr>
                                 <% }) %>
                             <% } %>
@@ -138,17 +509,155 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </main>
 
     <script>
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+        let currentTabId = 'examsTab';
+
+        function switchActivityTab(tabId, btn) {
+            currentTabId = tabId;
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.activity-tab-btn').forEach(el => el.classList.remove('active'));
+
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) targetPane.classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        // Filter CBT Exams table
+        function filterExamsTable() {
+            const query = document.getElementById('examsSearch').value.toLowerCase().trim();
+            const scoreFilter = document.getElementById('scoreFilter').value;
+            const rows = document.querySelectorAll('.exam-row');
+            let visible = 0;
+
+            rows.forEach(r => {
+                const name = r.getAttribute('data-name');
+                const email = r.getAttribute('data-email');
+                const course = r.getAttribute('data-course');
+                const score = parseFloat(r.getAttribute('data-score'));
+
+                const matchesQuery = !query || name.includes(query) || email.includes(query) || course.includes(query);
+                
+                let matchesScore = true;
+                if (scoreFilter === 'distinction') matchesScore = !isNaN(score) && score >= 70;
+                else if (scoreFilter === 'pass') matchesScore = !isNaN(score) && score >= 50 && score < 70;
+                else if (scoreFilter === 'remedial') matchesScore = !isNaN(score) && score < 50;
+
+                if (matchesQuery && matchesScore) {
+                    r.style.display = '';
+                    visible++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('examsVisibleCount').innerText = visible;
+        }
+
+        // Filter AI logs table
+        function filterAiTable() {
+            const query = document.getElementById('aiSearch').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.ai-row');
+            let visible = 0;
+
+            rows.forEach(r => {
+                const name = r.getAttribute('data-name');
+                const email = r.getAttribute('data-email');
+                const matches = !query || name.includes(query) || email.includes(query);
+
+                if (matches) {
+                    r.style.display = '';
+                    visible++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('aiVisibleCount').innerText = visible;
+        }
+
+        // Filter Downloads table
+        function filterDownloadsTable() {
+            const query = document.getElementById('downloadsSearch').value.toLowerCase().trim();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const rows = document.querySelectorAll('.download-row');
+            let visible = 0;
+
+            rows.forEach(r => {
+                const name = r.getAttribute('data-name');
+                const email = r.getAttribute('data-email');
+                const course = r.getAttribute('data-course');
+                const type = r.getAttribute('data-type');
+
+                const matchesQuery = !query || name.includes(query) || email.includes(query) || course.includes(query) || type.includes(query);
+                const matchesType = (typeFilter === 'all') || type === typeFilter;
+
+                if (matchesQuery && matchesType) {
+                    r.style.display = '';
+                    visible++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('downloadsVisibleCount').innerText = visible;
+        }
+
+        // Export active tab data to CSV
+        function exportCurrentTabCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let filename = "kelsel-activity-audit.csv";
+
+            if (currentTabId === 'examsTab') {
+                filename = `kelsel-exam-attempts-${new Date().toISOString().slice(0,10)}.csv`;
+                csvContent += "Candidate Name,Email,Course Code,Score,Completion Date\n";
+                document.querySelectorAll('#examsTable tbody .exam-row').forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const name = row.querySelector('td:nth-child(1) div div:first-child')?.innerText.trim() || '';
+                        const email = row.querySelector('td:nth-child(1) div div:last-child')?.innerText.trim() || '';
+                        const course = row.querySelector('td:nth-child(2)')?.innerText.trim() || '';
+                        const score = row.querySelector('td:nth-child(3) span')?.innerText.trim() || '';
+                        const date = row.querySelector('td:nth-child(5)')?.innerText.replace(/•/g, '').trim() || '';
+                        csvContent += `"${name.replace(/"/g, '""')}","${email}","${course}","${score}","${date}"\n`;
+                    }
+                });
+            } else if (currentTabId === 'aiTab') {
+                filename = `kelsel-ai-usage-${new Date().toISOString().slice(0,10)}.csv`;
+                csvContent += "Candidate Name,Email,Usage Date,Exams Generated\n";
+                document.querySelectorAll('#aiTable tbody .ai-row').forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const name = row.querySelector('td:nth-child(1) div div:first-child')?.innerText.trim() || '';
+                        const email = row.querySelector('td:nth-child(1) div div:last-child')?.innerText.trim() || '';
+                        const date = row.querySelector('td:nth-child(2)')?.innerText.trim() || '';
+                        const exams = row.querySelector('td:nth-child(3)')?.innerText.trim() || '';
+                        csvContent += `"${name.replace(/"/g, '""')}","${email}","${date}","${exams}"\n`;
+                    }
+                });
+            } else {
+                filename = `kelsel-downloads-${new Date().toISOString().slice(0,10)}.csv`;
+                csvContent += "Candidate Name,Email,Course Code,Exam Type,Year,Download Date\n";
+                document.querySelectorAll('#downloadsTable tbody .download-row').forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const name = row.querySelector('td:nth-child(1) div div:first-child')?.innerText.trim() || '';
+                        const email = row.querySelector('td:nth-child(1) div div:last-child')?.innerText.trim() || '';
+                        const course = row.querySelector('td:nth-child(2)')?.innerText.trim() || '';
+                        const type = row.querySelector('td:nth-child(3)')?.innerText.trim() || '';
+                        const year = row.querySelector('td:nth-child(4)')?.innerText.trim() || '';
+                        const date = row.querySelector('td:nth-child(5)')?.innerText.replace(/•/g, '').trim() || '';
+                        csvContent += `"${name.replace(/"/g, '""')}","${email}","${course}","${type}","${year}","${date}"\n`;
+                    }
+                });
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
