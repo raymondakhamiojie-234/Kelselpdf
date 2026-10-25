@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>All Payments - Admin Panel</title>
+    <title>Payments Ledger - Executive Admin Console</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <link rel="manifest" href="/manifest.json">
@@ -14,13 +14,14 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/admin_sidebar', { active_page: 'admin_payments' }) %>
 
     <main class="admin-main-content">
+        <!-- Top Executive Bar -->
         <header class="admin-topbar">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
@@ -28,56 +29,305 @@
                 </button>
                 <div>
                     <h1 class="admin-title">Payments & Revenue Ledger</h1>
-                    <p class="admin-subtitle">Live record of all candidate transactions verified via Paystack.</p>
+                    <p class="admin-subtitle">Real-time Paystack transaction logs, candidate checkout settlements & billing ledger.</p>
                 </div>
             </div>
             <div class="admin-topbar-actions">
+                <button onclick="exportPaymentsCSV()" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export CSV</span>
+                </button>
                 <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
                     &larr; Overview
                 </a>
             </div>
         </header>
 
-        <h2>Payment History Ledger</h2>
-        <div class="glass-panel">
+        <%
+            let totalRevenue = 0;
+            let successCount = 0;
+            let pendingCount = 0;
+            let failedCount = 0;
+            payments.forEach(p => {
+                if (p.status === 'success') {
+                    totalRevenue += Number(p.amount || 0);
+                    successCount++;
+                } else if (p.status === 'pending') {
+                    pendingCount++;
+                } else {
+                    failedCount++;
+                }
+            });
+            const avgOrder = successCount > 0 ? Math.round(totalRevenue / successCount) : 0;
+            const successRate = payments.length > 0 ? Math.round((successCount / payments.length) * 100) : 0;
+        %>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Gross Revenue</div>
+                        <div class="kpi-value">₦<%= totalRevenue.toLocaleString() %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">₦ Verified</span>
+                    <span>&bull; Settled funds</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Successful Checkouts</div>
+                        <div class="kpi-value"><%= successCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;"><%= successRate %>% Conversion</span>
+                    <span>&bull; <%= payments.length %> Total Attempts</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Average Order Value</div>
+                        <div class="kpi-value">₦<%= avgOrder.toLocaleString() %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span>Per Paid Candidate</span>
+                    <span>&bull; Active Tier</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Pending / Incomplete</div>
+                        <div class="kpi-value" style="color: <%= pendingCount > 0 ? '#f59e0b' : 'var(--text-color)' %>;"><%= pendingCount %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: <%= failedCount > 0 ? '#ef4444' : 'var(--ntxt-color)' %>;"><%= failedCount %> Failed / Cancelled</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ledger Container -->
+        <div class="admin-panel">
+            <!-- Filter Toolbar -->
+            <div class="admin-filter-bar">
+                <div class="admin-search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="paymentSearch" placeholder="Search candidate name, email, reference code..." onkeyup="filterPayments()">
+                </div>
+                <div class="admin-filter-group">
+                    <select id="statusFilter" class="admin-select" onchange="filterPayments()">
+                        <option value="all">All Statuses</option>
+                        <option value="success">Success / Verified</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed / Cancelled</option>
+                    </select>
+
+                    <select id="planFilter" class="admin-select" onchange="filterPayments()">
+                        <option value="all">All Plans</option>
+                        <% 
+                            const plans = Array.from(new Set(payments.map(p => p.plan).filter(Boolean)));
+                            plans.forEach(plan => { 
+                        %>
+                            <option value="<%= plan.toLowerCase() %>"><%= plan %></option>
+                        <% }); %>
+                    </select>
+
+                    <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                        Showing <strong id="visibleCount" style="color: var(--text-color);"><%= payments.length %></strong> of <%= payments.length %>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Responsive Table -->
             <div class="table-responsive">
-                <table class="styled-table">
+                <table class="data-table" id="paymentsTable">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>User</th>
-                            <th>Email</th>
+                            <th>Candidate</th>
                             <th>Reference</th>
                             <th>Plan</th>
-                            <th>Amount (₦)</th>
+                            <th>Amount</th>
+                            <th>Date & Time</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% if (payments.length === 0) { %>
-                            <tr><td colspan="7" class="text-center">No transactions found.</td></tr>
+                            <tr id="noDataRow">
+                                <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--ntxt-color);">
+                                    <div style="font-size: 2.2rem; margin-bottom: 8px;">💳</div>
+                                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">No payment transactions recorded yet</div>
+                                    <p style="margin: 4px 0 0 0; font-size: 0.85rem;">When candidates subscribe or checkout via Paystack, transaction records will appear here.</p>
+                                </td>
+                            </tr>
                         <% } else { %>
-                            <% payments.forEach(p => { %>
-                            <tr>
-                                <td><%= new Date(p.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) %></td>
-                                <td><%= p.full_name %></td>
-                                <td><%= p.email %></td>
-                                <td><%= p.reference %></td>
-                                <td><%= p.plan %></td>
-                                <td><%= Number(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
-                                <td style="color: var(--success); text-transform: capitalize;"><%= p.status %></td>
+                            <% payments.forEach((p, idx) => { 
+                                const isSuccess = p.status === 'success';
+                                const isPending = p.status === 'pending';
+                                const initials = p.full_name ? p.full_name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'U';
+                            %>
+                            <tr class="payment-row" 
+                                data-name="<%= (p.full_name || '').toLowerCase() %>" 
+                                data-email="<%= (p.email || '').toLowerCase() %>" 
+                                data-ref="<%= (p.reference || '').toLowerCase() %>"
+                                data-status="<%= (p.status || '').toLowerCase() %>"
+                                data-plan="<%= (p.plan || '').toLowerCase() %>">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div class="user-avatar-initial" style="background: <%= idx % 3 === 0 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : (idx % 3 === 1 ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)') %>;">
+                                            <%= initials %>
+                                        </div>
+                                        <div>
+                                            <strong style="color: var(--text-color); font-size: 0.92rem; display: block;"><%= p.full_name || 'Anonymous User' %></strong>
+                                            <span style="color: var(--ntxt-color); font-size: 0.8rem;"><%= p.email || 'N/A' %></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="copy-pill" onclick="copyToClipboard('<%= p.reference %>', this)" title="Click to copy reference">
+                                        <span><%= p.reference %></span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </td>
+                                <td>
+                                    <span class="badge-pill info" style="text-transform: capitalize;">
+                                        <%= p.plan || 'Standard' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="font-size: 0.98rem; color: var(--text-color); font-family: monospace;">
+                                        ₦<%= Number(p.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.88rem; color: var(--text-color);">
+                                        <%= new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                                    </div>
+                                    <small style="color: var(--ntxt-color); font-size: 0.75rem;">
+                                        <%= new Date(p.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                                    </small>
+                                </td>
+                                <td>
+                                    <% if (isSuccess) { %>
+                                        <span class="badge-pill success">
+                                            <span class="status-dot"></span>
+                                            <span>Paid</span>
+                                        </span>
+                                    <% } else if (isPending) { %>
+                                        <span class="badge-pill warning">
+                                            <span>⏱ Pending</span>
+                                        </span>
+                                    <% } else { %>
+                                        <span class="badge-pill danger">
+                                            <span>✕ <%= p.status || 'Failed' %></span>
+                                        </span>
+                                    <% } %>
+                                </td>
                             </tr>
                             <% }); %>
                         <% } %>
                     </tbody>
                 </table>
+                <div id="noMatchMessage" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">
+                    <div style="font-size: 2rem; margin-bottom: 6px;">🔍</div>
+                    <div style="font-weight: 700; color: var(--text-color);">No matching transactions found</div>
+                    <p style="margin: 4px 0 0 0; font-size: 0.85rem;">Try adjusting your search query or status filter.</p>
+                </div>
             </div>
         </div>
     </main>
+
+    <script>
+        function filterPayments() {
+            const query = document.getElementById('paymentSearch').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const planFilter = document.getElementById('planFilter').value.toLowerCase();
+            const rows = document.querySelectorAll('.payment-row');
+            let visible = 0;
+
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name') || '';
+                const email = row.getAttribute('data-email') || '';
+                const ref = row.getAttribute('data-ref') || '';
+                const status = row.getAttribute('data-status') || '';
+                const plan = row.getAttribute('data-plan') || '';
+
+                const matchesQuery = !query || name.includes(query) || email.includes(query) || ref.includes(query);
+                const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                const matchesPlan = planFilter === 'all' || plan === planFilter;
+
+                if (matchesQuery && matchesStatus && matchesPlan) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const countEl = document.getElementById('visibleCount');
+            if (countEl) countEl.textContent = visible;
+
+            const noMatch = document.getElementById('noMatchMessage');
+            if (noMatch) {
+                noMatch.style.display = (visible === 0 && rows.length > 0) ? 'block' : 'none';
+            }
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = `<span style="color:#10b981; font-weight:700;">Copied!</span> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                btn.style.borderColor = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.style.borderColor = '';
+                }, 1800);
+            }).catch(() => {
+                alert('Reference: ' + text);
+            });
+        }
+
+        function exportPaymentsCSV() {
+            const rows = Array.from(document.querySelectorAll('#paymentsTable tr'));
+            if (!rows.length) return;
+            let csv = [];
+            rows.forEach(row => {
+                if (row.style.display === 'none') return;
+                const cols = Array.from(row.querySelectorAll('th, td'));
+                const rowData = cols.map(col => {
+                    let text = col.innerText.replace(/[\n\r]+/g, ' ').replace(/"/g, '""').trim();
+                    return `"${text}"`;
+                });
+                csv.push(rowData.join(','));
+            });
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `kelsel-payments-ledger-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+    </script>
 </body>
 </html>
-
-
-
-
-

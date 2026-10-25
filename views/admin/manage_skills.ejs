@@ -3,14 +3,9 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>Manage Skills Academy - Admin</title>
+    <title>Skills Academy Management - Executive Admin Console</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background: rgba(255,255,255,0.05); font-weight: 600; }
-    </style>
     <link rel="manifest" href="/manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -19,13 +14,26 @@
             });
         }
     </script>
-<link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
+    <link rel="icon" media="(prefers-color-scheme: light)" href="/acct/img/favicon-dark.png">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="/acct/img/favicon-light.png">
+    <style>
+        .skills-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+        }
+        @media (max-width: 1024px) {
+            .skills-grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body class="dashboard-body admin-body">
     <%- include('./partials/admin_sidebar', { active_page: 'admin_skills' }) %>
 
     <main class="admin-main-content">
+        <!-- Top Executive Bar -->
         <header class="admin-topbar">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <button class="admin-mobile-toggle" onclick="toggleAdminNav()" aria-label="Toggle Navigation">
@@ -33,99 +41,372 @@
                 </button>
                 <div>
                     <h1 class="admin-title">Skills Academy Management</h1>
-                    <p class="admin-subtitle">Create learning categories, organize curriculum modules, and publish video courses.</p>
+                    <p class="admin-subtitle">Organize vocational learning tracks, curriculum course modules, instructors & video assets.</p>
                 </div>
             </div>
             <div class="admin-topbar-actions">
+                <a href="/skills" target="_blank" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>Student View</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
                 <a href="/admin" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
                     &larr; Overview
                 </a>
             </div>
         </header>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h2>Skills Academy Management</h2>
-        </div>
+        <%
+            let totalHours = 0;
+            const instructorsSet = new Set();
+            courses.forEach(c => {
+                totalHours += parseFloat(c.duration_hours || 0);
+                if (c.instructor && c.instructor.trim()) instructorsSet.add(c.instructor.trim());
+            });
+        %>
 
-        <div class="glass-panel mb-2">
-            <h3>Academy Categories</h3>
-            <form action='/admin/skills/category" method="POST" style="display: flex; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
-                <input type="text" name="name" placeholder="Category Name" required class="input-field" style="flex: 1;">
-                <input type="text" name="slug" placeholder="Slug (e.g. tech)" required class="input-field" style="flex: 1;">
-                <button type="submit" class="btn btn-primary">Add Category</button>
-            </form>
-            
-            <div style="overflow-x: auto;">
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Actions</th>
-                    </tr>
-                    <% categories.forEach(function(cat) { %>
-                    <tr>
-                        <td><%= cat.id %></td>
-                        <td><%= cat.name %></td>
-                        <td><%= cat.slug %></td>
-                        <td>
-                            <form action='/admin/skills/category/delete" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<%= cat.id %>">
-                                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    <% }); %>
-                </table>
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Academy Categories</div>
+                        <div class="kpi-value"><%= categories.length %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #3b82f6; font-weight: 600;">Learning Pathways</span>
+                    <span>&bull; Tracks</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Published Courses</div>
+                        <div class="kpi-value"><%= courses.length %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #10b981; font-weight: 600;">Active Curriculum</span>
+                    <span>&bull; Video Modules</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Total Course Hours</div>
+                        <div class="kpi-value"><%= totalHours.toFixed(1) %>h</div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span style="color: #8b5cf6; font-weight: 600;">Instructional Time</span>
+                    <span>&bull; Masterclasses</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div class="kpi-title">Instructors</div>
+                        <div class="kpi-value"><%= instructorsSet.size %></div>
+                    </div>
+                    <div class="kpi-icon-pill" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                </div>
+                <div class="kpi-trend">
+                    <span>Contributing Faculty</span>
+                    <span>&bull; Industry Mentors</span>
+                </div>
             </div>
         </div>
 
-        <div class="glass-panel">
-            <h3>Academy Courses</h3>
-            <form action='/admin/skills/course" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; margin-top: 1rem;">
-                <select name="category_id" required class="input-field" style="grid-column: 1 / -1;">
-                    <option value="">Select Category</option>
-                    <% categories.forEach(function(cat) { %>
-                        <option value="<%= cat.id %>"><%= cat.name %></option>
-                    <% }); %>
-                </select>
-                <input type="text" name="title" placeholder="Course Title" required class="input-field">
-                <input type="text" name="slug" placeholder="Slug (e.g. intro-to-python)" required class="input-field">
-                <input type="text" name="instructor" placeholder="Instructor Name" class="input-field">
-                <input type="number" step="0.1" name="duration_hours" placeholder="Duration (Hours)" class="input-field">
-                <textarea name="description" placeholder="Course Description" class="input-field" style="grid-column: 1 / -1;" rows="3"></textarea>
-                <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">Add Course</button>
-            </form>
+        <!-- Dual Column Management Layout -->
+        <div class="skills-grid-layout">
+            <!-- Left Column: Category Management -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Add Category Panel -->
+                <div class="admin-panel">
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin: 0 0 6px 0;">New Academy Category</h2>
+                    <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 0 0 16px 0;">Group vocational modules into specialized domains.</p>
 
-            <div style="overflow-x: auto;">
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Instructor</th>
-                        <th>Actions</th>
-                    </tr>
-                    <% courses.forEach(function(course) { %>
-                    <tr>
-                        <td><%= course.id %></td>
-                        <td><%= course.title %></td>
-                        <td><%= course.instructor %></td>
-                        <td>
-                            <form action='/admin/skills/course/delete" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<%= course.id %>">
-                                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--error);">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    <% }); %>
-                </table>
+                    <form action="/admin/skills/category" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Category Name</label>
+                            <input type="text" id="catName" name="name" placeholder="e.g. Technology & Code" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);" onkeyup="autoSlugCategory(this.value)">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">URL Slug</label>
+                            <input type="text" id="catSlug" name="slug" placeholder="e.g. technology-code" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 4px; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                            + Create Category
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Category List Panel -->
+                <div class="admin-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin: 0;">Existing Categories</h2>
+                        <span class="badge-pill info"><%= categories.length %> Tracks</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Slug</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (categories.length === 0) { %>
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--ntxt-color); font-size: 0.85rem;">
+                                            No categories created yet.
+                                        </td>
+                                    </tr>
+                                <% } else { %>
+                                    <% categories.forEach(cat => { 
+                                        const count = courses.filter(c => c.category_id == cat.id).length;
+                                    %>
+                                    <tr>
+                                        <td>
+                                            <strong style="color: var(--text-color); font-size: 0.88rem; display: block;"><%= cat.name %></strong>
+                                            <small style="color: var(--ntxt-color); font-size: 0.75rem;"><%= count %> Course<%= count === 1 ? '' : 's' %></small>
+                                        </td>
+                                        <td>
+                                            <code style="font-size: 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: var(--text-color);"><%= cat.slug %></code>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <form action="/admin/skills/category/delete" method="POST" style="margin: 0; display: inline-block;" onsubmit="return confirm('Delete category <%= cat.name %>?');">
+                                                <input type="hidden" name="id" value="<%= cat.id %>">
+                                                <button type="submit" class="btn btn-outline" style="border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); cursor: pointer;" title="Delete category">
+                                                    ✕
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Course Creation & Directory -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Add Course Panel -->
+                <div class="admin-panel">
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin: 0 0 6px 0;">Publish New Academy Course</h2>
+                    <p style="font-size: 0.85rem; color: var(--ntxt-color); margin: 0 0 18px 0;">Create a curriculum course module with video lessons and syllabus.</p>
+
+                    <form action="/admin/skills/course" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Category Track *</label>
+                                <select name="category_id" required class="admin-select" style="width: 100%; box-sizing: border-box; padding: 10px;">
+                                    <option value="">-- Choose Category --</option>
+                                    <% categories.forEach(cat => { %>
+                                        <option value="<%= cat.id %>"><%= cat.name %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Duration (Hours)</label>
+                                <input type="number" step="0.1" name="duration_hours" placeholder="e.g. 4.5" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Course Title *</label>
+                                <input type="text" id="courseTitle" name="title" placeholder="e.g. Masterclass: Advanced UI/UX Architecture" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);" onkeyup="autoSlugCourse(this.value)">
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">URL Slug *</label>
+                                <input type="text" id="courseSlug" name="slug" placeholder="e.g. ui-ux-architecture" required class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Lead Instructor Name</label>
+                            <input type="text" name="instructor" placeholder="e.g. Engr. Raymond Akh" class="input-field" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 5px;">Course Summary / Syllabus Description</label>
+                            <textarea name="description" placeholder="Summarize key learning outcomes, prerequisites, and modules covered..." class="input-field" rows="3" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; font-size: 0.88rem;"></textarea>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="btn btn-primary" style="padding: 11px 24px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">
+                                Publish Course to Academy &rarr;
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Course Directory Panel -->
+                <div class="admin-panel">
+                    <!-- Filter Toolbar -->
+                    <div class="admin-filter-bar">
+                        <div class="admin-search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="courseSearch" placeholder="Search course title, instructor, slug..." onkeyup="filterCourses()">
+                        </div>
+                        <div class="admin-filter-group">
+                            <select id="courseCategoryFilter" class="admin-select" onchange="filterCourses()">
+                                <option value="all">All Categories</option>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat.id %>"><%= cat.name %></option>
+                                <% }); %>
+                            </select>
+
+                            <span style="font-size: 0.85rem; color: var(--ntxt-color); padding-left: 6px;">
+                                Showing <strong id="visibleCourseCount" style="color: var(--text-color);"><%= courses.length %></strong> of <%= courses.length %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Responsive Courses Table -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="coursesTable">
+                            <thead>
+                                <tr>
+                                    <th>Course Module</th>
+                                    <th>Category Track</th>
+                                    <th>Instructor</th>
+                                    <th>Duration</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (courses.length === 0) { %>
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 3rem 1rem; color: var(--ntxt-color);">
+                                            <div style="font-size: 2.2rem; margin-bottom: 8px;">📚</div>
+                                            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);">No courses published yet</div>
+                                            <p style="margin: 4px 0 0 0; font-size: 0.85rem;">Use the form above to add your first learning course module.</p>
+                                        </td>
+                                    </tr>
+                                <% } else { %>
+                                    <% courses.forEach((course) => { 
+                                        const cat = categories.find(c => c.id == course.category_id);
+                                    %>
+                                    <tr class="course-row" 
+                                        data-title="<%= (course.title || '').toLowerCase() %>"
+                                        data-slug="<%= (course.slug || '').toLowerCase() %>"
+                                        data-instructor="<%= (course.instructor || '').toLowerCase() %>"
+                                        data-catid="<%= course.category_id %>">
+                                        <td>
+                                            <strong style="color: var(--text-color); font-size: 0.92rem; display: block;"><%= course.title %></strong>
+                                            <% if (course.description) { %>
+                                                <p style="color: var(--ntxt-color); font-size: 0.78rem; margin: 3px 0 0 0; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                    <%= course.description %>
+                                                </p>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <span class="badge-pill info">
+                                                <%= cat ? cat.name : 'General' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size: 0.85rem; color: var(--text-color); font-weight: 500;">
+                                                <%= course.instructor || 'Staff Instructor' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-pill gray">
+                                                ⏱ <%= Number(course.duration_hours || 0) %> hrs
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <form action="/admin/skills/course/delete" method="POST" style="margin: 0; display: inline-block;" onsubmit="return confirm('Delete course <%= course.title %>?');">
+                                                <input type="hidden" name="id" value="<%= course.id %>">
+                                                <button type="submit" class="btn btn-outline" style="border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.35); cursor: pointer;" title="Delete this course">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                        <div id="noCourseMatchMessage" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--ntxt-color);">
+                            <div style="font-size: 2rem; margin-bottom: 6px;">🔍</div>
+                            <div style="font-weight: 700; color: var(--text-color);">No matching courses found</div>
+                            <p style="margin: 4px 0 0 0; font-size: 0.85rem;">Try adjusting your search query or category filter.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <script>
+        function autoSlugCategory(val) {
+            const slugInput = document.getElementById('catSlug');
+            if (slugInput) {
+                slugInput.value = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
+        }
+
+        function autoSlugCourse(val) {
+            const slugInput = document.getElementById('courseSlug');
+            if (slugInput) {
+                slugInput.value = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
+        }
+
+        function filterCourses() {
+            const query = document.getElementById('courseSearch').value.toLowerCase().trim();
+            const catFilter = document.getElementById('courseCategoryFilter').value;
+            const rows = document.querySelectorAll('.course-row');
+            let visible = 0;
+
+            rows.forEach(row => {
+                const title = row.getAttribute('data-title') || '';
+                const slug = row.getAttribute('data-slug') || '';
+                const instructor = row.getAttribute('data-instructor') || '';
+                const catId = row.getAttribute('data-catid') || '';
+
+                const matchesQuery = !query || title.includes(query) || slug.includes(query) || instructor.includes(query);
+                const matchesCat = catFilter === 'all' || catId === catFilter;
+
+                if (matchesQuery && matchesCat) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const countEl = document.getElementById('visibleCourseCount');
+            if (countEl) countEl.textContent = visible;
+
+            const noMatch = document.getElementById('noCourseMatchMessage');
+            if (noMatch) {
+                noMatch.style.display = (visible === 0 && rows.length > 0) ? 'block' : 'none';
+            }
+        }
+    </script>
 </body>
 </html>
-
-
-
-
-
