@@ -1,4 +1,4 @@
-﻿const pool = require('../config/db');
+const pool = require('../config/db');
 
 exports.getPracticeDashboard = async (req, res) => {
     try {
@@ -47,8 +47,10 @@ exports.getPracticeSetup = async (req, res) => {
 
 exports.getPracticeSession = async (req, res) => {
     try {
-        const { subject_id, year } = req.query;
+        const { subject_id, year, time_limit } = req.query;
         if (!subject_id) return res.redirect('/practice');
+
+        const parsedTimeLimit = parseInt(time_limit) || 0;
 
         const [subjectInfo] = await pool.query(`
             SELECT s.name as subject_name, e.name as exam_name, b.code as body_code, b.id as body_id, e.id as exam_id
@@ -85,7 +87,8 @@ exports.getPracticeSession = async (req, res) => {
             active_page: 'cbt_practice',
             info: subjectInfo[0],
             year: year || 'Random Years',
-            questions
+            questions,
+            time_limit: parsedTimeLimit
         });
     } catch (err) {
         console.error(err);

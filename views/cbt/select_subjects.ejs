@@ -19,6 +19,177 @@
         
         #electiveCounter { color: #f59e0b; font-weight: bold; }
 
+        /* Duration Configuration Card */
+        .duration-card {
+            background: rgba(59, 130, 246, 0.03);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 1.3rem;
+            margin-top: 1.8rem;
+            margin-bottom: 1.2rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .duration-card:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 4px 18px rgba(59, 130, 246, 0.08);
+        }
+        .duration-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 12px;
+        }
+        .duration-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .duration-header-icon {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            flex-shrink: 0;
+        }
+        .duration-heading {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+        }
+        .duration-subheading {
+            font-size: 0.82rem;
+            color: var(--ntxt-color);
+            margin: 2px 0 0;
+        }
+        .current-duration-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            padding: 5px 12px;
+            border-radius: 20px;
+            color: #3b82f6;
+            font-weight: 700;
+            font-size: 0.92rem;
+            white-space: nowrap;
+        }
+        .duration-presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+        .preset-pill-btn {
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 7px 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-align: center;
+            color: var(--text-color);
+            font-family: inherit;
+        }
+        .preset-pill-btn:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.06);
+        }
+        .preset-pill-btn.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.16);
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .preset-name {
+            font-size: 0.72rem;
+            color: var(--ntxt-color);
+            margin-bottom: 1px;
+            font-weight: 500;
+        }
+        .preset-pill-btn.active .preset-name {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+        .preset-time {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text-color);
+        }
+        .preset-pill-btn.active .preset-time {
+            color: #3b82f6;
+        }
+        .custom-time-wrapper {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .custom-time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stepper-btn {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+        .stepper-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .input-inner {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .custom-time-input {
+            width: 100%;
+            padding: 9px 50px 9px 12px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-color);
+            outline: none;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .custom-time-input:focus {
+            border-color: #3b82f6;
+        }
+        .input-suffix {
+            position: absolute;
+            right: 12px;
+            color: var(--ntxt-color);
+            font-size: 0.82rem;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
         @media (max-width: 768px) {
             .select-container {
                 margin: 1rem auto 2.5rem !important;
@@ -27,6 +198,18 @@
             }
             .subject-card {
                 padding: 12px 14px !important;
+            }
+            .duration-card {
+                padding: 1rem 0.85rem !important;
+            }
+            .duration-card-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+            .duration-presets-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6px !important;
             }
         }
     </style>
@@ -49,6 +232,7 @@
             
             <form action="/cbt/start" method="POST" id="subjectForm">
                 <input type="hidden" name="mock_id" value="<%= mock.id %>">
+                <input type="hidden" name="custom_duration" id="customDurationHidden" value="<%= locals.custom_duration || mock.time_limit_minutes || 120 %>">
                 
                 <h4 style="margin-top: 1rem; margin-bottom: 0.5rem; color: var(--text-color);">Compulsory Subjects</h4>
                 <% subjects.filter(s => s.is_compulsory).forEach(s => { %>
@@ -75,7 +259,66 @@
                     </label>
                 <% }) %>
 
-                <button type="submit" class="btn btn-primary" id="startBtn" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 2rem;" disabled>
+                <!-- Exam Duration Configuration -->
+                <div class="duration-card">
+                    <div class="duration-card-header">
+                        <div class="duration-title-group">
+                            <span class="duration-header-icon">⏱️</span>
+                            <div>
+                                <h4 class="duration-heading">Exam Duration / Time Limit</h4>
+                                <p class="duration-subheading">Adjust your examination time limit before starting.</p>
+                            </div>
+                        </div>
+                        <div class="current-duration-pill">
+                            <span>⏰</span>
+                            <span id="activeDurationDisplay"><%= locals.custom_duration || mock.time_limit_minutes || 120 %></span>
+                            <span>Mins</span>
+                        </div>
+                    </div>
+
+                    <div class="duration-presets-grid">
+                        <button type="button" class="preset-pill-btn <%= (locals.custom_duration || mock.time_limit_minutes || 120) == 120 ? 'active' : '' %>" data-mins="120">
+                            <span class="preset-name">JAMB Standard</span>
+                            <span class="preset-time">120m (2h)</span>
+                        </button>
+                        <button type="button" class="preset-pill-btn <%= locals.custom_duration == 90 ? 'active' : '' %>" data-mins="90">
+                            <span class="preset-name">Extended</span>
+                            <span class="preset-time">90m</span>
+                        </button>
+                        <button type="button" class="preset-pill-btn <%= locals.custom_duration == 60 ? 'active' : '' %>" data-mins="60">
+                            <span class="preset-name">Standard</span>
+                            <span class="preset-time">60m (1h)</span>
+                        </button>
+                        <button type="button" class="preset-pill-btn <%= locals.custom_duration == 30 ? 'active' : '' %>" data-mins="30">
+                            <span class="preset-name">Sprint Drill</span>
+                            <span class="preset-time">30m</span>
+                        </button>
+                        <button type="button" class="preset-pill-btn" id="presetCustomToggle">
+                            <span class="preset-name">Custom Time</span>
+                            <span class="preset-time">Edit ✏️</span>
+                        </button>
+                    </div>
+
+                    <div class="custom-time-wrapper">
+                        <div class="custom-time-input-group">
+                            <button type="button" class="stepper-btn" onclick="stepDuration(-5)" title="Decrease 5 minutes">− 5m</button>
+                            <div class="input-inner">
+                                <input type="number" 
+                                       id="customDurationInput" 
+                                       min="5" 
+                                       max="360" 
+                                       step="1"
+                                       value="<%= locals.custom_duration || mock.time_limit_minutes || 120 %>" 
+                                       class="custom-time-input" 
+                                       required>
+                                <span class="input-suffix">mins</span>
+                            </div>
+                            <button type="button" class="stepper-btn" onclick="stepDuration(5)" title="Increase 5 minutes">+ 5m</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="startBtn" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem; border-radius: 8px;" disabled>
                     Select Exactly <%= mock.required_elective_count %> Electives
                 </button>
             </form>
@@ -111,6 +354,75 @@
                 document.querySelectorAll('.elective-input').forEach(el => el.disabled = false);
             }
         }
+
+        // Duration Synchronization
+        (function() {
+            const hiddenInput = document.getElementById('customDurationHidden');
+            const numInput = document.getElementById('customDurationInput');
+            const display = document.getElementById('activeDurationDisplay');
+            const presetBtns = document.querySelectorAll('.preset-pill-btn');
+            const customToggleBtn = document.getElementById('presetCustomToggle');
+
+            function syncDuration(val, isCustom) {
+                let num = parseInt(val);
+                if (isNaN(num)) num = 120;
+                if (num < 5) num = 5;
+                if (num > 360) num = 360;
+
+                if (hiddenInput) hiddenInput.value = num;
+                if (numInput) numInput.value = num;
+                if (display) display.textContent = num;
+
+                presetBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (!isCustom && parseInt(btn.dataset.mins) === num) {
+                        btn.classList.add('active');
+                    } else if (isCustom && btn.id === 'presetCustomToggle') {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            window.stepDuration = function(delta) {
+                const current = parseInt(numInput ? numInput.value : 120) || 120;
+                syncDuration(current + delta, true);
+            };
+
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.dataset.mins) {
+                        syncDuration(parseInt(btn.dataset.mins), false);
+                    } else if (btn.id === 'presetCustomToggle') {
+                        presetBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        if (numInput) {
+                            numInput.focus();
+                            numInput.select();
+                        }
+                    }
+                });
+            });
+
+            if (numInput) {
+                numInput.addEventListener('input', () => {
+                    let val = parseInt(numInput.value);
+                    if (!isNaN(val)) {
+                        if (val > 360) val = 360;
+                        if (hiddenInput) hiddenInput.value = val;
+                        if (display) display.textContent = val;
+                    }
+                    presetBtns.forEach(b => b.classList.remove('active'));
+                    if (customToggleBtn) customToggleBtn.classList.add('active');
+                });
+
+                numInput.addEventListener('blur', () => {
+                    let val = parseInt(numInput.value);
+                    if (isNaN(val) || val < 5) val = 5;
+                    if (val > 360) val = 360;
+                    syncDuration(val, true);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

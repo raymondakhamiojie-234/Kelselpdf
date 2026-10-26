@@ -79,7 +79,7 @@ exports.getMockSetup = async (req, res) => {
 // 2. Start Session 
 exports.postStartSession = async (req, res) => {
     try {
-        const { mock_id, selected_electives } = req.body;
+        const { mock_id, selected_electives, custom_duration, duration_minutes } = req.body;
         const userId = req.session.user_id;
 
         const [mockInfo] = await pool.query(`
@@ -115,10 +115,16 @@ exports.postStartSession = async (req, res) => {
                 WHERE ms.mock_id = ?
             `, [mock_id]);
             
+            const requestedMinutes = parseInt(custom_duration || duration_minutes || req.body.time);
+            const userDuration = (!isNaN(requestedMinutes) && requestedMinutes >= 5 && requestedMinutes <= 360) 
+                ? requestedMinutes 
+                : (mock.time_limit_minutes || 120);
+
             return res.render('cbt/select_subjects', {
                 active_page: 'cbt_mock',
                 mock,
-                subjects: subjectsData
+                subjects: subjectsData,
+                custom_duration: userDuration
             });
         }
 
@@ -156,10 +162,16 @@ exports.postStartSession = async (req, res) => {
 
         if (allQuestions.length === 0) return res.status(400).send("Not enough questions in the bank.");
 
+        let finalDuration = mock.time_limit_minutes || 60;
+        const requestedMinutes = parseInt(custom_duration || duration_minutes || req.body.time);
+        if (!isNaN(requestedMinutes) && requestedMinutes >= 5 && requestedMinutes <= 360) {
+            finalDuration = requestedMinutes;
+        }
+
         await pool.query(`
             INSERT INTO cbt_exam_sessions (id, user_id, exam_body_id, exam_id, mock_id, duration_minutes, total_questions) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [sessionId, userId, mock.exam_body_id, mock.exam_id, mock.id, mock.time_limit_minutes, allQuestions.length]);
+        `, [sessionId, userId, mock.exam_body_id, mock.exam_id, mock.id, finalDuration, allQuestions.length]);
 
         for (let i = 0; i < allQuestions.length; i++) {
             await pool.query(`

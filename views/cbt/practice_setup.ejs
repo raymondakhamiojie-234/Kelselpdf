@@ -8,13 +8,46 @@
     <script src="/theme.js"></script>
     <style>
         .setup-container { max-width: 600px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); }
-        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
+        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 1rem; box-sizing: border-box; }
+        
+        /* Practice Timer Chips */
+        .time-chip-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .time-chip {
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .time-chip:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .time-chip.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
 
         @media (max-width: 768px) {
             .setup-container {
                 margin: 1rem auto 2.5rem !important;
                 padding: 1.25rem 1rem !important;
                 border-radius: 12px !important;
+            }
+            .time-chip-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
             }
         }
     </style>
@@ -67,7 +100,46 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem;">Start Practice Session</button>
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="color: var(--ntxt-color); font-weight: 600; margin-bottom: 0;">4. Practice Time Limit (Optional)</label>
+                        <span id="practiceTimeBadge" style="font-size: 0.82rem; color: #3b82f6; font-weight: 700;">Untimed</span>
+                    </div>
+                    
+                    <div class="time-chip-grid">
+                        <button type="button" class="time-chip active" data-mins="0">
+                            <div>Untimed</div>
+                            <small style="font-size: 0.72rem; opacity: 0.8;">No Clock</small>
+                        </button>
+                        <button type="button" class="time-chip" data-mins="15">
+                            <div>15 Mins</div>
+                            <small style="font-size: 0.72rem; opacity: 0.8;">Sprint</small>
+                        </button>
+                        <button type="button" class="time-chip" data-mins="30">
+                            <div>30 Mins</div>
+                            <small style="font-size: 0.72rem; opacity: 0.8;">Speed</small>
+                        </button>
+                        <button type="button" class="time-chip" data-mins="60">
+                            <div>60 Mins</div>
+                            <small style="font-size: 0.72rem; opacity: 0.8;">Full 1hr</small>
+                        </button>
+                    </div>
+
+                    <div style="position: relative;">
+                        <input type="number" 
+                               name="time_limit" 
+                               id="practiceTimeInput" 
+                               class="form-control" 
+                               min="0" 
+                               max="240" 
+                               placeholder="Set custom minutes or leave 0 for untimed" 
+                               value="0">
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--ntxt-color); pointer-events: none; font-weight: 600;">mins</span>
+                    </div>
+                    <small style="color: var(--ntxt-color); font-size: 0.8rem; display: block; margin-top: 5px;">Set 0 for relaxed untimed practice with explanations, or enter minutes to practice against the clock.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; margin-top: 1rem; border-radius: 8px;">Start Practice Session</button>
             </form>
         </div>
     </main>
@@ -89,6 +161,34 @@
                 subjectSelect.disabled = false;
             }
         });
+
+        // Practice Timer synchronization
+        (function() {
+            const timeInput = document.getElementById('practiceTimeInput');
+            const timeBadge = document.getElementById('practiceTimeBadge');
+            const chips = document.querySelectorAll('.time-chip');
+
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    const mins = parseInt(chip.dataset.mins) || 0;
+                    timeInput.value = mins;
+                    timeBadge.textContent = mins === 0 ? 'Untimed' : `${mins} Mins`;
+                });
+            });
+
+            timeInput.addEventListener('input', () => {
+                const val = parseInt(timeInput.value) || 0;
+                chips.forEach(c => {
+                    c.classList.remove('active');
+                    if (parseInt(c.dataset.mins) === val) {
+                        c.classList.add('active');
+                    }
+                });
+                timeBadge.textContent = val === 0 ? 'Untimed' : `${val} Mins`;
+            });
+        })();
     </script>
 </body>
 </html>

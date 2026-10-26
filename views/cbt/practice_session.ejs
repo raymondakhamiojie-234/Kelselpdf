@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,8 +49,14 @@
                     <a href="/practice" class="btn btn-primary" style="margin-top: 1rem;">Go Back</a>
                 </div>
             <% } else { %>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--ntxt-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--ntxt-color); flex-wrap: wrap; gap: 8px;">
                     <span>Question <span id="currentQNum">1</span> of <%= questions.length %></span>
+                    <% if (locals.time_limit && time_limit > 0) { %>
+                        <div id="practiceTimerBadge" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.12); border: 1.5px solid rgba(59, 130, 246, 0.35); padding: 4px 12px; border-radius: 20px; font-weight: 700; color: #3b82f6; font-size: 0.9rem;">
+                            <span>⏱️</span>
+                            <span id="practiceTimerDisplay">--:--</span>
+                        </div>
+                    <% } %>
                     <span>Score: <span id="scoreTracker" style="color: #10b981; font-weight: bold;">0</span></span>
                 </div>
                 
@@ -125,6 +131,47 @@
             }
         }
         updateProgress();
+
+        <% if (locals.time_limit && time_limit > 0) { %>
+            const timeLimitMinutes = <%= time_limit %>;
+            let secondsRemaining = timeLimitMinutes * 60;
+            const timerEl = document.getElementById('practiceTimerDisplay');
+            const timerBadge = document.getElementById('practiceTimerBadge');
+
+            const pInterval = setInterval(() => {
+                secondsRemaining--;
+                if (secondsRemaining <= 0) {
+                    clearInterval(pInterval);
+                    if (timerEl) timerEl.textContent = "00:00";
+                    // Finish practice session
+                    document.querySelectorAll('.q-card').forEach(c => c.classList.remove('active'));
+                    const qEnd = document.getElementById('q-end');
+                    if (qEnd) {
+                        qEnd.classList.add('active');
+                        const h2 = qEnd.querySelector('h2');
+                        if (h2) h2.innerHTML = "Time's Up! ⏱️ Practice Complete 🎉";
+                        document.getElementById('finalScore').innerText = score;
+                        document.getElementById('finalTotal').innerText = total;
+                        document.getElementById('progressBar').style.width = '100%';
+                        document.querySelector('.progress-container').style.display = 'none';
+                        const parent = document.getElementById('currentQNum');
+                        if (parent && parent.parentElement) parent.parentElement.style.display = 'none';
+                    }
+                    return;
+                }
+
+                const m = Math.floor(secondsRemaining / 60);
+                const s = secondsRemaining % 60;
+                if (timerEl) {
+                    timerEl.textContent = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+                }
+                if (secondsRemaining < 60 && timerBadge) {
+                    timerBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                    timerBadge.style.borderColor = '#ef4444';
+                    timerBadge.style.color = '#ef4444';
+                }
+            }, 1000);
+        <% } %>
 
         function selectOption(qIdx, optionLetter) {
             if (answered[qIdx]) return; // locked
