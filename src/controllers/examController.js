@@ -92,8 +92,10 @@ exports.postExamSubmit = async (req, res) => {
         for (const [key, val] of Object.entries(req.body)) {
             if (key.startsWith('q_')) {
                 const q_id = parseInt(key.substring(2));
-                answered_ids.push(q_id);
-                user_answers[q_id] = val;
+                if (!isNaN(q_id)) {
+                    answered_ids.push(q_id);
+                    user_answers[q_id] = val;
+                }
             }
         }
 
@@ -102,19 +104,39 @@ exports.postExamSubmit = async (req, res) => {
             const [rows] = await pool.query(`SELECT id, correct_option FROM questions WHERE id IN (${placeholders})`, answered_ids);
             
             rows.forEach(row => {
-                if (user_answers[row.id] && user_answers[row.id].toUpperCase() === row.correct_option.toUpperCase()) {
+                const userOpt = (user_answers[row.id] || '').toString().trim().toUpperCase();
+                const correctOpt = (row.correct_option || '').toString().trim().toUpperCase();
+                if (userOpt && correctOpt && userOpt === correctOpt) {
                     score++;
                 }
             });
         }
 
-        // Log attempt
-        await pool.query(
-            'INSERT INTO exam_attempts (user_id, course_code, score, total_questions) VALUES (?, ?, ?, ?)',
-            [req.session.user.id, course, score, total_questions]
-        );
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
 
-        const percentage = Math.round((score / total_questions) * 100 * 10) / 10;
+        // Safe attempt logging with table creation safeguard
+        if (userId) {
+            try {
+                await pool.query(`
+                    CREATE TABLE IF NOT EXISTS exam_attempts (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        course_code VARCHAR(100) NOT NULL,
+                        score INTEGER NOT NULL,
+                        total_questions INTEGER NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+                await pool.query(
+                    'INSERT INTO exam_attempts (user_id, course_code, score, total_questions) VALUES (?, ?, ?, ?)',
+                    [userId, course, score, total_questions]
+                );
+            } catch (dbErr) {
+                console.error("Non-fatal error logging exam attempt:", dbErr.message);
+            }
+        }
+
+        const percentage = total_questions > 0 ? Math.round((score / total_questions) * 100 * 10) / 10 : 0;
         let feedback = "";
         if (percentage >= 70) {
             feedback = "Excellent work! You have a solid grasp of this material.";
@@ -132,21 +154,37 @@ exports.postExamSubmit = async (req, res) => {
             feedback
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("postExamSubmit Error:", err);
+        res.status(500).send("Error submitting examination: " + err.message);
     }
 };
 
 exports.getExamAnalytics = async (req, res) => {
     try {
-        const user_id = req.session.user.id;
-        const dept_id = req.session.user.department_id;
-        const level = req.session.user.level;
+        const user_id = req.session.user_id || (req.session.user && req.session.user.id);
+        const dept_id = (req.session.user && req.session.user.department_id) || '';
+        const level = (req.session.user && req.session.user.level) || 100;
 
-        const [attempts] = await pool.query(
-            'SELECT * FROM exam_attempts WHERE user_id = ? ORDER BY created_at DESC',
-            [user_id]
-        );
+        let attempts = [];
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS exam_attempts (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    course_code VARCHAR(100) NOT NULL,
+                    score INTEGER NOT NULL,
+                    total_questions INTEGER NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            const [rows] = await pool.query(
+                'SELECT * FROM exam_attempts WHERE user_id = ? ORDER BY created_at DESC',
+                [user_id]
+            );
+            attempts = rows;
+        } catch (attErr) {
+            console.error("Analytics attempts query error:", attErr.message);
+        }
 
         // Group scores by course for Chart
         const chart_data = {};
@@ -184,8 +222,8 @@ exports.getExamAnalytics = async (req, res) => {
             past_questions
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("getExamAnalytics Error:", err);
+        res.status(500).send("Error loading analytics: " + err.message);
     }
 };
 

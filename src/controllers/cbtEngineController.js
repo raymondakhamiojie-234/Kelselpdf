@@ -317,7 +317,11 @@ exports.postLogViolation = async (req, res) => {
 exports.postSubmit = async (req, res) => {
     try {
         const { session_id } = req.body;
-        const userId = req.session.user_id;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+
+        if (!session_id) {
+            return res.redirect('/cbt/setup');
+        }
 
         const [session] = await pool.query('SELECT * FROM cbt_exam_sessions WHERE id = ? AND user_id = ?', [session_id, userId]);
         if (session.length === 0 || session[0].status !== 'IN_PROGRESS') {
@@ -336,35 +340,47 @@ exports.postSubmit = async (req, res) => {
         let subjectStats = {};
 
         for (const ans of answers) {
-            const isCorrect = ans.selected_option === ans.correct_answer;
+            const userAns = (ans.selected_option || '').toString().trim().toUpperCase();
+            const correctAns = (ans.correct_answer || '').toString().trim().toUpperCase();
+            const isCorrect = userAns.length > 0 && correctAns.length > 0 && userAns === correctAns;
             if (isCorrect) totalScore++;
             
             // Initialize subject tracker if missing
-            if (!subjectStats[ans.subject_id]) {
-                subjectStats[ans.subject_id] = { score: 0, total: 0 };
+            const subId = ans.subject_id || 0;
+            if (!subjectStats[subId]) {
+                subjectStats[subId] = { score: 0, total: 0 };
             }
             
-            subjectStats[ans.subject_id].total++;
-            if (isCorrect) subjectStats[ans.subject_id].score++;
+            subjectStats[subId].total++;
+            if (isCorrect) subjectStats[subId].score++;
 
             await pool.query('UPDATE cbt_session_questions SET is_correct = ? WHERE id = ?', [isCorrect, ans.id]);
         }
 
         await pool.query('UPDATE cbt_exam_sessions SET status = ?, end_time = NOW(), score = ? WHERE id = ?', ['COMPLETED', totalScore, session_id]);
 
-        // Insert subject-level analytics
+        // Insert subject-level analytics (with safe ON CONFLICT safeguard)
         for (const [subject_id, stats] of Object.entries(subjectStats)) {
-            const accuracy = (stats.score / stats.total) * 100;
-            await pool.query(`
-                INSERT INTO cbt_session_analytics (session_id, subject_id, score, total_questions, accuracy_percentage)
-                VALUES (?, ?, ?, ?, ?)
-            `, [session_id, subject_id, stats.score, stats.total, accuracy]);
+            if (!subject_id || subject_id === '0') continue;
+            const accuracy = stats.total > 0 ? (stats.score / stats.total) * 100 : 0;
+            try {
+                await pool.query(`
+                    INSERT INTO cbt_session_analytics (session_id, subject_id, score, total_questions, accuracy_percentage)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT (session_id, subject_id) DO UPDATE SET
+                        score = EXCLUDED.score,
+                        total_questions = EXCLUDED.total_questions,
+                        accuracy_percentage = EXCLUDED.accuracy_percentage
+                `, [session_id, subject_id, stats.score, stats.total, accuracy]);
+            } catch (aErr) {
+                console.error("Non-fatal cbt_session_analytics insert error:", aErr.message);
+            }
         }
 
         res.redirect(`/cbt/results/${session_id}`);
     } catch(err) {
-        console.error(err);
-        res.status(500).send("Error submitting exam: " + err.message);
+        console.error("postSubmit Error:", err);
+        res.status(500).send("Error submitting examination: " + err.message);
     }
 };
 
@@ -372,7 +388,7 @@ exports.postSubmit = async (req, res) => {
 exports.getResults = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
-        const userId = req.session.user_id;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
 
         const [session] = await pool.query(`
             SELECT s.*, m.title as mock_title 
@@ -385,42 +401,60 @@ exports.getResults = async (req, res) => {
         const currentSession = session[0];
         
         // 1. Fetch Subject Analytics Breakdown
-        const [analytics] = await pool.query(`
-            SELECT a.*, s.name as subject_name 
-            FROM cbt_session_analytics a
-            JOIN cbt_subjects s ON a.subject_id = s.id
-            WHERE a.session_id = ?
-        `, [sessionId]);
+        let analytics = [];
+        try {
+            const [rows] = await pool.query(`
+                SELECT a.*, s.name as subject_name 
+                FROM cbt_session_analytics a
+                JOIN cbt_subjects s ON a.subject_id = s.id
+                WHERE a.session_id = ?
+            `, [sessionId]);
+            analytics = rows;
+        } catch (aErr) {
+            console.error("Analytics fetch error:", aErr.message);
+        }
 
         // 2. Fetch Percentile Rank for this Mock
-        const [allScoresResult] = await pool.query(`
-            SELECT score FROM cbt_exam_sessions 
-            WHERE mock_id = ? AND status = 'COMPLETED'
-        `, [currentSession.mock_id]);
-        
         let percentile = 100;
-        if (allScoresResult.length > 1) {
-            const allScores = allScoresResult.map(s => s.score).sort((a,b) => a - b);
-            const belowCount = allScores.filter(s => s < currentSession.score).length;
-            percentile = Math.round((belowCount / allScores.length) * 100);
+        try {
+            const [allScoresResult] = await pool.query(`
+                SELECT score FROM cbt_exam_sessions 
+                WHERE mock_id = ? AND status = 'COMPLETED'
+            `, [currentSession.mock_id]);
+            
+            if (allScoresResult.length > 1) {
+                const allScores = allScoresResult.map(s => Number(s.score) || 0).sort((a,b) => a - b);
+                const myScore = Number(currentSession.score) || 0;
+                const belowCount = allScores.filter(s => s < myScore).length;
+                percentile = Math.round((belowCount / allScores.length) * 100);
+            }
+        } catch (pErr) {
+            console.error("Percentile calc error:", pErr.message);
         }
 
         // 3. Recommended Study Materials based on Weak Subjects (< 50%)
         let recommendedMaterials = [];
-        const weakSubjects = analytics.filter(a => a.accuracy_percentage < 50);
-        
-        if (weakSubjects.length > 0) {
-            // Simplified material recommendation using ILIKE match on subject names for Phase 6
-            // Or ideally mapping them directly if materials have subject_ids. For now we search title.
-            const weakNames = weakSubjects.map(w => w.subject_name.split(' ')[0]); // Grab first keyword
-            let likeQueries = weakNames.map(name => `title ILIKE '%${name}%'`).join(' OR ');
-            
-            const [materials] = await pool.query(`
-                SELECT * FROM exam_materials 
-                WHERE ${likeQueries}
-                LIMIT 3
-            `);
-            recommendedMaterials = materials;
+        try {
+            const weakSubjects = analytics.filter(a => Number(a.accuracy_percentage) < 50);
+            if (weakSubjects.length > 0) {
+                const weakNames = weakSubjects.map(w => (w.subject_name || '').split(' ')[0]).filter(Boolean);
+                if (weakNames.length > 0) {
+                    let likeQueries = weakNames.map(name => `c.course_code ILIKE '%${name}%'`).join(' OR ');
+                    const [materials] = await pool.query(`
+                        SELECT pq.id, pq.year, c.course_code 
+                        FROM past_questions pq 
+                        JOIN courses c ON pq.course_id = c.id
+                        WHERE ${likeQueries}
+                        LIMIT 3
+                    `).catch(() => [[]]);
+                    recommendedMaterials = (materials || []).map(m => ({
+                        title: `${m.course_code} (${m.year || 'Past Questions'})`
+                    }));
+                }
+            }
+        } catch (matErr) {
+            console.error("Material recommendation error (non-fatal):", matErr.message);
+            recommendedMaterials = [];
         }
 
         res.render('cbt/submission_success', {
@@ -431,8 +465,8 @@ exports.getResults = async (req, res) => {
             recommendedMaterials
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Database Error");
+        console.error("getResults Error:", err);
+        res.status(500).send("Database Error: " + err.message);
     }
 };
 

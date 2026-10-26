@@ -87,6 +87,29 @@ router.get('/setup-db', async (req, res) => {
             )
         `);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS exam_attempts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                course_code VARCHAR(100) NOT NULL,
+                score INTEGER NOT NULL,
+                total_questions INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS cbt_session_analytics (
+                id SERIAL PRIMARY KEY,
+                session_id VARCHAR(100) NOT NULL,
+                subject_id INT NOT NULL,
+                score INT DEFAULT 0,
+                total_questions INT DEFAULT 0,
+                accuracy_percentage DECIMAL(5,2) DEFAULT 0.00,
+                UNIQUE(session_id, subject_id)
+            )
+        `);
+
         try {
             await pool.query('ALTER TABLE users ADD COLUMN referred_by_code VARCHAR(50) DEFAULT NULL');
         } catch (err) { }

@@ -72,15 +72,16 @@ exports.postTrialSubmit = async (req, res) => {
         }
 
         if (answered_ids.length > 0) {
+            const placeholders = answered_ids.map(() => '?').join(',');
             const [rows] = await pool.query(
-                'SELECT id, correct_option FROM questions WHERE id IN (?)',
-                [answered_ids]
+                `SELECT id, correct_option FROM questions WHERE id IN (${placeholders})`,
+                answered_ids
             );
 
             for (const row of rows) {
                 const correct_opt = (row.correct_option || '').trim().toLowerCase();
                 const user_opt = (user_answers[row.id] || '').trim().toLowerCase();
-                if (correct_opt === user_opt) {
+                if (correct_opt && user_opt && correct_opt === user_opt) {
                     score++;
                 }
             }
@@ -93,7 +94,7 @@ exports.postTrialSubmit = async (req, res) => {
             percentage: ((score / total_questions) * 100).toFixed(1)
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("postTrialSubmit Error:", err);
+        res.status(500).send("Error submitting trial examination: " + err.message);
     }
 };
