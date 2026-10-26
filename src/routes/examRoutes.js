@@ -4,6 +4,9 @@ const examController = require('../controllers/examController');
 const { checkAuth } = require('../middleware/auth'); 
 
 router.get('/exam/setup', checkAuth, examController.getExamSetup);
+router.get('/exam_setup', checkAuth, examController.getExamSetup);
+router.get('/aau/exam', checkAuth, examController.getExamSetup);
+router.get('/exam', checkAuth, (req, res) => res.redirect('/exam/setup'));
 router.get('/exam_materials', checkAuth, examController.getExamMaterials);
 router.get('/exam/start', examController.getExamStart);
 router.get('/exam/take/:course', checkAuth, examController.getTakeExam);

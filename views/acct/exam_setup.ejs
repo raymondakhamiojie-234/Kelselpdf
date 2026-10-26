@@ -34,7 +34,7 @@
         
         .btn-3d {
             background: linear-gradient(135deg, var(--cta-color), #2196f3);
-            border: none; color: white; padding: 1rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            border: none; color: white; padding: 1rem; border-radius: 12px; font-size: 1.05rem; font-weight: 700;
             cursor: pointer; text-decoration: none; text-align: center;
             box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
             transition: transform 0.2s, box-shadow 0.2s; width: 100%; display: block; margin-top: 1rem;
@@ -43,19 +43,68 @@
         
         .btn-ai-3d {
             background: linear-gradient(135deg, #9c27b0, #e91e63);
-            border: none; color: white; padding: 1rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            border: none; color: white; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 600;
             cursor: pointer; text-decoration: none; text-align: center;
             box-shadow: 0 4px 15px rgba(156, 39, 176, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s; width: 100%; display: block; margin-top: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s; width: 100%; display: block; margin-top: 0.8rem;
         }
         .btn-ai-3d:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4); color: white; }
         
-        .form-group label { color: var(--sec-color); font-weight: 600; }
+        .form-group label { color: var(--sec-color); font-weight: 600; display: block; margin-bottom: 6px; }
         .form-group select, .form-group input { 
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-            color: var(--txt-color); border-radius: 8px; padding: 12px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); 
+            color: var(--txt-color); border-radius: 8px; padding: 12px; width: 100%; box-sizing: border-box;
+            font-size: 1rem;
         }
         .form-group select option { background: var(--nav-bg); color: var(--txt-color); }
+
+        /* Chips for Time and Questions */
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .param-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 8px 6px;
+            color: var(--txt-color);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .param-chip:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .param-chip.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+
+        .switch-banner {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .switch-banner a {
+            color: #10b981;
+            font-weight: 700;
+            text-decoration: underline;
+            white-space: nowrap;
+        }
 
         @media (max-width: 768px) {
             .glass-panel {
@@ -66,6 +115,15 @@
             .glass-panel h1 {
                 font-size: 1.6rem !important;
             }
+            .switch-banner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 10px 12px;
+            }
+            .chip-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
         }
     </style>
 </head>
@@ -75,41 +133,116 @@
         <div class="orb orb-2"></div>
     </div>
 
-    <%- include('partials/sidebar', { active_page: 'dashboard' }) %>
+    <%- include('partials/sidebar', { active_page: 'aau_exam' }) %>
 
     <main class="main-content">
-        <%- include('partials/app_header', { page_title: 'Mock Exams', page_desc: 'Configure your practice test' }) %>
+        <%- include('partials/app_header', { 
+            page_title: 'AAU Course CBT Exams', 
+            page_desc: 'Ambrose Alli University Semester CBT Practice & Mock Tests',
+            header_style: 'background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);'
+        }) %>
 
-        <div class="glass-panel" id="exam-card" style="max-width: 600px; margin: 2rem auto; opacity: 0; transform: translateY(20px);">
-            <h1 class="text-center" style="color: var(--sec-color); font-size: 2.2rem; margin-bottom: 0.5rem;">Exam Setup</h1>
-            <p class="text-center" style="color: var(--ntxt-color); margin-bottom: 2rem;">Choose your parameters to begin.</p>
+        <div class="glass-panel" id="exam-card" style="max-width: 650px; margin: 2rem auto; opacity: 0; transform: translateY(20px);">
+            <!-- University Badge & Separation Notice -->
+            <div style="text-align: center; margin-bottom: 1.2rem;">
+                <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); padding: 4px 14px; border-radius: 20px; color: #60a5fa; font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">
+                    🎓 AAU Undergraduate CBT Portal
+                </span>
+            </div>
+
+            <h1 class="text-center" style="color: var(--sec-color); font-size: 2rem; margin-bottom: 0.4rem;">Select Your Course</h1>
+            <p class="text-center" style="color: var(--ntxt-color); font-size: 0.92rem; margin-bottom: 1.5rem;">
+                Timed semester mock examinations specifically calibrated to AAU exam format.
+            </p>
+
+            <div class="switch-banner">
+                <div style="font-size: 0.85rem; color: var(--txt-color); line-height: 1.4;">
+                    🏛️ Preparing for <strong>JAMB UTME</strong> or <strong>WAEC</strong> instead of university coursework?
+                </div>
+                <a href="/cbt" style="font-size: 0.85rem;">Switch to National CBT Hub &rarr;</a>
+            </div>
             
             <form id="examForm" method="GET" action="/exam/start">
                 <div class="form-group">
-                    <label>Course</label>
+                    <label>Choose Course</label>
                     <select name="course" id="courseSelect" required>
-                        <option value="">Select a course...</option>
-                        <% if(courses && courses.length > 0) { %>
-                            <% courses.forEach(function(c) { %>
-                                <option value="<%= c.course_code %>"><%= c.course_code %></option>
-                            <% }); %>
+                        <option value="">-- Select an AAU Course --</option>
+                        <% if (courses && courses.length > 0) { %>
+                            <% 
+                            // Group by categories
+                            const gstCourses = courses.filter(c => c.category && c.category.includes('General'));
+                            const sciCourses = courses.filter(c => c.category && c.category.includes('Sciences'));
+                            const otherCourses = courses.filter(c => !c.category || (!c.category.includes('General') && !c.category.includes('Sciences')));
+                            %>
+
+                            <% if (gstCourses.length > 0) { %>
+                                <optgroup label="General Studies (GST / Faculty Requirements)">
+                                    <% gstCourses.forEach(function(c) { %>
+                                        <option value="<%= c.course_code %>">
+                                            <%= c.course_code %> &bull; (<%= c.question_count %> Questions Ready)
+                                        </option>
+                                    <% }); %>
+                                </optgroup>
+                            <% } %>
+
+                            <% if (sciCourses.length > 0) { %>
+                                <optgroup label="Basic Sciences & Mathematics">
+                                    <% sciCourses.forEach(function(c) { %>
+                                        <option value="<%= c.course_code %>">
+                                            <%= c.course_code %> &bull; (<%= c.question_count %> Questions Ready)
+                                        </option>
+                                    <% }); %>
+                                </optgroup>
+                            <% } %>
+
+                            <% if (otherCourses.length > 0) { %>
+                                <optgroup label="Faculty & Departmental Courses">
+                                    <% otherCourses.forEach(function(c) { %>
+                                        <option value="<%= c.course_code %>">
+                                            <%= c.course_code %> &bull; (<%= c.question_count %> Questions Ready)
+                                        </option>
+                                    <% }); %>
+                                </optgroup>
+                            <% } %>
                         <% } else { %>
-                            <option value="">No courses available for your department/level</option>
+                            <option value="">No courses currently available</option>
                         <% } %>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Time Duration (Minutes)</label>
-                    <input type="number" name="time" value="30" min="5" required>
+
+                <!-- Time Duration Presets -->
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Time Duration</label>
+                        <span id="timeDisplayBadge" style="font-size: 0.82rem; color: #60a5fa; font-weight: 700;">30 Mins (Standard)</span>
+                    </div>
+                    <div class="chip-grid">
+                        <button type="button" class="param-chip" data-type="time" data-val="15">15 Mins</button>
+                        <button type="button" class="param-chip active" data-type="time" data-val="30">30 Mins</button>
+                        <button type="button" class="param-chip" data-type="time" data-val="45">45 Mins</button>
+                        <button type="button" class="param-chip" data-type="time" data-val="60">60 Mins</button>
+                    </div>
+                    <input type="number" name="time" id="timeInput" value="30" min="5" max="180" required>
                 </div>
-                <div class="form-group">
-                    <label>Number of Questions</label>
-                    <input type="number" name="questions" value="20" min="5" required>
+
+                <!-- Number of Questions Presets -->
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Number of Questions</label>
+                        <span id="questionsDisplayBadge" style="font-size: 0.82rem; color: #60a5fa; font-weight: 700;">20 Questions</span>
+                    </div>
+                    <div class="chip-grid">
+                        <button type="button" class="param-chip" data-type="q" data-val="10">10 Questions</button>
+                        <button type="button" class="param-chip active" data-type="q" data-val="20">20 Questions</button>
+                        <button type="button" class="param-chip" data-type="q" data-val="30">30 Questions</button>
+                        <button type="button" class="param-chip" data-type="q" data-val="50">50 Questions</button>
+                    </div>
+                    <input type="number" name="questions" id="questionsInput" value="20" min="5" max="100" required>
                 </div>
                 
-                <div style="margin-top: 2.5rem;">
-                    <button type="submit" class="btn-3d">Start CBT Exam</button>
-                    <button type="button" onclick="startAIExam()" class="btn-ai-3d">Generate AI Practice</button>
+                <div style="margin-top: 2rem;">
+                    <button type="submit" class="btn-3d">Begin AAU CBT Exam Session &rarr;</button>
+                    <button type="button" onclick="startAIExam()" class="btn-ai-3d">Generate AI Practice for Course</button>
                 </div>
             </form>
         </div>
@@ -121,6 +254,52 @@
             gsap.to(".orb-1", { x: "10vw", y: "5vh", rotation: 45, duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut" });
             gsap.to(".orb-2", { x: "-10vw", y: "-10vh", rotation: -45, duration: 25, repeat: -1, yoyo: true, ease: "sine.inOut" });
             VanillaTilt.init(document.querySelector("#exam-card"), { max: 3, speed: 400, glare: true, "max-glare": 0.05 });
+        });
+
+        // Time chips logic
+        const timeInput = document.getElementById('timeInput');
+        const timeBadge = document.getElementById('timeDisplayBadge');
+        const timeChips = document.querySelectorAll('.param-chip[data-type="time"]');
+
+        timeChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                timeChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                timeInput.value = chip.dataset.val;
+                timeBadge.textContent = chip.dataset.val + ' Mins';
+            });
+        });
+
+        timeInput.addEventListener('input', () => {
+            const val = timeInput.value;
+            timeChips.forEach(c => {
+                c.classList.remove('active');
+                if (c.dataset.val === val) c.classList.add('active');
+            });
+            timeBadge.textContent = val + ' Mins';
+        });
+
+        // Question chips logic
+        const qInput = document.getElementById('questionsInput');
+        const qBadge = document.getElementById('questionsDisplayBadge');
+        const qChips = document.querySelectorAll('.param-chip[data-type="q"]');
+
+        qChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                qChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                qInput.value = chip.dataset.val;
+                qBadge.textContent = chip.dataset.val + ' Questions';
+            });
+        });
+
+        qInput.addEventListener('input', () => {
+            const val = qInput.value;
+            qChips.forEach(c => {
+                c.classList.remove('active');
+                if (c.dataset.val === val) c.classList.add('active');
+            });
+            qBadge.textContent = val + ' Questions';
         });
 
         function startAIExam() {

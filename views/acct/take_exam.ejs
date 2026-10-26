@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -90,10 +90,11 @@
     <nav class="exam-nav">
         <!-- Top section -->
         <div class="exam-nav-top" style="display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-            <div style="font-weight: bold; font-size: 1.5rem; text-align: center; color: var(--sec-color);"><%= course %> Exam</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #10b981; font-weight: 700; text-align: center;">AAU Course CBT</div>
+            <div style="font-weight: 800; font-size: 1.4rem; text-align: center; color: var(--sec-color);"><%= course %> Exam</div>
             
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                <span style="font-weight: 500; color: var(--txt-color);"><%= user.full_name %> <%= user.lastname %></span>
+                <span style="font-weight: 500; color: var(--txt-color);"><%= (locals.user && (user.full_name || user.firstname)) ? ((user.full_name || user.firstname) + (user.lastname ? ' ' + user.lastname : '')) : 'AAU Student' %></span>
             </div>
 
             <div style="text-align: center; margin-top: 10px;">
@@ -119,8 +120,8 @@
         <% if (!questions || questions.length === 0) { %>
             <div class="glass-panel text-center">
                 <h3 style="color: var(--sec-color); font-size: 1.8rem; margin-bottom: 15px;">No questions available.</h3>
-                <p style="color: var(--ntxt-color); margin-bottom: 25px;">There are currently no mock questions uploaded for this course.</p>
-                <a href="/exam_setup" class="btn-3d">Return to Setup</a>
+                <p style="color: var(--ntxt-color); margin-bottom: 25px;">There are currently no mock questions uploaded for course <strong><%= course %></strong>.</p>
+                <a href="/exam/setup" class="btn-3d">Return to AAU Exam Setup</a>
             </div>
         <% } else { %>
             <form id="examForm" method="POST" action="/exam/submit">
@@ -133,7 +134,7 @@
                         <p style="font-size: 1.15rem; color: var(--txt-color); line-height: 1.6; margin-bottom: 1.5rem;"><%= q.question_text %></p>
                         
                         <ul class="options-list">
-                            <li><label><input type="radio" name="q_<%= q.id %>" value="A" required onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_a %></span></label></li>
+                            <li><label><input type="radio" name="q_<%= q.id %>" value="A" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_a %></span></label></li>
                             <li><label><input type="radio" name="q_<%= q.id %>" value="B" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_b %></span></label></li>
                             <li><label><input type="radio" name="q_<%= q.id %>" value="C" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_c %></span></label></li>
                             <li><label><input type="radio" name="q_<%= q.id %>" value="D" onchange="saveExamProgress(this.name, this.value)"><span><%= q.option_d %></span></label></li>

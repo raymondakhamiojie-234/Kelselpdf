@@ -26,25 +26,30 @@
         </ul>
     <% } else { %>
         <!-- Student Desktop Navigation -->
-        <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 0;">Academic</p>
+        <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ntxt-color); margin-bottom: 0.5rem; margin-top: 0; font-weight: 700;">AAU University</p>
         <ul>
             <li><a href="/dashboard" class="<%= locals.active_page === 'dashboard' ? 'active' : '' %>"><img src="/acct/img/dashboard-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Dashboard</a></li>
+            <li><a href="/exam/setup" class="<%= locals.active_page === 'aau_exam' ? 'active' : '' %>" style="display: flex; align-items: center; justify-content: space-between;"><span style="display: flex; align-items: center;"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AAU Course CBT</span><span style="font-size: 0.65rem; background: #10b981; color: white; padding: 2px 6px; border-radius: 6px; font-weight: bold;">AAU</span></a></li>
             <li><a href="/aau-curriculum" class="<%= locals.active_page === 'aau_curriculum' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AAU Curriculum</a></li>
-            <li><a href="/ai-chat" class="<%= locals.active_page === 'ai_chat' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AI Tutor</a></li>
-            <li><a href="/exam_materials" class="<%= locals.active_page === 'exam_materials' ? 'active' : '' %>"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Study Materials</a></li>
-            <li><a href="/practice" class="<%= locals.active_page === 'cbt_practice' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Past Question Practice</a></li>
-            <li><a href="/cbt" class="<%= (locals.active_page === 'cbt_mock' || locals.active_page === 'cbt_hub') ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Mock Examination</a></li>
+            <li><a href="/exam_materials" class="<%= locals.active_page === 'exam_materials' ? 'active' : '' %>"><img src="/acct/img/download-minimalistic-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Course Past Questions</a></li>
             <li><a href="/my_materials" class="<%= locals.active_page === 'my_materials' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> My Materials</a></li>
-            <li><a href="/exam/analytics" class="<%= locals.active_page === 'exam_analytics' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Analytics</a></li>
+            <li><a href="/exam/analytics" class="<%= locals.active_page === 'exam_analytics' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Exam Analytics</a></li>
         </ul>
 
-        <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 1.5rem;">Skills Academy</p>
+        <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ntxt-color); margin-bottom: 0.5rem; margin-top: 1.5rem; font-weight: 700;">National Exams (Pre-Varsity)</p>
         <ul>
+            <li><a href="/cbt" class="<%= (locals.active_page === 'cbt_mock' || locals.active_page === 'cbt_hub' || locals.active_page === 'cbt_setup') ? 'active' : '' %>" style="display: flex; align-items: center; justify-content: space-between;"><span style="display: flex; align-items: center;"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> JAMB & WAEC CBT</span><span style="font-size: 0.65rem; background: #6366f1; color: white; padding: 2px 6px; border-radius: 6px; font-weight: bold;">UTME</span></a></li>
+            <li><a href="/practice" class="<%= locals.active_page === 'cbt_practice' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> JAMB/WAEC Practice</a></li>
+        </ul>
+
+        <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ntxt-color); margin-bottom: 0.5rem; margin-top: 1.5rem; font-weight: 700;">Skills & AI</p>
+        <ul>
+            <li><a href="/ai-chat" class="<%= locals.active_page === 'ai_chat' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> AI Tutor</a></li>
             <li><a href="/skills" class="<%= locals.active_page === 'academy_browse' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Browse Courses</a></li>
             <li><a href="/skills/my-learning" class="<%= locals.active_page === 'academy_learning' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> My Learning</a></li>
         </ul>
 
-        <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); opacity: 0.7; margin-bottom: 0.5rem; margin-top: 1.5rem;">Career & Community</p>
+        <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ntxt-color); margin-bottom: 0.5rem; margin-top: 1.5rem; font-weight: 700;">Career & Community</p>
         <ul>
             <li><a href="/certificates" class="<%= locals.active_page === 'certificates' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Certificates</a></li>
             <li><a href="/career" class="<%= locals.active_page === 'career' ? 'active' : '' %>"><img src="/acct/img/report-svgrepo-com.svg" style="width:20px; vertical-align:middle; margin-right:10px;"> Career Center</a></li>
@@ -124,21 +129,17 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             Home
         </a>
+        <a href="/exam/setup" class="<%= locals.active_page === 'aau_exam' ? 'active' : '' %>" style="color: #10b981;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            AAU CBT
+        </a>
         <a href="/cbt" class="<%= (locals.active_page === 'cbt_mock' || locals.active_page === 'cbt_hub' || locals.active_page === 'cbt_setup') ? 'active' : '' %>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
-            CBT Mocks
+            JAMB/WAEC
         </a>
         <a href="/ai-chat" class="<%= locals.active_page === 'ai_chat' ? 'active' : '' %>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             AI Tutor
-        </a>
-        <a href="/my_materials" class="<%= locals.active_page === 'my_materials' ? 'active' : '' %>">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
-            Materials
-        </a>
-        <a href="/skills" class="<%= locals.active_page === 'academy_browse' || locals.active_page === 'academy_learning' ? 'active' : '' %>">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-            Academy
         </a>
         <a href="/profile" class="<%= locals.active_page === 'profile' ? 'active' : '' %>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>

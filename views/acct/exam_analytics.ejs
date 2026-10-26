@@ -120,7 +120,10 @@
             <div class="glass-panel text-center" id="empty-state">
                 <h2 style="color: var(--sec-color); margin-bottom: 10px; font-size: 2rem;">No exams completed yet.</h2>
                 <p style="color: var(--ntxt-color); margin-bottom: 20px; font-size: 1.1rem;">Take a mock exam to see your analytics and track your progress!</p>
-                <a href="/exam_setup" class="btn-3d">Take a Mock Exam</a>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/exam/setup" class="btn-3d">Take AAU Course Exam</a>
+                    <a href="/cbt" class="btn-ai-3d">JAMB/WAEC Hub</a>
+                </div>
             </div>
         <% } else { %>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">

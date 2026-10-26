@@ -2,32 +2,77 @@ const pool = require('../config/db');
 
 exports.getExamSetup = async (req, res) => {
     try {
-        const [userRows] = await pool.query('SELECT department_id, level FROM users WHERE id = ?', [req.session.user_id]);
-        const user = userRows[0];
-
-        if (!user) {
-            return res.redirect('/logout');
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        if (!userId) {
+            return res.redirect('/login');
         }
 
-        const [courses] = await pool.query(`
-            SELECT DISTINCT c.course_code 
-            FROM courses c
-            JOIN questions q ON LOWER(REPLACE(c.course_code, ' ', '')) = LOWER(REPLACE(q.course_code, ' ', ''))
-            WHERE (c.department_id = ? OR c.department_id LIKE ? OR c.shared_access_group = 'gst') AND c.level_access <= ?
-            ORDER BY c.course_code ASC
-        `, [user.department_id, user.department_id, user.level]);
-        
-        res.render('acct/exam_setup', { courses });
+        const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+        const user = userRows[0] || req.session.user || { id: userId, department_id: '', level: 100, full_name: 'AAU Student' };
+
+        // 1. Fetch all distinct AAU courses that actually have questions in the questions bank
+        const [availableCourses] = await pool.query(`
+            SELECT 
+                TRIM(course_code) AS course_code, 
+                COUNT(id) AS question_count
+            FROM questions
+            GROUP BY TRIM(course_code)
+            HAVING COUNT(id) > 0
+            ORDER BY TRIM(course_code) ASC
+        `);
+
+        // 2. Identify user's department courses vs general GST courses
+        const userDept = (user.department_id || '').toString().toLowerCase();
+        const userLevel = parseInt(user.level) || 100;
+
+        // Enhance course objects with category info
+        const courses = availableCourses.map(c => {
+            const code = c.course_code.toUpperCase();
+            let category = 'Faculty & Departmental';
+            let isRecommended = false;
+
+            if (code.startsWith('GST') || code.startsWith('ENT') || code.startsWith('FAC')) {
+                category = 'General Studies (GST / General)';
+                isRecommended = true;
+            } else if (code.startsWith('BIO') || code.startsWith('CHM') || code.startsWith('PHY') || code.startsWith('MTH')) {
+                category = 'Basic Sciences';
+                if (userDept.includes('science') || userDept.includes('physics') || userDept.includes('chemistry') || userDept.includes('biology') || userDept.includes('math') || userDept.includes('eng')) {
+                    isRecommended = true;
+                }
+            } else if (code.startsWith('CSC')) {
+                category = 'Computer Science & ICT';
+                if (userDept.includes('computer') || userDept.includes('csc') || userDept.includes('1')) {
+                    isRecommended = true;
+                }
+            }
+
+            return {
+                course_code: c.course_code,
+                question_count: parseInt(c.question_count) || 0,
+                category,
+                isRecommended
+            };
+        });
+
+        res.render('acct/exam_setup', { 
+            courses, 
+            user,
+            active_page: 'aau_exam' 
+        });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("getExamSetup Error:", err);
+        res.status(500).send("Error loading examination setup: " + err.message);
     }
 };
 
 exports.getExamMaterials = async (req, res) => {
     try {
-        const dept_id = req.session.user.department_id;
-        const level = req.session.user.level;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+        const user = userRows[0] || req.session.user || {};
+
+        const dept_id = user.department_id || '';
+        const level = user.level || 100;
 
         const query = `
             SELECT pq.*, c.course_code FROM past_questions pq 
@@ -37,41 +82,53 @@ exports.getExamMaterials = async (req, res) => {
             ORDER BY c.course_code ASC, pq.year DESC
         `;
         const [materials] = await pool.query(query, [dept_id, '%"' + dept_id + '"%', level]);
-        res.render('acct/exam_materials', { user: req.session.user, materials });
+        res.render('acct/exam_materials', { user, materials, active_page: 'exam_materials' });
     } catch (err) {
-        console.error(err);
-        res.render('acct/exam_materials', { user: req.session.user, materials: [] });
+        console.error("getExamMaterials Error:", err);
+        res.render('acct/exam_materials', { user: req.session.user || {}, materials: [], active_page: 'exam_materials' });
     }
 };
 
 exports.getExamStart = (req, res) => {
     const course = req.query.course;
-    if (!course) return res.redirect('/dashboard');
-    const time = req.query.time || 30;
-    const questions = req.query.questions || 20;
+    if (!course) return res.redirect('/exam/setup');
+    const time = parseInt(req.query.time) || 30;
+    const questions = parseInt(req.query.questions) || 20;
     res.redirect(`/exam/take/${encodeURIComponent(course)}?time=${time}&questions=${questions}`);
 };
 
 exports.getTakeExam = async (req, res) => {
     try {
         const course = req.params.course;
+        if (!course) return res.redirect('/exam/setup');
+
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+        const user = userRows[0] || req.session.user || { 
+            id: userId, 
+            full_name: 'AAU', 
+            lastname: 'Student' 
+        };
+
         const time_limit = parseInt(req.query.time) || 30;
         const question_limit = parseInt(req.query.questions) || 20;
 
+        const normalizedCourse = (course || '').replace(/\s+/g, '');
         const [questions] = await pool.query(
             "SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE LOWER(REPLACE(course_code, ' ', '')) = LOWER(?) ORDER BY RANDOM() LIMIT ?",
-            [(course||'').replace(/\s+/g, ''), question_limit]
+            [normalizedCourse, question_limit]
         );
 
         res.render('acct/take_exam', {
-            user: req.session.user,
+            user,
             course,
             time_limit,
-            questions
+            questions,
+            active_page: 'aau_exam'
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("getTakeExam Error:", err);
+        res.status(500).send("Error loading examination: " + err.message);
     }
 };
 

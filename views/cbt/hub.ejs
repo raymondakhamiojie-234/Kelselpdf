@@ -74,8 +74,22 @@
         }) %>
 
         <div class="hub-container">
-            <h2 style="color: var(--text-color); font-size: 2rem; margin-bottom: 10px;">What are you preparing for?</h2>
-            <p style="color: var(--ntxt-color); font-size: 1.1rem;">Select an examination body to access Mocks, Past Questions, and Analytics.</p>
+            <!-- AAU Separation Notice -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 18px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 1.6rem;">🎓</span>
+                    <div>
+                        <strong style="color: #10b981; font-size: 0.95rem; display: block;">AAU Undergraduate Student?</strong>
+                        <span style="color: var(--ntxt-color); font-size: 0.82rem;">Looking for your Ambrose Alli University semester courses (GST 111, BIO 111, MTH 112, etc.)?</span>
+                    </div>
+                </div>
+                <a href="/exam/setup" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    Go to AAU Course CBT &rarr;
+                </a>
+            </div>
+
+            <h2 style="color: var(--text-color); font-size: 2rem; margin-bottom: 10px;">National Exam Bodies (JAMB, WAEC, NECO)</h2>
+            <p style="color: var(--ntxt-color); font-size: 1.05rem;">Select your target examination body below to take official UTME/SSCE mock simulations.</p>
             
             <div class="hub-grid">
                 <% examBodies.forEach(b => { %>
