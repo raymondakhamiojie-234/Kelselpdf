@@ -421,19 +421,19 @@
                     </td>
                     <td style="text-align: right;">
                         <div class="action-btn-group" style="justify-content: flex-end;">
-                            <button class="act-btn act-btn-verify" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'current_official_verified')" title="Mark Verified">
+                            <button class="act-btn act-btn-verify" onclick="updateStatus('${escapeAttr(row.course_code)}', '${escapeAttr(row.programme_id)}', 'current_official_verified')" title="Mark Verified">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 <span>Verify</span>
                             </button>
-                            <button class="act-btn act-btn-hist" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'official_historical')" title="Mark Historical">
+                            <button class="act-btn act-btn-hist" onclick="updateStatus('${escapeAttr(row.course_code)}', '${escapeAttr(row.programme_id)}', 'official_historical')" title="Mark Historical">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
                                 <span>Historical</span>
                             </button>
-                            <button class="act-btn act-btn-flag" onclick="updateStatus('${escapeAttr(row.course_code)}', ${row.programme_id}, 'conflicting_official_sources')" title="Flag Conflict">
+                            <button class="act-btn act-btn-flag" onclick="updateStatus('${escapeAttr(row.course_code)}', '${escapeAttr(row.programme_id)}', 'conflicting_official_sources')" title="Flag Conflict">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                                 <span>Flag</span>
                             </button>
-                            <button class="act-btn act-btn-note" onclick="addNote('${escapeAttr(row.course_code)}', ${row.programme_id})" title="Attach Audit Note">
+                            <button class="act-btn act-btn-note" onclick="addNote('${escapeAttr(row.course_code)}', '${escapeAttr(row.programme_id)}')" title="Attach Audit Note">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                 <span>Note</span>
                             </button>
@@ -497,10 +497,24 @@
             }
         }
 
-        function addNote(course_code, programme_id) {
+        async function addNote(course_code, programme_id) {
             const note = prompt(`Enter verification or faculty note for "${course_code}":`);
             if (note && note.trim().length > 0) {
-                showToast(`Audit note attached for ${course_code}`);
+                try {
+                    const res = await fetch('/api/curriculum/admin/update-status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ course_code, programme_id, notes: note.trim() })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        showToast(`Audit note saved for ${course_code}`);
+                    } else {
+                        alert("Failed to save note: " + (result.error || "Server rejection"));
+                    }
+                } catch(e) {
+                    alert("Network communication error.");
+                }
             }
         }
 
