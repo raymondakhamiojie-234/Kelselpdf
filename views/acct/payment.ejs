@@ -1,128 +1,441 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Premium Subscriptions - KelselPDF</title>
     <link rel="stylesheet" href="/style.css">
     <script src="/theme.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
-        .pricing-container { max-width: 1000px; margin: 3rem auto; text-align: center; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 3rem; }
-        
+        .pricing-container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.25rem 6rem 1.25rem;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .pricing-intro {
+            margin-bottom: 2.5rem;
+        }
+
+        .pricing-intro h2 {
+            font-size: 2.2rem;
+            color: var(--text-color);
+            margin: 0 0 0.5rem 0;
+            font-weight: 800;
+        }
+
+        .pricing-intro p {
+            font-size: 1.05rem;
+            color: var(--ntxt-color);
+            margin: 0 auto;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            align-items: stretch;
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
         .price-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 3rem 2rem;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-        
-        .price-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            border-color: var(--primary-color);
-        }
-        
-        .price-card.popular {
-            border: 2px solid var(--primary-color);
-            transform: scale(1.05);
-        }
-        .price-card.popular:hover { transform: scale(1.05) translateY(-10px); }
-        
-        .popular-badge {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%);
-            color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            box-sizing: border-box;
+            width: 100%;
         }
 
-        .price-amount { font-size: 3rem; font-weight: bold; color: var(--text-color); margin: 1.5rem 0; }
-        .price-currency { font-size: 1.5rem; vertical-align: top; margin-right: 5px; }
-        
-        .features-list { list-style: none; padding: 0; margin: 2rem 0; text-align: left; }
-        .features-list li { margin-bottom: 1rem; color: var(--ntxt-color); display: flex; align-items: center; gap: 10px; }
-        .features-list li::before { content: '✓'; color: #10b981; font-weight: bold; }
-        
-        .locked-alert {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid #f59e0b;
-            color: #d97706;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+        .price-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .price-card.popular {
+            border: 2px solid var(--primary-color);
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.04) 0%, var(--card-bg) 100%);
+        }
+
+        @media (min-width: 821px) {
+            .price-card.popular {
+                transform: scale(1.03);
+            }
+            .price-card.popular:hover {
+                transform: scale(1.03) translateY(-6px);
+            }
+            .price-card:not(.popular):hover {
+                transform: translateY(-6px);
+            }
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+            white-space: nowrap;
+        }
+
+        .plan-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-title {
+            color: var(--text-color);
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin: 0 0 0.35rem 0;
+        }
+
+        .plan-subtitle {
+            color: var(--ntxt-color);
+            font-size: 0.9rem;
+            margin: 0 0 1.25rem 0;
+            line-height: 1.4;
+        }
+
+        .price-amount {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            line-height: 1;
+        }
+
+        .price-currency {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .plan-duration {
+            font-size: 0.88rem;
+            color: var(--ntxt-color);
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        .savings-tag {
             display: inline-block;
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+            flex: 1;
+        }
+
+        .features-list li {
+            margin-bottom: 0.9rem;
+            color: var(--ntxt-color);
+            font-size: 0.93rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.4;
+        }
+
+        .features-list li .check-icon {
+            color: #10b981;
+            font-weight: 800;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+            margin-top: -1px;
+        }
+
+        .plan-btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: block;
+            box-sizing: border-box;
+            border: none;
+        }
+
+        .plan-btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .plan-btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .plan-btn-solid {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #4f46e5 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .plan-btn-solid:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
+        }
+
+        .locked-alert {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #d97706;
+            padding: 1.2rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .guarantee-bar {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            color: var(--ntxt-color);
+            font-size: 0.85rem;
+        }
+
+        .guarantee-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 820px) {
+            .pricing-container {
+                margin: 1.25rem auto;
+                padding: 0 1rem 6.5rem 1rem;
+            }
+            .pricing-intro h2 {
+                font-size: 1.7rem;
+            }
+            .pricing-intro p {
+                font-size: 0.92rem;
+            }
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                max-width: 440px;
+            }
+            .price-card {
+                padding: 2rem 1.5rem;
+                border-radius: 16px;
+            }
+            .price-card.popular {
+                transform: none !important;
+            }
+            .price-amount {
+                font-size: 2.4rem;
+            }
+            .price-currency {
+                font-size: 1.35rem;
+            }
+            .locked-alert {
+                padding: 1rem;
+                font-size: 0.88rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .price-card {
+                padding: 1.75rem 1.2rem;
+            }
+            .plan-btn {
+                padding: 12px 16px;
+                font-size: 0.98rem;
+            }
+            .guarantee-bar {
+                gap: 14px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body class="dashboard-body">
-    <%- include('./partials/sidebar', { active_page: 'subscription' }) %>
+    <%- include('./partials/sidebar', { active_page: 'billing' }) %>
 
     <main class="main-content">
         <%- include('./partials/app_header', { 
             page_title: `Premium Subscriptions`, 
-            page_desc: `Upgrade your plan to access premium CBT mocks and advanced materials.`,
+            page_desc: `Upgrade your student account for unlimited CBT mocks, AI study assistance, and course materials.`,
             header_style: 'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);'
         }) %>
 
         <div class="pricing-container">
             <% if (locals.locked) { %>
                 <div class="locked-alert">
-                    🔒 The Mock Examination you selected requires an active Premium Subscription. Please upgrade to continue.
+                    <span style="font-size: 1.5rem; flex-shrink: 0;">🔒</span>
+                    <div>
+                        <strong>Premium Access Required</strong><br>
+                        The examination or material you selected requires an active subscription. Choose your plan below to unlock full access.
+                    </div>
                 </div>
             <% } %>
 
+            <div class="pricing-intro">
+                <h2>Choose the Right Plan for You</h2>
+                <p>Unlock unlimited AAU course CBT mock exams, national JAMB/WAEC simulations, and instant AI tutor explanations.</p>
+            </div>
+
             <div class="pricing-grid">
-                <!-- Monthly Plan -->
+                <!-- Monthly Plan: ₦2,000 for 1 month -->
                 <div class="price-card">
-                    <h3 style="color: var(--text-color); font-size: 1.5rem;">Basic Premium</h3>
-                    <p style="color: var(--ntxt-color); margin-top: 10px;">Perfect for short-term preparation.</p>
-                    <div class="price-amount"><span class="price-currency">₦</span>2,000</div>
-                    <span style="color: var(--ntxt-color);">per month</span>
+                    <div class="plan-header">
+                        <h3 class="plan-title">Basic Premium</h3>
+                        <p class="plan-subtitle">Ideal for quick test prep and immediate revision.</p>
+                        <div class="price-amount">
+                            <span class="price-currency">₦</span>2,000
+                        </div>
+                        <span class="plan-duration">per month (30 days access)</span>
+                    </div>
                     
                     <ul class="features-list">
-                        <li>Access all Premium Mock Exams</li>
-                        <li>Advanced Subject Analytics</li>
-                        <li>Download all Study PDFs</li>
-                        <li>Unlimited Practice Sessions</li>
+                        <li><span class="check-icon">✓</span> <span>Access to All AAU Course Mock Exams (GST 111, BIO 111, etc.)</span></li>
+                        <li><span class="check-icon">✓</span> <span>Full JAMB & WAEC CBT Mock Simulations</span></li>
+                        <li><span class="check-icon">✓</span> <span>Unlimited Past Questions & Verified Answers</span></li>
+                        <li><span class="check-icon">✓</span> <span>Detailed Subject Performance Analytics</span></li>
+                        <li><span class="check-icon">✓</span> <span>Standard AI Tutor Question Explanations</span></li>
+                        <li><span class="check-icon">✓</span> <span>Download Study Notes & PDF Materials</span></li>
                     </ul>
                     
-                    <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; background: var(--card-bg); color: var(--primary-color); border: 2px solid var(--primary-color);" onclick="payWithPaystack('premium', 200000)">Subscribe Monthly</button>
+                    <button type="button" class="plan-btn plan-btn-outline" onclick="payWithPaystack('premium', 200000)">
+                        Subscribe Monthly &bull; ₦2,000
+                    </button>
                 </div>
 
-                <!-- 6 Months Plan -->
+                <!-- 6 Months Plan: ₦5,000 for 6 months (Initial stated price) -->
                 <div class="price-card popular">
-                    <div class="popular-badge">MOST POPULAR</div>
-                    <h3 style="color: var(--text-color); font-size: 1.5rem;">Full Premium</h3>
-                    <p style="color: var(--ntxt-color); margin-top: 10px;">Complete access for an entire semester.</p>
-                    <div class="price-amount"><span class="price-currency">₦</span>10,000</div>
-                    <span style="color: var(--ntxt-color);">for 6 months (Save ₦2,000)</span>
+                    <div class="popular-badge">RECOMMENDED &bull; BEST VALUE</div>
+                    <div class="plan-header">
+                        <h3 class="plan-title">Full Premium</h3>
+                        <p class="plan-subtitle">Complete all-in-one access for an entire academic semester.</p>
+                        <div class="price-amount">
+                            <span class="price-currency">₦</span>5,000
+                        </div>
+                        <span class="plan-duration">for 6 full months</span>
+                        <div><span class="savings-tag">🔥 Save ₦7,000 compared to monthly</span></div>
+                    </div>
                     
                     <ul class="features-list">
-                        <li>Access all Premium Mock Exams</li>
-                        <li>Advanced Subject Analytics</li>
-                        <li>Download all Study PDFs</li>
-                        <li>Unlimited Practice Sessions</li>
-                        <li>Priority Chat Support</li>
+                        <li><span class="check-icon">✓</span> <span><strong>Everything</strong> included in Basic Premium</span></li>
+                        <li><span class="check-icon">✓</span> <span><strong>6 Full Months</strong> uninterrupted coverage</span></li>
+                        <li><span class="check-icon">✓</span> <span>Unlimited AI Exam Question Generation</span></li>
+                        <li><span class="check-icon">✓</span> <span>Live Grade & Career Progress Tracking</span></li>
+                        <li><span class="check-icon">✓</span> <span>Priority WhatsApp & Academic Support</span></li>
+                        <li><span class="check-icon">✓</span> <span>Change Department / Faculty Access Anytime</span></li>
                     </ul>
                     
-                    <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="payWithPaystack('full_premium', 1000000)">Subscribe for 6 Months</button>
+                    <button type="button" class="plan-btn plan-btn-solid" onclick="payWithPaystack('full_premium', 500000)">
+                        Subscribe for 6 Months &bull; ₦5,000
+                    </button>
+                </div>
+            </div>
+
+            <!-- Trust / Security Guarantee -->
+            <div class="guarantee-bar">
+                <div class="guarantee-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    <span>Secured with 256-bit SSL</span>
+                </div>
+                <div class="guarantee-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <span>Instant Automated Activation via Paystack</span>
+                </div>
+                <div class="guarantee-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Cancel Anytime</span>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        function payWithPaystack(plan, amount) {
+        function payWithPaystack(plan, amountKobo) {
+            let userEmail = '<%= (locals.user && user.email) ? user.email : "" %>';
+            if (!userEmail || userEmail.trim().length === 0) {
+                userEmail = prompt("Please enter your email address for your payment receipt:");
+                if (!userEmail || !userEmail.includes('@')) {
+                    alert("A valid email address is required to proceed with payment.");
+                    return;
+                }
+            }
+
+            const publicKey = '<%= paystack_public_key %>';
+            if (!publicKey) {
+                alert("Payment gateway configuration error. Please contact support.");
+                return;
+            }
+
             let handler = PaystackPop.setup({
-                key: '<%= paystack_public_key %>', 
-                email: '<%= user.email %>',
-                amount: amount,
+                key: publicKey, 
+                email: userEmail.trim(),
+                amount: amountKobo,
                 currency: "NGN",
-                ref: '' + Math.floor((Math.random() * 1000000000) + 1),
+                ref: 'kelsel_' + Date.now() + '_' + Math.floor((Math.random() * 1000000) + 1),
                 callback: function (response) {
+                    // Show processing status
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100vw';
+                    overlay.style.height = '100vh';
+                    overlay.style.background = 'rgba(0,0,0,0.7)';
+                    overlay.style.display = 'flex';
+                    overlay.style.flexDirection = 'column';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.alignItems = 'center';
+                    overlay.style.zIndex = '99999';
+                    overlay.style.color = '#fff';
+                    overlay.innerHTML = '<div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">Verifying Payment...</div><div>Please do not close this window.</div>';
+                    document.body.appendChild(overlay);
+
                     fetch('/api/verify_payment', {
                         method: 'POST',
                         headers: {
@@ -132,16 +445,21 @@
                     })
                     .then(res => res.json())
                     .then(data => {
+                        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
                         if (data.status === 'success') {
                             alert('Payment successful! Your account has been upgraded.');
-                            window.location.href = '/payment_history';
+                            window.location.href = '/dashboard';
                         } else {
-                            alert('Payment verification failed: ' + data.message);
+                            alert('Payment verification failed: ' + (data.message || 'Please contact support with reference ' + response.reference));
                         }
+                    })
+                    .catch(err => {
+                        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                        alert('Network communication error during verification. Your payment reference is ' + response.reference);
                     });
                 },
                 onClose: function () {
-                    alert('Transaction was not completed, window closed.');
+                    // Closed without completing
                 }
             });
             handler.openIframe();

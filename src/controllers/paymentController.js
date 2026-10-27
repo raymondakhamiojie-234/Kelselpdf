@@ -1,11 +1,31 @@
 const pool = require('../config/db');
 
-exports.getPayment = (req, res) => {
-    res.render('acct/payment', { 
-        user: req.session.user,
-        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
-        locked: req.query.locked === 'true'
-    });
+exports.getPayment = async (req, res) => {
+    try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        let user = req.session.user || {};
+        if (userId && (!user.email || !user.full_name)) {
+            const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+            if (rows.length > 0) {
+                user = rows[0];
+                req.session.user = user;
+            }
+        }
+        res.render('acct/payment', { 
+            user,
+            paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
+            locked: req.query.locked === 'true',
+            active_page: 'billing'
+        });
+    } catch (err) {
+        console.error("getPayment error:", err);
+        res.render('acct/payment', { 
+            user: req.session.user || {},
+            paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_4ede74cd265890e05a92b2962578636590b18913',
+            locked: req.query.locked === 'true',
+            active_page: 'billing'
+        });
+    }
 };
 
 exports.verifyPayment = async (req, res) => {
@@ -33,7 +53,7 @@ exports.verifyPayment = async (req, res) => {
             return res.json({ status: 'error', message: 'Payment verification failed on Paystack.' });
         }
 
-        const user_id = req.session.user.id;
+        const user_id = (req.session.user && req.session.user.id) || req.session.user_id;
         let expiry_date;
         let plan_name;
 
@@ -83,11 +103,12 @@ exports.verifyPayment = async (req, res) => {
 
 exports.getPaymentHistory = async (req, res) => {
     try {
+        const user_id = (req.session.user && req.session.user.id) || req.session.user_id;
         const [transactions] = await pool.query(
             'SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC',
-            [req.session.user.id]
+            [user_id]
         );
-        res.render('acct/payment_history', { transactions });
+        res.render('acct/payment_history', { transactions, active_page: 'billing' });
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");
