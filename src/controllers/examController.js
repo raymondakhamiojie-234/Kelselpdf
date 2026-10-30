@@ -272,7 +272,7 @@ exports.getExamAnalytics = async (req, res) => {
         );
 
         res.render('acct/exam_analytics', {
-            user: req.session.user,
+            user: req.session.user || {},
             attempts,
             labels: JSON.stringify(labels),
             data: JSON.stringify(data),

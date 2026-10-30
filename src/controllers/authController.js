@@ -82,21 +82,25 @@ exports.getLogout = (req, res) => {
 };
 
 exports.getProfile = async (req, res) => {
+    const userId = req.session.user_id || (req.session.user && req.session.user.id);
+    if (!userId) return res.redirect('/login');
     try {
-        const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
-        res.render('acct/profile', { user: rows[0], success: '', error: '' });
+        const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+        res.render('acct/profile', { user: rows[0] || req.session.user || {}, success: '', error: '' });
     } catch (err) {
-        res.render('acct/profile', { user: req.session.user, success: '', error: 'Database error' });
+        res.render('acct/profile', { user: req.session.user || {}, success: '', error: 'Database error' });
     }
 };
 
 exports.postProfile = async (req, res) => {
     const { full_name, lastname, department_id, level } = req.body;
+    const userId = req.session.user_id || (req.session.user && req.session.user.id);
+    if (!userId) return res.redirect('/login');
     try {
-        const [userCheck] = await pool.query('SELECT can_change_level, level as current_level FROM users WHERE id = ?', [req.session.user.id]);
-        const can_change = userCheck[0].can_change_level;
+        const [userCheck] = await pool.query('SELECT can_change_level, level as current_level FROM users WHERE id = ?', [userId]);
+        const can_change = userCheck[0] ? userCheck[0].can_change_level : false;
         
-        let final_level = userCheck[0].current_level;
+        let final_level = userCheck[0] ? userCheck[0].current_level : level;
         let final_can_change = can_change;
         
         if (can_change && level) {
@@ -106,14 +110,21 @@ exports.postProfile = async (req, res) => {
 
         await pool.query(
             'UPDATE users SET full_name = ?, lastname = ?, department_id = ?, level = ?, can_change_level = ? WHERE id = ?',
-            [full_name, lastname, department_id, final_level, final_can_change, req.session.user.id]
+            [full_name, lastname, department_id, final_level, final_can_change, userId]
         );
-        req.session.user.full_name = full_name;
-        req.session.user.level = final_level;
-        const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
-        res.render('acct/profile', { user: rows[0], success: 'Profile updated successfully!', error: '' });
+        if (req.session.user) {
+            req.session.user.full_name = full_name;
+            req.session.user.level = final_level;
+        }
+        const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+        res.render('acct/profile', { user: rows[0] || req.session.user || {}, success: 'Profile updated successfully!', error: '' });
     } catch (err) {
-        const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
-        res.render('acct/profile', { user: rows[0], success: '', error: 'Error updating profile: ' + err.message });
+        console.error(err);
+        let user = req.session.user || {};
+        try {
+            const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+            if (rows && rows.length > 0) user = rows[0];
+        } catch (e) {}
+        res.render('acct/profile', { user, success: '', error: 'Error updating profile: ' + err.message });
     }
 };

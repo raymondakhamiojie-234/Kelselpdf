@@ -1,20 +1,38 @@
 const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
 const pool = require('../config/db');
 const { jsonrepair } = require('jsonrepair');
+
+async function incrementUsage(userId) {
+    if (!userId) return;
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const [usage] = await pool.query('SELECT id, exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
+        if (usage.length > 0) {
+            await pool.query('UPDATE ai_usage_tracking SET exams_generated = exams_generated + 1 WHERE id = ?', [usage[0].id]);
+        } else {
+            await pool.query('INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) VALUES (?, ?, 1)', [userId, today]);
+        }
+    } catch (e) {
+        console.error("Usage limit increment error:", e.message);
+    }
+}
+
 exports.getAiExamView = async (req, res) => {
     let ai_limit_message = null;
     let ai_remaining = null;
-    if (req.session.user.subscription_plan === 'Premium') {
+    const user = req.session.user || {};
+    const userId = req.session.user_id || user.id;
+
+    if (user.subscription_plan === 'Premium') {
         try {
             const today = new Date().toISOString().split('T')[0];
-            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
             const used = usage.length > 0 ? usage[0].exams_generated : 0;
             const remaining = Math.max(0, 3 - used);
             ai_remaining = remaining;
             ai_limit_message = `You are on the Premium Plan. You have ${remaining} out of 3 AI requests remaining today. Upgrade to Full Premium for unlimited AI.`;
         } catch(err) {
             console.error(err);
-            // If table doesn't exist yet, default to 3
             ai_remaining = 3;
             ai_limit_message = `You are on the Premium Plan. You have 3 out of 3 AI requests remaining today. Upgrade to Full Premium for unlimited AI.`;
         }
@@ -25,10 +43,13 @@ exports.getAiExamView = async (req, res) => {
 
 exports.generateExam = async (req, res) => {
     try {
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // --- Usage Limit Check ---
-        if (req.session.user.subscription_plan === 'Premium') {
+        if (user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
-            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
             if (usage.length > 0 && usage[0].exams_generated >= 7) {
                 return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium for unlimited AI access." });
             }
@@ -83,13 +104,8 @@ Return ONLY a raw JSON object with this exact structure:
         result.success = true;
 
         // --- Increment Usage ---
-        if (req.session.user.subscription_plan === 'Premium') {
-            const today = new Date().toISOString().split('T')[0];
-            await pool.query(`
-                INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
-                VALUES (?, ?, 1) 
-                ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
-            `, [req.session.user_id, today]);
+        if (user.subscription_plan === 'Premium') {
+            await incrementUsage(userId);
         }
         // -----------------------
 
@@ -164,10 +180,13 @@ exports.getPdfViewer = async (req, res) => {
 
     let ai_limit_message = null;
     let ai_remaining = null;
-    if (req.session.user.subscription_plan === 'Premium') {
+    const user = req.session.user || {};
+    const userId = req.session.user_id || user.id;
+
+    if (user.subscription_plan === 'Premium') {
         try {
             const today = new Date().toISOString().split('T')[0];
-            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
             const used = usage.length > 0 ? usage[0].exams_generated : 0;
             const remaining = Math.max(0, 3 - used);
             ai_remaining = remaining;
@@ -184,11 +203,14 @@ exports.getPdfViewer = async (req, res) => {
 
 exports.chatPdf = async (req, res) => {
     try {
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // --- Usage Limit Check ---
-        if (req.session.user.subscription_plan === 'Premium') {
+        if (user.subscription_plan === 'Premium') {
             try {
                 const today = new Date().toISOString().split('T')[0];
-                const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+                const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
                 if (usage.length > 0 && usage[0].exams_generated >= 7) {
                     return res.json({ error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
                 }
@@ -235,17 +257,8 @@ exports.chatPdf = async (req, res) => {
             const data = await response.json();
 
             // --- Increment Usage ---
-            if (req.session.user.subscription_plan === 'Premium') {
-                try {
-                    const today = new Date().toISOString().split('T')[0];
-                    await pool.query(`
-                        INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
-                        VALUES (?, ?, 1) 
-                        ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
-                    `, [req.session.user_id, today]);
-                } catch (e) {
-                    console.error("Usage limit increment error:", e);
-                }
+            if (user.subscription_plan === 'Premium') {
+                await incrementUsage(userId);
             }
             // -----------------------
 

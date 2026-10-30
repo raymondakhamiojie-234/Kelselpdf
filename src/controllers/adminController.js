@@ -392,7 +392,8 @@ exports.postUpdateUserRole = async (req, res) => {
     try {
         const { user_id, role } = req.body;
         // Don't let admin remove their own admin privileges easily if they are the only one, but we'll assume they know what they are doing.
-        if (req.session.user.id == user_id && role !== 'admin') {
+        const adminId = (req.session.user && req.session.user.id) || req.session.user_id;
+        if (adminId == user_id && role !== 'admin') {
             return res.status(400).send("You cannot remove your own admin role.");
         }
         await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, user_id]);
@@ -477,7 +478,7 @@ exports.getActivityLogs = async (req, res) => {
             LIMIT 100
         `);
         
-        res.render('admin/activity', { user: req.session.user, exams, ai_usage, downloads, active_page: 'activity' });
+        res.render('admin/activity', { user: req.session.user || {}, exams, ai_usage, downloads, active_page: 'activity' });
     } catch (err) {
         console.error(err);
         res.status(500).send("Server Error");

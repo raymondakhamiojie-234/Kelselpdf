@@ -18,6 +18,8 @@ const checkAuth = async (req, res, next) => {
         if (rows.length > 0) {
             const user = rows[0];
             req.session.user = user;
+            res.locals.user = user;
+            res.locals.user_id = user.id;
             
             // Check if account is locked by admin
             if (user.account_locked) {

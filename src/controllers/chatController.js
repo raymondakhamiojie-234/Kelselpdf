@@ -29,8 +29,11 @@ async function generateNvidiaCompletion(messages) {
 
 exports.getChatUI = async (req, res) => {
     try {
-        const [sessions] = await pool.query('SELECT * FROM ai_chat_sessions WHERE user_id = ? ORDER BY updated_at DESC', [req.session.user.id]);
-        res.render('acct/ai_chat', { user: req.session.user, sessions, active_page: 'ai_chat' });
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        const user = req.session.user || {};
+        if (!userId) return res.redirect('/login');
+        const [sessions] = await pool.query('SELECT * FROM ai_chat_sessions WHERE user_id = ? ORDER BY updated_at DESC', [userId]);
+        res.render('acct/ai_chat', { user, sessions, active_page: 'ai_chat' });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error loading AI Chat");
@@ -39,7 +42,9 @@ exports.getChatUI = async (req, res) => {
 
 exports.getSessions = async (req, res) => {
     try {
-        const [sessions] = await pool.query('SELECT * FROM ai_chat_sessions WHERE user_id = ? ORDER BY updated_at DESC', [req.session.user.id]);
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        if (!userId) return res.json({ success: false, error: 'Unauthorized' });
+        const [sessions] = await pool.query('SELECT * FROM ai_chat_sessions WHERE user_id = ? ORDER BY updated_at DESC', [userId]);
         res.json({ success: true, sessions });
     } catch (err) {
         res.json({ success: false, error: err.message });
@@ -48,9 +53,11 @@ exports.getSessions = async (req, res) => {
 
 exports.getSessionMessages = async (req, res) => {
     try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        if (!userId) return res.json({ success: false, error: 'Unauthorized' });
         const sessionId = req.params.id;
         // Verify ownership
-        const [session] = await pool.query('SELECT * FROM ai_chat_sessions WHERE id = ? AND user_id = ?', [sessionId, req.session.user.id]);
+        const [session] = await pool.query('SELECT * FROM ai_chat_sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
         if (session.length === 0) return res.json({ success: false, error: 'Session not found' });
         
         const [messages] = await pool.query('SELECT * FROM ai_chat_messages WHERE session_id = ? ORDER BY created_at ASC', [sessionId]);
@@ -62,7 +69,9 @@ exports.getSessionMessages = async (req, res) => {
 
 exports.postNewSession = async (req, res) => {
     try {
-        const [result] = await pool.query('INSERT INTO ai_chat_sessions (user_id) VALUES (?)', [req.session.user.id]);
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        if (!userId) return res.json({ success: false, error: 'Unauthorized' });
+        const [result] = await pool.query('INSERT INTO ai_chat_sessions (user_id) VALUES (?)', [userId]);
         res.json({ success: true, session_id: result.insertId });
     } catch (err) {
         res.json({ success: false, error: err.message });
@@ -71,27 +80,32 @@ exports.postNewSession = async (req, res) => {
 
 exports.postMessage = async (req, res) => {
     try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
+        const user = req.session.user || {};
+        if (!userId) return res.json({ success: false, error: 'Unauthorized' });
+
         const { session_id, message } = req.body;
         if (!session_id || !message) return res.json({ success: false, error: 'Missing data' });
         
         // Verify ownership
-        const [session] = await pool.query('SELECT * FROM ai_chat_sessions WHERE id = ? AND user_id = ?', [session_id, req.session.user.id]);
+        const [session] = await pool.query('SELECT * FROM ai_chat_sessions WHERE id = ? AND user_id = ?', [session_id, userId]);
         if (session.length === 0) return res.json({ success: false, error: 'Session not found' });
 
         // Save User Message
         await pool.query('INSERT INTO ai_chat_messages (session_id, role, content) VALUES (?, ?, ?)', [session_id, 'user', message]);
         
         // Build Context
-        let systemPrompt = `You are KelselPDF's AI Tutor. You are helping a student named ${req.session.user.full_name}. Keep your answers helpful, encouraging, and academically focused. Format with Markdown.`;
+        const studentName = user.full_name || 'Student';
+        let systemPrompt = `You are KelselPDF's AI Tutor. You are helping a student named ${studentName}. Keep your answers helpful, encouraging, and academically focused. Format with Markdown.`;
         
         try {
-            const [exams] = await pool.query('SELECT course_code, score, total_questions FROM exam_attempts WHERE user_id = ? ORDER BY created_at DESC LIMIT 5', [req.session.user.id]);
+            const [exams] = await pool.query('SELECT course_code, score, total_questions FROM exam_attempts WHERE user_id = ? ORDER BY created_at DESC LIMIT 5', [userId]);
             if (exams.length > 0) {
                 const examText = exams.map(e => `${e.course_code}: ${e.score}/${e.total_questions}`).join(', ');
                 systemPrompt += `\nHere are their recent mock exam scores: ${examText}. Use this to guide their studies.`;
             }
             
-            const [materials] = await pool.query('SELECT original_name FROM user_materials WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5', [req.session.user.id]);
+            const [materials] = await pool.query('SELECT original_name FROM user_materials WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5', [userId]);
             if (materials.length > 0) {
                 const matText = materials.map(m => m.original_name).join(', ');
                 systemPrompt += `\nThey recently uploaded these study materials: ${matText}.`;

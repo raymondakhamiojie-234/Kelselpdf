@@ -5,13 +5,30 @@ const pdfParse = require('pdf-parse');
 const { generateNvidiaCompletion, withTimeout } = require('../services/ai');
 const { jsonrepair } = require('jsonrepair');
 
+async function incrementUsage(userId) {
+    if (!userId) return;
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const [usage] = await pool.query('SELECT id, exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
+        if (usage.length > 0) {
+            await pool.query('UPDATE ai_usage_tracking SET exams_generated = exams_generated + 1 WHERE id = ?', [usage[0].id]);
+        } else {
+            await pool.query('INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) VALUES (?, ?, 1)', [userId, today]);
+        }
+    } catch (e) {
+        console.error("Usage limit increment error:", e.message);
+    }
+}
+
 exports.getMyMaterials = async (req, res) => {
     try {
-        const [materials] = await pool.query('SELECT * FROM user_materials WHERE user_id = ? ORDER BY uploaded_at DESC', [req.session.user_id]);
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+        const [materials] = await pool.query('SELECT * FROM user_materials WHERE user_id = ? ORDER BY uploaded_at DESC', [userId]);
         
         let limit_message = null;
         let materials_remaining = null;
-        if (req.session.user.subscription_plan === 'Premium') {
+        if (user.subscription_plan === 'Premium') {
             materials_remaining = Math.max(0, 7 - materials.length);
             limit_message = `Premium Plan: You have used ${materials.length} of 7 material uploads.`;
         }
@@ -29,9 +46,12 @@ exports.uploadMaterial = async (req, res) => {
             return res.status(400).send("No file uploaded.");
         }
 
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // --- Usage Limit Check ---
-        if (req.session.user.subscription_plan === 'Premium') {
-            const [rows] = await pool.query('SELECT COUNT(*) as count FROM user_materials WHERE user_id = ?', [req.session.user_id]);
+        if (user.subscription_plan === 'Premium') {
+            const [rows] = await pool.query('SELECT COUNT(*) as count FROM user_materials WHERE user_id = ?', [userId]);
             if (rows[0].count >= 7) {
                 fs.unlinkSync(req.file.path); // Delete temp file
                 return res.status(403).send("You have reached the maximum limit of 7 materials on the Premium plan. Please upgrade to Full Premium for unlimited materials.");
@@ -56,7 +76,7 @@ exports.uploadMaterial = async (req, res) => {
 
         await pool.query(
             'INSERT INTO user_materials (user_id, original_name, filename, content) VALUES (?, ?, ?, ?)',
-            [req.session.user_id, originalName, filename, content]
+            [userId, originalName, filename, content]
         );
 
         // Delete the temp file now that we have the text
@@ -76,10 +96,13 @@ exports.uploadMaterial = async (req, res) => {
 
 exports.explainMaterial = async (req, res) => {
     try {
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // --- Usage Limit Check ---
-        if (req.session.user.subscription_plan === 'Premium') {
+        if (user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
-            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
             if (usage.length > 0 && usage[0].exams_generated >= 7) {
                 return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
@@ -87,7 +110,7 @@ exports.explainMaterial = async (req, res) => {
         // -----------------------
 
         const materialId = req.body.material_id;
-        const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, req.session.user_id]);
+        const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, userId]);
         
         if (rows.length === 0) return res.json({ success: false, error: "Material not found" });
         
@@ -111,13 +134,8 @@ exports.explainMaterial = async (req, res) => {
             );
 
             // --- Increment Usage ---
-            if (req.session.user.subscription_plan === 'Premium') {
-                const today = new Date().toISOString().split('T')[0];
-                await pool.query(`
-                    INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
-                    VALUES (?, ?, 1) 
-                    ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
-                `, [req.session.user_id, today]);
+            if (user.subscription_plan === 'Premium') {
+                await incrementUsage(userId);
             }
             // -----------------------
 
@@ -135,10 +153,13 @@ exports.explainMaterial = async (req, res) => {
 
 exports.generateExam = async (req, res) => {
     try {
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // --- Usage Limit Check ---
-        if (req.session.user.subscription_plan === 'Premium') {
+        if (user.subscription_plan === 'Premium') {
             const today = new Date().toISOString().split('T')[0];
-            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [req.session.user_id, today]);
+            const [usage] = await pool.query('SELECT exams_generated FROM ai_usage_tracking WHERE user_id = ? AND usage_date = ?', [userId, today]);
             if (usage.length > 0 && usage[0].exams_generated >= 7) {
                 return res.json({ success: false, error: "You have reached the maximum limit of 7 AI requests per day on the Premium plan. Please upgrade to Full Premium." });
             }
@@ -146,7 +167,7 @@ exports.generateExam = async (req, res) => {
         // -----------------------
 
         const materialId = req.body.material_id;
-        const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, req.session.user_id]);
+        const [rows] = await pool.query('SELECT * FROM user_materials WHERE id = ? AND user_id = ?', [materialId, userId]);
         
         if (rows.length === 0) return res.status(404).json({ error: "Material not found" });
         
@@ -229,13 +250,8 @@ ${text}`;
             const result = JSON.parse(repairedJson);
 
             // --- Increment Usage ---
-            if (req.session.user.subscription_plan === 'Premium') {
-                const today = new Date().toISOString().split('T')[0];
-                await pool.query(`
-                    INSERT INTO ai_usage_tracking (user_id, usage_date, exams_generated) 
-                    VALUES (?, ?, 1) 
-                    ON DUPLICATE KEY UPDATE exams_generated = exams_generated + 1
-                `, [req.session.user_id, today]);
+            if (user.subscription_plan === 'Premium') {
+                await incrementUsage(userId);
             }
             // -----------------------
 

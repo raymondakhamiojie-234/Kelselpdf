@@ -21,7 +21,7 @@ exports.getSkills = async (req, res) => {
         const [courses] = await pool.query(coursesQuery, queryParams);
         
         res.render('skills/browse', { 
-            user: req.session.user, 
+            user: req.session.user || {}, 
             categories, 
             courses,
             current_category: categorySlug 
@@ -39,6 +39,8 @@ exports.getSkillsCourse = async (req, res) => {
         
         if (courseRows.length === 0) return res.status(404).send("Course not found");
         const course = courseRows[0];
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
         
         // Fetch Modules & Lessons
         const [modules] = await pool.query('SELECT * FROM academy_modules WHERE course_id = ? ORDER BY order_index ASC', [course.id]);
@@ -49,26 +51,31 @@ exports.getSkillsCourse = async (req, res) => {
         }
 
         // Check if enrolled (if progress exists)
-        const [progressRows] = await pool.query(`
-            SELECT p.* FROM academy_progress p 
-            JOIN academy_lessons l ON p.lesson_id = l.id
-            JOIN academy_modules m ON l.module_id = m.id
-            WHERE p.user_id = ? AND m.course_id = ? LIMIT 1
-        `, [req.session.user.id, course.id]);
-
+        let is_enrolled = false;
         let whitelist_status = null;
-        if (req.session.user.subscription_plan === 'Premium') {
-            const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [req.session.user.id, course.id]);
-            if (whitelistRows.length > 0) {
-                whitelist_status = whitelistRows[0].status;
+
+        if (userId) {
+            const [progressRows] = await pool.query(`
+                SELECT p.* FROM academy_progress p 
+                JOIN academy_lessons l ON p.lesson_id = l.id
+                JOIN academy_modules m ON l.module_id = m.id
+                WHERE p.user_id = ? AND m.course_id = ? LIMIT 1
+            `, [userId, course.id]);
+            is_enrolled = progressRows.length > 0;
+
+            if (user.subscription_plan === 'Premium') {
+                const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [userId, course.id]);
+                if (whitelistRows.length > 0) {
+                    whitelist_status = whitelistRows[0].status;
+                }
             }
         }
 
         res.render('skills/course_details', {
-            user: req.session.user,
+            user,
             course,
             modules,
-            is_enrolled: progressRows.length > 0,
+            is_enrolled,
             whitelist_status
         });
     } catch (err) {
@@ -80,16 +87,19 @@ exports.getSkillsCourse = async (req, res) => {
 exports.postSkillsEnroll = async (req, res) => {
     try {
         const { course_id } = req.body;
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         // Verify course exists
         const [courseRows] = await pool.query('SELECT slug, is_premium FROM academy_courses WHERE id = ?', [course_id]);
         if(courseRows.length === 0) return res.status(404).send("Course not found");
         
         // Premium Check
         if (courseRows[0].is_premium) {
-            if (req.session.user.has_paid === 0) {
+            if (!user.has_paid) {
                 return res.redirect('/payment');
             }
-            if (req.session.user.subscription_plan === 'Premium') {
+            if (user.subscription_plan === 'Premium') {
                 return res.status(403).send("You must be on the Full Premium plan to enroll directly. Premium users must apply for the whitelist.");
             }
         }
@@ -101,8 +111,11 @@ exports.postSkillsEnroll = async (req, res) => {
             WHERE m.course_id = ? ORDER BY m.order_index ASC, l.order_index ASC LIMIT 1
         `, [course_id]);
 
-        if (lessonRows.length > 0) {
-            await pool.query('INSERT IGNORE INTO academy_progress (user_id, lesson_id) VALUES (?, ?)', [req.session.user.id, lessonRows[0].id]);
+        if (lessonRows.length > 0 && userId) {
+            const [prog] = await pool.query('SELECT id FROM academy_progress WHERE user_id = ? AND lesson_id = ?', [userId, lessonRows[0].id]);
+            if (prog.length === 0) {
+                await pool.query('INSERT INTO academy_progress (user_id, lesson_id) VALUES (?, ?)', [userId, lessonRows[0].id]);
+            }
         }
         
         res.redirect(`/skills/player/${courseRows[0].slug}`);
@@ -115,15 +128,22 @@ exports.postSkillsEnroll = async (req, res) => {
 exports.postSkillsWhitelist = async (req, res) => {
     try {
         const { course_id } = req.body;
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
         
-        if (req.session.user.subscription_plan !== 'Premium') {
+        if (user.subscription_plan !== 'Premium') {
             return res.status(403).send("Only Premium users can apply for whitelisting.");
         }
 
-        await pool.query(
-            'INSERT IGNORE INTO whitelist_requests (user_id, course_id, status) VALUES (?, ?, ?)',
-            [req.session.user.id, course_id, 'pending']
-        );
+        if (userId) {
+            const [existingReq] = await pool.query('SELECT id FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [userId, course_id]);
+            if (existingReq.length === 0) {
+                await pool.query(
+                    'INSERT INTO whitelist_requests (user_id, course_id, status) VALUES (?, ?, ?)',
+                    [userId, course_id, 'pending']
+                );
+            }
+        }
 
         res.redirect('back');
     } catch (err) {
@@ -135,17 +155,20 @@ exports.postSkillsWhitelist = async (req, res) => {
 exports.getSkillsPlayer = async (req, res) => {
     try {
         const slug = req.params.slug;
+        const user = req.session.user || {};
+        const userId = req.session.user_id || user.id;
+
         const [courseRows] = await pool.query('SELECT * FROM academy_courses WHERE slug = ?', [slug]);
         if (courseRows.length === 0) return res.status(404).send("Course not found");
         const course = courseRows[0];
         
         // Premium Check
         if (course.is_premium) {
-            if (req.session.user.has_paid === 0) {
+            if (!user.has_paid) {
                 return res.redirect('/payment');
             }
-            if (req.session.user.subscription_plan === 'Premium') {
-                const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [req.session.user.id, course.id]);
+            if (user.subscription_plan === 'Premium') {
+                const [whitelistRows] = await pool.query('SELECT status FROM whitelist_requests WHERE user_id = ? AND course_id = ?', [userId, course.id]);
                 if (whitelistRows.length === 0 || whitelistRows[0].status !== 'approved') {
                     return res.status(403).send("You must be approved on the whitelist to access this course. Please apply on the course details page.");
                 }
@@ -162,16 +185,19 @@ exports.getSkillsPlayer = async (req, res) => {
         }
 
         // Fetch User Progress
-        const [progressRows] = await pool.query(`
-            SELECT lesson_id, completed FROM academy_progress 
-            WHERE user_id = ? AND lesson_id IN (
-                SELECT l.id FROM academy_lessons l
-                JOIN academy_modules m ON l.module_id = m.id
-                WHERE m.course_id = ?
-            )
-        `, [req.session.user.id, course.id]);
+        let completed_lessons = [];
+        if (userId) {
+            const [progressRows] = await pool.query(`
+                SELECT lesson_id, completed FROM academy_progress 
+                WHERE user_id = ? AND lesson_id IN (
+                    SELECT l.id FROM academy_lessons l
+                    JOIN academy_modules m ON l.module_id = m.id
+                    WHERE m.course_id = ?
+                )
+            `, [userId, course.id]);
+            completed_lessons = progressRows.filter(p => p.completed).map(p => p.lesson_id);
+        }
 
-        const completed_lessons = progressRows.filter(p => p.completed).map(p => p.lesson_id);
         const progress_percent = allLessons.length > 0 ? (completed_lessons.length / allLessons.length) * 100 : 0;
 
         // Current Lesson Logic
@@ -190,7 +216,7 @@ exports.getSkillsPlayer = async (req, res) => {
         }
 
         res.render('skills/player', {
-            user: req.session.user,
+            user,
             course,
             modules,
             current_lesson,
@@ -208,12 +234,16 @@ exports.getSkillsPlayer = async (req, res) => {
 exports.postSkillsCompleteLesson = async (req, res) => {
     try {
         const { lesson_id, course_slug } = req.body;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         
-        await pool.query(`
-            INSERT INTO academy_progress (user_id, lesson_id, completed, completed_at)
-            VALUES (?, ?, TRUE, NOW())
-            ON DUPLICATE KEY UPDATE completed = TRUE, completed_at = NOW()
-        `, [req.session.user.id, lesson_id]);
+        if (userId) {
+            const [existing] = await pool.query('SELECT id FROM academy_progress WHERE user_id = ? AND lesson_id = ?', [userId, lesson_id]);
+            if (existing.length > 0) {
+                await pool.query('UPDATE academy_progress SET completed = TRUE, completed_at = CURRENT_TIMESTAMP WHERE id = ?', [existing[0].id]);
+            } else {
+                await pool.query('INSERT INTO academy_progress (user_id, lesson_id, completed, completed_at) VALUES (?, ?, TRUE, CURRENT_TIMESTAMP)', [userId, lesson_id]);
+            }
+        }
 
         // Find next lesson to redirect to
         const [courseRows] = await pool.query('SELECT id FROM academy_courses WHERE slug = ?', [course_slug]);
@@ -240,7 +270,7 @@ exports.postSkillsCompleteLesson = async (req, res) => {
 exports.getSkillsCertificate = async (req, res) => {
     try {
         const courseId = req.params.course_id;
-        const userId = req.session.user_id;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         
         let [certs] = await pool.query('SELECT * FROM certificates WHERE user_id = ? AND course_id = ?', [userId, courseId]);
         
@@ -289,13 +319,14 @@ exports.getVerifyHash = async (req, res) => {
 
 exports.getCertificates = async (req, res) => {
     try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         const [certs] = await pool.query(`
             SELECT c.*, ac.title as course_title 
             FROM certificates c
             JOIN academy_courses ac ON c.course_id = ac.id
             WHERE c.user_id = ?
             ORDER BY c.issued_at DESC
-        `, [req.session.user_id]);
+        `, [userId]);
         res.render('acct/certificates', { certs });
     } catch (err) {
         console.error(err);
@@ -305,6 +336,7 @@ exports.getCertificates = async (req, res) => {
 
 exports.getSkillsMyLearning = async (req, res) => {
     try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         const [progress] = await pool.query(`
             SELECT ac.title as course_title, ac.id as course_id
             FROM academy_progress p
@@ -312,10 +344,10 @@ exports.getSkillsMyLearning = async (req, res) => {
             JOIN academy_modules am ON al.module_id = am.id
             JOIN academy_courses ac ON am.course_id = ac.id
             WHERE p.user_id = ?
-            GROUP BY ac.id
-        `, [req.session.user_id]);
+            GROUP BY ac.id, ac.title
+        `, [userId]);
         
-        const [certs] = await pool.query('SELECT course_id FROM certificates WHERE user_id = ?', [req.session.user_id]);
+        const [certs] = await pool.query('SELECT course_id FROM certificates WHERE user_id = ?', [userId]);
         const completedCourseIds = certs.map(c => c.course_id);
 
         res.render('skills/my_learning', { progress, completedCourseIds });

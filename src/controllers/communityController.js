@@ -27,7 +27,7 @@ exports.getCommunityForum = async (req, res) => {
             JOIN users u ON t.user_id = u.id
             LEFT JOIN discussion_replies r ON t.id = r.topic_id
             WHERE t.forum_id = ?
-            GROUP BY t.id
+            GROUP BY t.id, u.full_name
             ORDER BY t.created_at DESC
         `, [req.params.id]);
         
@@ -41,9 +41,10 @@ exports.getCommunityForum = async (req, res) => {
 exports.postCommunityForumNew = async (req, res) => {
     try {
         const { title, content } = req.body;
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         const [result] = await pool.query(
             'INSERT INTO discussion_topics (forum_id, user_id, title, content) VALUES (?, ?, ?, ?)',
-            [req.params.id, req.session.user_id, title, content]
+            [req.params.id, userId, title, content]
         );
         res.redirect('/community/topic/' + result.insertId);
     } catch (err) {
@@ -80,9 +81,10 @@ exports.getCommunityTopic = async (req, res) => {
 
 exports.postCommunityTopicReply = async (req, res) => {
     try {
+        const userId = req.session.user_id || (req.session.user && req.session.user.id);
         await pool.query(
             'INSERT INTO discussion_replies (topic_id, user_id, content) VALUES (?, ?, ?)',
-            [req.params.id, req.session.user_id, req.body.content]
+            [req.params.id, userId, req.body.content]
         );
         res.redirect('/community/topic/' + req.params.id);
     } catch (err) {
